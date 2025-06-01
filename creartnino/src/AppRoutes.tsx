@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import ListarProductos from "./features/productos/pages/Listar";
 import Sidebar from "./shared/components/siderbar";
 
+import ListarPedidos from "./features/pedidos/pages/ListarPedidos";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -23,7 +24,7 @@ export default function AppRoutes() {
       <Route path="/produccion" element={<><Sidebar /><h1>Producción</h1></>} />
       <Route path="/cat-productos" element={<><Sidebar /><h1>Cat. Productos</h1></>} />
       <Route path="/productos" element={<><Sidebar /><ListarProductos /></>} />
-      <Route path="/pedidos" element={<><Sidebar/><h1>Pedidos</h1></>} />
+      <Route path="/pedidos" element={<><Sidebar/><ListarPedidos /></>} />
     </Routes>
   );
 }
