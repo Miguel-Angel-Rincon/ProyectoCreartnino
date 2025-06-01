@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import ListarProductos from "./features/productos/pages/Listar";
 import Sidebar from "./shared/components/siderbar";
+import ListarUsuarios from "./features/usuarios/pages/ListarUsuarios";
 
 export default function AppRoutes() {
   return (
@@ -13,7 +14,7 @@ export default function AppRoutes() {
 
       //rutas del administrador
       <Route path="/dashboard" element={<><Sidebar /><h1>Dashboard</h1></>} />
-      <Route path="/usuario" element={<><Sidebar /><h1>Usuario</h1></>} />
+      <Route path="/usuario" element={<><Sidebar /><ListarUsuarios /></>} />
       <Route path="/roles" element={<><Sidebar /><h1>Roles</h1></>} />
       <Route path="/clientes" element={<><Sidebar /><h1>Clientes</h1></>} />
       <Route path="/proveedores" element={<><Sidebar /><h1>Proveedores</h1></>} />
