@@ -1,0 +1,103 @@
+.sidebar {
+  width: 250px;
+  background-color: #fce4ec; /* Rosa pastel profesional */
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  color: black;
+}
+
+.sidebar h2 {
+  font-size: 1.1rem;
+  margin-top: 10px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+}
+
+.sidebar .logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.sidebar-header {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-nav a {
+  color: black;
+  padding: 10px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 5px;
+}
+
+.sidebar-nav a:hover {
+  background-color: #f8bbd0;
+}
+
+.sidebar-nav a.active {
+  background-color: #f48fb1;
+  font-weight: bold;
+}
+
+.sidebar-section {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  color: black;
+  padding: 6px 10px;
+  transition: background 0.2s ease;
+}
+
+.sidebar-section:hover {
+  background-color: #f8bbd0;
+  border-radius: 5px;
+}
+
+.toggle-button {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: #fce4ec;
+  border: none;
+  font-size: 1.5rem;
+  z-index: 1100;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: black;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .toggle-button {
+    display: block;
+  }
+}
