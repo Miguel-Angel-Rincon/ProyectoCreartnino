@@ -3,9 +3,9 @@ import '../style/Listar.css';
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
-// import CrearProductoModal from "./NuevoProducto";
-// import EditarProductoModal from "./Editar";
-// import VerProductoModal from './Ver'; // 👈 Nuevo import
+import CrearProveedorModal from "./NuevoProveedor";
+import EditarProveedorModal from "./Editar";
+import VerProveedoresModal from './Ver'; // 👈 Nuevo import
 
 interface Proveedores {
   IdProveedores: number;
@@ -37,11 +37,11 @@ const ListarProveedores: React.FC = () => {
   const [proveedores, setProveedores] = useState<Proveedores[]>(proveedoresiniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
-//   const [mostrarModal, setMostrarModal] = useState(false);
-//   const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
-//   const [productoEditar, setProductoEditar] = useState<Proveedores | null>(null);
-//   const [mostrarVerModal, setMostrarVerModal] = useState(false);
-//   const [productoVer, setProductoVer] = useState<Proveedores | null>(null);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
+  const [proveedorEditar, setProveedoresEditar] = useState<Proveedores | null>(null);
+  const [mostrarVerModal, setMostrarVerModal] = useState(false);
+  const [proveedorVer, setProveedorVer] = useState<Proveedores | null>(null);
 
   const productosPorPagina = 6;
 
@@ -84,32 +84,32 @@ const ListarProveedores: React.FC = () => {
     );
   };
 
-//   const handleCrear = (nuevoProducto: Proveedores) => {
-//     setProductos(prev => [...prev, nuevoProducto]);
-//     setMostrarModal(false);
-//     Swal.fire({
-//       icon: 'success',
-//       title: 'Producto creado correctamente',
-//       confirmButtonColor: '#e83e8c',
-//     });
-//   };
+  const handleCrear = (nuevoProveedor: Proveedores) => {
+    setProveedores(prev => [...prev, nuevoProveedor]);
+    setMostrarModal(false);
+    Swal.fire({
+      icon: 'success',
+      title: 'Proveedor creado correctamente',
+      confirmButtonColor: '#e83e8c',
+    });
+  };
 
-//   const handleEditarProducto = (producto: Productos) => {
-//     setProductoEditar(producto);
-//     setMostrarEditarModal(true);
-//   };
+  const handleEditarProveedor = (proveedor: Proveedores) => {
+    setProveedoresEditar(proveedor);
+    setMostrarEditarModal(true);
+  };
 
-//   const handleActualizarProducto = (productoActualizado: Productos) => {
-//     setProductos(prev =>
-//       prev.map(p => (p.IdProducto === productoActualizado.IdProducto ? productoActualizado : p))
-//     );
-//     setMostrarEditarModal(false);
-//   };
+  const handleActualizarProveedor = (proveedoresActualizado: Proveedores) => {
+    setProveedores(prev =>
+      prev.map(p => (p.IdProveedores === proveedoresActualizado.IdProveedores ? proveedoresActualizado : p))
+    );
+    setMostrarEditarModal(false);
+  };
 
-//   const handleVerProducto = (producto: Productos) => {
-//     setProductoVer(producto);
-//     setMostrarVerModal(true);
-//   };
+  const handleVerProveedor = (Proveedor: Proveedores) => {
+    setProveedorVer(Proveedor);
+    setMostrarVerModal(true);
+  };
 
   const proveedoresFiltrados = proveedores.filter(p =>
     `${p.NombreCompleto}`.toLowerCase().includes(busqueda.toLowerCase())
@@ -117,14 +117,14 @@ const ListarProveedores: React.FC = () => {
 
   const indexInicio = (paginaActual - 1) * productosPorPagina;
   const indexFin = indexInicio + productosPorPagina;
-  const productosPagina = proveedoresFiltrados.slice(indexInicio, indexFin);
+  const proveedoresPagina = proveedoresFiltrados.slice(indexInicio, indexFin);
   const totalPaginas = Math.ceil(proveedoresFiltrados.length / productosPorPagina);
 
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Proveedores</h2>
-        <button className="btn btn-pink" /* onClick={() => setMostrarModal(true)}*/>Crear Proveedor</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Proveedor</button>
       </div>
 
       <input
@@ -153,7 +153,7 @@ const ListarProveedores: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {productosPagina.map((p, index) => (
+            {proveedoresPagina.map((p, index) => (
               <tr key={p.IdProveedores} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
                 <td>{p.IdProveedores}</td>
                 <td>{p.NombreCompleto}</td>
@@ -175,12 +175,12 @@ const ListarProveedores: React.FC = () => {
                   <FaEye
                     className="icono text-info"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    /*onClick={() => handleVerProducto(p)}*/
+                    onClick={() => handleVerProveedor(p)}
                   />
                   <FaEdit
                     className="icono text-warning"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    /*onClick={() => handleEditarProducto(p)}*/
+                    onClick={() => handleEditarProveedor(p)}
                   />
                   <FaTrash
                     className="icono text-danger"
@@ -206,27 +206,27 @@ const ListarProveedores: React.FC = () => {
         </div>
       </div>
 
-      {/* {mostrarModal && (
-        <CrearProductoModal
+      {mostrarModal && (
+        <CrearProveedorModal
           onClose={() => setMostrarModal(false)}
           onCrear={handleCrear}
         />
       )}
 
-      {mostrarEditarModal && productoEditar && (
-        <EditarProductoModal
-          producto={productoEditar}
+      {mostrarEditarModal && proveedorEditar && (
+        <EditarProveedorModal
+          proveedor={proveedorEditar}
           onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleActualizarProducto}
+          onEditar={handleActualizarProveedor}
         />
       )}
 
-      {mostrarVerModal && productoVer && (
-        <VerProductoModal
-          producto={productoVer}
+      {mostrarVerModal && proveedorVer && (
+        <VerProveedoresModal
+          Proveedor={proveedorVer}
           onClose={() => setMostrarVerModal(false)}
         />
-      )} */}
+      )}
     </div>
   );
 };
