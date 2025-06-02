@@ -1,0 +1,5 @@
+# Aplica a toda la rama master
+master @Miguel-Angel-Rincon
+
+
+feat: agrega archivo CODEOWNERS para proteger master
