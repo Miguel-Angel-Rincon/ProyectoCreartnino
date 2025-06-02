@@ -33,8 +33,6 @@ const departamentosColombia = [
 const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar }) => {
   const [formData, setFormData] = useState<Proveedores>(proveedor);
 
-  
-
   useEffect(() => {
     setFormData(proveedor);
   }, [proveedor]);
@@ -49,6 +47,52 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const {
+      NombreCompleto,
+      NumDocumento,
+      Departamento,
+      Ciudad,
+      Direccion,
+      Celular,
+    } = formData;
+
+    if (
+      !NombreCompleto.trim() ||
+      !NumDocumento.trim() ||
+      !Departamento ||
+      !Ciudad.trim() ||
+      !Direccion.trim() ||
+      !Celular.trim()
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor, completa todos los campos obligatorios.',
+        confirmButtonColor: '#e83e8c',
+      });
+      return;
+    }
+
+    if (!/^\d{11,}$/.test(NumDocumento)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Número de documento inválido',
+        text: 'Debe contener al menos 11 dígitos numéricos.',
+        confirmButtonColor: '#e83e8c',
+      });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(Celular)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Celular inválido',
+        text: 'Debe contener exactamente 10 dígitos numéricos.',
+        confirmButtonColor: '#e83e8c',
+      });
+      return;
+    }
 
     try {
       onEditar(formData);
@@ -80,13 +124,11 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
             </div>
             <div className="modal-body">
               <div className="mb-3">
-                <div className="mb-3">
                 <label className="form-label">Tipo de Persona</label>
                 <select className="form-select" name="tipoPersona" required>
                   <option value="Natural">Natural</option>
                   <option value="Jurídica">Jurídica</option>
                 </select>
-              </div>
               </div>
               <div className="mb-3">
                 <label className="form-label">Tipo de Documento</label>
