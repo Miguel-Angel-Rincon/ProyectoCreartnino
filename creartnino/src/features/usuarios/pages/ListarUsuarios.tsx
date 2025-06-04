@@ -1,11 +1,11 @@
 import { useState } from "react";
-import '../style/Style.css';
+
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
-// import CrearProductoModal from "./NuevoProducto";
-// import EditarProductoModal from "./Editar";
-// import VerProductoModal from './Ver';
+import CrearUsuarioModal from "./Crear";
+import EditarUsuarioModal from "./Editar";
+import VerUsuarioModal from './Ver';
 
 interface Usuarios {
   IdUsuarios: number;
@@ -24,7 +24,7 @@ interface Usuarios {
 const usuariosiniciales: Usuarios[] = [
   { IdUsuarios: 1, Nombre: 'Juan', Apellido: 'Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Barrio: 'San Fernando', Correo: 'juan.perez@example.com', idRol: 'admin', estado: true },
   { IdUsuarios: 2, Nombre: 'María', Apellido: 'Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Barrio: 'La Floresta', Correo: 'maria.gomez@example.com', idRol: 'cliente', estado: true },
-  { IdUsuarios: 3, Nombre: 'Carlos', Apellido: 'Ramírez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Barrio: 'Centro', Correo: 'carlos.ramirez@example.com', idRol: 'vendedor', estado: false },
+  { IdUsuarios: 3, Nombre: 'Carlos', Apellido: 'Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Barrio: 'Centro', Correo: 'carlos.ramirez@example.com', idRol: 'vendedor', estado: false },
   { IdUsuarios: 4, Nombre: 'Laura', Apellido: 'Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Barrio: 'El Poblado', Correo: 'laura.martinez@example.com', idRol: 'admin', estado: true },
   { IdUsuarios: 5, Nombre: 'Andrés', Apellido: 'López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Barrio: 'Los Álamos', Correo: 'andres.lopez@example.com', idRol: 'cliente', estado: false },
   { IdUsuarios: 6, Nombre: 'Sofía', Apellido: 'Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Barrio: 'Villa Hermosa', Correo: 'sofia.torres@example.com', idRol: 'cliente', estado: true },
@@ -37,7 +37,11 @@ const ListarUsuarios: React.FC = () => {
   const [Usuarios, setusuarios] = useState<Usuarios[]>(usuariosiniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
-
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarVerModal, setMostrarVerModal] = useState(false);
+  const [usuarioVer, setUsuariosVer] = useState<Usuarios | null>(null);
+  const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
+  const [UsuarioEditar, setUsuarioEditar] = useState<Usuarios | null>(null);
   const UsuariosPorPagina = 6;
 
   const handleEliminarUsuarios = (id: number, estado: boolean) => {
@@ -79,6 +83,36 @@ const ListarUsuarios: React.FC = () => {
     );
   };
 
+  const handleCrear = (nuevoUsuario: Usuarios) => {
+      setusuarios(prev => [...prev, nuevoUsuario]);
+      setMostrarModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Producto creado correctamente',
+        confirmButtonColor: '#e83e8c',
+      });
+    };
+
+
+
+     const handleVerusuario = (usuario: Usuarios) => {
+    setUsuariosVer(usuario);
+    setMostrarVerModal(true);
+  };
+
+   
+  const handleEditarUsuario = (usuario: Usuarios) => {
+    setUsuarioEditar(usuario);
+    setMostrarEditarModal(true);
+  };
+
+  const handleActualizarProducto = (UsuariosActualizado: Usuarios) => {
+    setusuarios(prev =>
+      prev.map(p => (p.IdUsuarios === UsuariosActualizado.IdUsuarios ? UsuariosActualizado : p))
+    );
+    setMostrarEditarModal(false);
+  };
+
   const UsuariosFiltrados = Usuarios.filter(p =>
     p.Nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -92,7 +126,7 @@ const ListarUsuarios: React.FC = () => {
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Usuarios</h2>
-        <button className="btn btn-pink">{/* onClick={() => setMostrarModal(true)} */}Crear Usuarios</button>
+       <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Usuario</button>
       </div>
 
       <input
@@ -143,12 +177,12 @@ const ListarUsuarios: React.FC = () => {
                   <FaEye
                     className="icono text-info"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleVerProducto(p)}
+                    onClick={() => handleVerusuario(p)}
                   />
                   <FaEdit
                     className="icono text-warning"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleEditarProducto(p)}
+                    onClick={() => handleEditarUsuario(p)}
                   />
                   <FaTrash
                     className="icono text-danger"
@@ -174,19 +208,19 @@ const ListarUsuarios: React.FC = () => {
         </div>
       </div>
 
-      {/* 
+      
         {mostrarModal && (
-          <CrearProductoModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
+          <CrearUsuarioModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
         )}
 
-        {mostrarEditarModal && productoEditar && (
-          <EditarProductoModal producto={productoEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
+        {mostrarEditarModal && UsuarioEditar && (
+          <EditarUsuarioModal usuario={UsuarioEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
         )}
 
-        {mostrarVerModal && productoVer && (
-          <VerProductoModal producto={productoVer} onClose={() => setMostrarVerModal(false)} />
+        {mostrarVerModal && usuarioVer && (
+          <VerUsuarioModal usuario={usuarioVer} onClose={() => setMostrarVerModal(false)} />
         )}
-      */}
+     
     </div>
   );
 };
