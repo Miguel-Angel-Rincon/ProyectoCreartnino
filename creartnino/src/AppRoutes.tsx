@@ -6,6 +6,7 @@ import Sidebar from "./shared/components/siderbar";
 import ListarUsuarios from "./features/usuarios/pages/ListarUsuarios";
 import ListarInsumos from "./features/insumo/pages/ListarInsumos";
 import ListarPedidos from "./features/pedidos/pages/ListarPedidos";
+import ListarCatProductos from "./features/categoria_productos/pages/ListarCatProductos";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -23,7 +24,7 @@ export default function AppRoutes() {
       <Route path="/insumos" element={<><Sidebar /><ListarInsumos /></>} />
       <Route path="/compras" element={<><Sidebar /><h1>Compras</h1></>} />
       <Route path="/produccion" element={<><Sidebar /><h1>Producción</h1></>} />
-      <Route path="/cat-productos" element={<><Sidebar /><h1>Cat. Productos</h1></>} />
+      <Route path="/cat-productos" element={<><Sidebar /><ListarCatProductos /></>} />
       <Route path="/productos" element={<><Sidebar /><ListarProductos /></>} />
       <Route path="/pedidos" element={<><Sidebar/><ListarPedidos /></>} />
     </Routes>
