@@ -4,8 +4,8 @@
     import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
     import CrearInsumoModal from "./CrearInsumo";
-    // import EditarProductoModal from "./Editar";
-    // import VerProductoModal from './Ver'; // 👈 Nuevo import
+    import EditarInsumoModal from "./EditarInsumo";
+    import VisualizarInsumoModal from './VisualizarInsumo'; // 👈 Nuevo import
 
 interface Insumos {
     IdInsumos: number;
@@ -36,10 +36,10 @@ const insumosiniciales: Insumos[] = [
     const [busqueda, setBusqueda] = useState('');
     const [paginaActual, setPaginaActual] = useState(1);
     const [mostrarModal, setMostrarModal] = useState(false);
-    // const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
-    // const [productoEditar, setProductoEditar] = useState<Productos | null>(null);
-    // const [mostrarVerModal, setMostrarVerModal] = useState(false);
-    // const [productoVer, setProductoVer] = useState<Productos | null>(null);
+    const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
+    const [productoEditar, setProductoEditar] = useState<Insumos | null>(null);
+    const [mostrarVerModal, setMostrarVerModal] = useState(false);
+    const [productoVer, setProductoVer] = useState<Insumos | null>(null);
 
     const INSUMOS_POR_PAGINA = 6;
 
@@ -92,22 +92,22 @@ const insumosiniciales: Insumos[] = [
         });
     };
 
-    // const handleEditarProducto = (producto: Productos) => {
-    //     setProductoEditar(producto);
-    //     setMostrarEditarModal(true);
-    // };
+    const handleEditarProducto = (producto: Insumos) => {
+        setProductoEditar(producto);
+        setMostrarEditarModal(true);
+    };
 
-    // const handleActualizarProducto = (productoActualizado: Productos) => {
-    //     setProductos(prev =>
-    //     prev.map(p => (p.IdProducto === productoActualizado.IdProducto ? productoActualizado : p))
-    //     );
-    //     setMostrarEditarModal(false);
-    // };
+    const handleActualizarProducto = (productoActualizado: Insumos) => {
+        setInsumos(prev =>
+        prev.map(p => (p.IdInsumos === productoActualizado.IdInsumos ? productoActualizado : p))
+        );
+        setMostrarEditarModal(false);
+    };
 
-    // const handleVerProducto = (producto: Productos) => {
-    //     setProductoVer(producto);
-    //     setMostrarVerModal(true);
-    // };
+    const handleVerProducto = (producto: Insumos) => {
+        setProductoVer(producto);
+        setMostrarVerModal(true);
+    };
 
     const insumosFiltrados = insumos.filter(p =>
         `${p.Nombre}`.toLowerCase().includes(busqueda.toLowerCase())
@@ -173,12 +173,12 @@ const insumosiniciales: Insumos[] = [
                     <FaEye
                         className="icono text-info"
                         style={{ cursor: 'pointer', marginRight: '10px' }}
-                        /*onClick={() => handleVerProducto(p)}*/
+                        onClick={() => handleVerProducto(p)}
                     />
                     <FaEdit
                         className="icono text-warning"
                         style={{ cursor: 'pointer', marginRight: '10px' }}
-                        /*onClick={() => handleEditarProducto(p)}*/
+                        onClick={() => handleEditarProducto(p)}
                     />
                     <FaTrash
                         className="icono text-danger"
@@ -211,20 +211,20 @@ const insumosiniciales: Insumos[] = [
             />
         )}
 
-        {/* {mostrarEditarModal && productoEditar && (
-            <EditarProductoModal
-            producto={productoEditar}
+        {mostrarEditarModal && productoEditar && (
+            <EditarInsumoModal
+            insumo={productoEditar}
             onClose={() => setMostrarEditarModal(false)}
             onEditar={handleActualizarProducto}
             />
         )}
 
         {mostrarVerModal && productoVer && (
-            <VerProductoModal
-            producto={productoVer}
+            <VisualizarInsumoModal
+            insumo={productoVer}
             onClose={() => setMostrarVerModal(false)}
             />
-        )} */}
+        )}
         </div>
     );
     };
