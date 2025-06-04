@@ -1,11 +1,11 @@
 import { useState } from "react";
-import '../style/Style.css';
+
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
-// import CrearProductoModal from "./NuevoProducto";
-// import EditarProductoModal from "./Editar";
-// import VerProductoModal from './Ver';
+import CrearUsuarioModal from "./Crear";
+import EditarUsuarioModal from "./Editar";
+import VerUsuarioModal from './Ver';
 
 interface Usuarios {
   IdUsuarios: number;
@@ -37,7 +37,11 @@ const ListarUsuarios: React.FC = () => {
   const [Usuarios, setusuarios] = useState<Usuarios[]>(usuariosiniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
-
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarVerModal, setMostrarVerModal] = useState(false);
+  const [usuarioVer, setUsuariosVer] = useState<Usuarios | null>(null);
+  const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
+  const [UsuarioEditar, setUsuarioEditar] = useState<Usuarios | null>(null);
   const UsuariosPorPagina = 6;
 
   const handleEliminarUsuarios = (id: number, estado: boolean) => {
@@ -79,6 +83,36 @@ const ListarUsuarios: React.FC = () => {
     );
   };
 
+  const handleCrear = (nuevoUsuario: Usuarios) => {
+      setusuarios(prev => [...prev, nuevoUsuario]);
+      setMostrarModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Producto creado correctamente',
+        confirmButtonColor: '#e83e8c',
+      });
+    };
+
+
+
+     const handleVerusuario = (usuario: Usuarios) => {
+    setUsuariosVer(usuario);
+    setMostrarVerModal(true);
+  };
+
+   
+  const handleEditarUsuario = (usuario: Usuarios) => {
+    setUsuarioEditar(usuario);
+    setMostrarEditarModal(true);
+  };
+
+  const handleActualizarProducto = (UsuariosActualizado: Usuarios) => {
+    setusuarios(prev =>
+      prev.map(p => (p.IdUsuarios === UsuariosActualizado.IdUsuarios ? UsuariosActualizado : p))
+    );
+    setMostrarEditarModal(false);
+  };
+
   const UsuariosFiltrados = Usuarios.filter(p =>
     p.Nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -92,7 +126,7 @@ const ListarUsuarios: React.FC = () => {
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Usuarios</h2>
-        <button className="btn btn-pink">{/* onClick={() => setMostrarModal(true)} */}Crear Usuarios</button>
+       <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Usuario</button>
       </div>
 
       <input
@@ -143,12 +177,12 @@ const ListarUsuarios: React.FC = () => {
                   <FaEye
                     className="icono text-info"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleVerProducto(p)}
+                    onClick={() => handleVerusuario(p)}
                   />
                   <FaEdit
                     className="icono text-warning"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleEditarProducto(p)}
+                    onClick={() => handleEditarUsuario(p)}
                   />
                   <FaTrash
                     className="icono text-danger"
@@ -174,19 +208,19 @@ const ListarUsuarios: React.FC = () => {
         </div>
       </div>
 
-      {/* 
+      
         {mostrarModal && (
-          <CrearProductoModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
+          <CrearUsuarioModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
         )}
 
-        {mostrarEditarModal && productoEditar && (
-          <EditarProductoModal producto={productoEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
+        {mostrarEditarModal && UsuarioEditar && (
+          <EditarUsuarioModal usuario={UsuarioEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
         )}
 
-        {mostrarVerModal && productoVer && (
-          <VerProductoModal producto={productoVer} onClose={() => setMostrarVerModal(false)} />
+        {mostrarVerModal && usuarioVer && (
+          <VerUsuarioModal usuario={usuarioVer} onClose={() => setMostrarVerModal(false)} />
         )}
-      */}
+     
     </div>
   );
 };
