@@ -6,6 +6,8 @@ import Sidebar from "./shared/components/siderbar";
 import ListarUsuarios from "./features/usuarios/pages/ListarUsuarios";
 import ListarInsumos from "./features/insumo/pages/ListarInsumos";
 import ListarPedidos from "./features/pedidos/pages/ListarPedidos";
+
+import DashboardStats from "./features/dashboard/pages/Dashboard";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -14,7 +16,7 @@ export default function AppRoutes() {
 
 
       //rutas del administrador
-      <Route path="/dashboard" element={<><Sidebar /><h1>Dashboard</h1></>} />
+      <Route path="/dashboard" element={<><Sidebar /><DashboardStats  /></>} />
       <Route path="/usuario" element={<><Sidebar /><ListarUsuarios /></>} />
       <Route path="/roles" element={<><Sidebar /><h1>Roles</h1></>} />
       <Route path="/clientes" element={<><Sidebar /><h1>Clientes</h1></>} />
