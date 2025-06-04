@@ -50,7 +50,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
-    // Construir nuevo usuario
+    // Construir nuevo usuarios
     const nuevoUsuario: Usuario = {
       IdUsuarios: idUsuarioActual++,
       Nombre: form.Nombre.value,

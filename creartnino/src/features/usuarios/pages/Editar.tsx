@@ -43,7 +43,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validaciones básicas ejemplo:
+    // Validaciones básicas ejemplos:
     if (!formData.Nombre.trim() || !formData.Apellido.trim()) {
       Swal.fire({
         icon: 'error',

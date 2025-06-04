@@ -1,4 +1,4 @@
-// components/VerUsuarioModal.tsx
+// components/VerUsuarioModal.tsxx
 import React from 'react';
 
 interface Usuario {
