@@ -101,7 +101,6 @@ import { useState } from "react";
             <table className="table tabla-proveedores">
             <thead>
                 <tr>
-                <th>Id Compra</th>
                 <th>Id Proveedor</th>
                 <th>Metodo Pago</th>
                 <th>Fecha de Compra</th>
@@ -113,7 +112,6 @@ import { useState } from "react";
             <tbody>
                 {comprasPagina.map((p, index) => (
                 <tr key={p.IdCompra} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                    <td>{p.IdCompra}</td>
                     <td>{p.IdProveedor}</td>
                     <td>{p.MetodoPago}</td>
                     <td>{p.FechaCompra}</td>
