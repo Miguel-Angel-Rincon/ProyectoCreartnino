@@ -11,6 +11,7 @@ import DashboardStats from "./features/dashboard/pages/Dashboard";
 import ListarClientes from "./features/clientes/pages/ListarClientes";
 import ListarCompras from "./features/compras/pages/ListarCompras";
 import ListarRoles from "./features/roles/pages/ListarRoles";
+import ListarCatInsumos from "./features/categoria_insumo/pages/ListarCatInsumos";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -24,7 +25,7 @@ export default function AppRoutes() {
       <Route path="/roles" element={<><Sidebar /><ListarRoles /></>} />
       <Route path="/clientes" element={<><Sidebar /><ListarClientes /></>} />
       <Route path="/proveedores" element={<><Sidebar /><ListarProveedores /></>} />
-      <Route path="/cate-insumo" element={<><Sidebar /><h1>Categoría Insumo</h1></>} />
+      <Route path="/cate-insumo" element={<><Sidebar /><ListarCatInsumos /></>} />
       <Route path="/insumos" element={<><Sidebar /><ListarInsumos /></>} />
       <Route path="/compras" element={<><Sidebar /><ListarCompras /></>} />
       <Route path="/produccion" element={<><Sidebar /><h1>Producción</h1></>} />
