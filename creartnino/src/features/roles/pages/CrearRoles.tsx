@@ -14,7 +14,7 @@ interface Props {
 }
 
 // ID incremental simulado para roles
-let idRolActual = 1;
+let idRolActual = 4;
 
 const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

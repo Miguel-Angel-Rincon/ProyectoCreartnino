@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
-import '../style/ListarRoles.css'
+import '../style/style.css'
 
 import CrearRolModal from "./CrearRoles";
 import EditarRolModal from "./EditarRoles";
@@ -64,7 +64,7 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
       setMostrarModal(false);
       Swal.fire({
         icon: 'success',
-        title: 'Producto creado correctamente',
+        title: 'Rol creado correctamente',
         confirmButtonColor: '#e83e8c',
       });
     };

@@ -9,6 +9,8 @@ import ListarPedidos from "./features/pedidos/pages/ListarPedidos";
 import ListarCatProductos from "./features/categoria_productos/pages/ListarCatProductos";
 import DashboardStats from "./features/dashboard/pages/Dashboard";
 import ListarClientes from "./features/clientes/pages/ListarClientes";
+import ListarCompras from "./features/compras/pages/ListarCompras";
+import ListarRoles from "./features/roles/pages/ListarRoles";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -19,12 +21,12 @@ export default function AppRoutes() {
       //rutas del administrador
       <Route path="/dashboard" element={<><Sidebar /><DashboardStats  /></>} />
       <Route path="/usuario" element={<><Sidebar /><ListarUsuarios /></>} />
-      <Route path="/roles" element={<><Sidebar /><h1>Roles</h1></>} />
+      <Route path="/roles" element={<><Sidebar /><ListarRoles /></>} />
       <Route path="/clientes" element={<><Sidebar /><ListarClientes /></>} />
       <Route path="/proveedores" element={<><Sidebar /><ListarProveedores /></>} />
       <Route path="/cate-insumo" element={<><Sidebar /><h1>Categoría Insumo</h1></>} />
       <Route path="/insumos" element={<><Sidebar /><ListarInsumos /></>} />
-      <Route path="/compras" element={<><Sidebar /><h1>Compras</h1></>} />
+      <Route path="/compras" element={<><Sidebar /><ListarCompras /></>} />
       <Route path="/produccion" element={<><Sidebar /><h1>Producción</h1></>} />
       <Route path="/cat-productos" element={<><Sidebar /><ListarCatProductos /></>} />
       <Route path="/productos" element={<><Sidebar /><ListarProductos /></>} />
