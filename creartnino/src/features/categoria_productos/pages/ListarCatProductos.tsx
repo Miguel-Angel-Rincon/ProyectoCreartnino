@@ -134,7 +134,6 @@ const ListarCatProductos: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Nombre</th>
               <th>Descripción</th>
               <th>Estado</th>
@@ -144,7 +143,6 @@ const ListarCatProductos: React.FC = () => {
           <tbody>
             {categoriasPagina.map((c, index) => (
               <tr key={c.IdCategoriaProducto} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{c.IdCategoriaProducto}</td>
                 <td>{c.Nombre}</td>
                 <td>{c.Descripcion}</td>
                 <td>
