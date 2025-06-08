@@ -1,15 +1,12 @@
 import { useState } from "react";
-import '../styles/style.css';
 import Swal from 'sweetalert2';
-import { FaEye, FaFilePdf ,FaBan  } from 'react-icons/fa';
-
-// import CrearProductoModal from "./NuevoProducto";
-// import EditarProductoModal from "./Editar";
-// import VerProductoModal from './Ver'; // 👈 Nuevo import
+import { FaEye, FaFilePdf, FaBan, FaPlus } from 'react-icons/fa';
+import CrearPedido from './Crear';
+import '../styles/style.css';
 
 interface Pedidos {
   IdPedido: number;
-  IdCliente: string | number; // Cambiado a string | number para permitir tanto números como cadenas
+  IdCliente: string | number;
   MetodoPago: string;
   FechaPedido: string;
   FechaEntrega: string;
@@ -21,8 +18,8 @@ interface Pedidos {
   Estado: string;
 }
 
-const pedidosiniciales: Pedidos[] = [
-  { IdPedido: 601, IdCliente: 'Lucas', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido de productos categoría 1', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante201.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
+const pedidosIniciales: Pedidos[] = [
+ { IdPedido: 601, IdCliente: 'Lucas', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido de productos categoría 1', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante201.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
   { IdPedido: 602, IdCliente: 'Marta', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido de productos categoría 2', ValorInicial: 10000, ValorRestante: 200000, ComprobantePago: 'comprobante202.jpg', TotalPedido: 200000, Estado: 'Pagado' },
   { IdPedido: 603, IdCliente: 'Mario', MetodoPago: 'Transferencia', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido de productos categoría 3', ValorInicial: 5000, ValorRestante: 145000, ComprobantePago: 'comprobante203.jpg', TotalPedido: 150000, Estado: 'Parcial' },
   { IdPedido: 604, IdCliente: 'Laura', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido de productos categoría 4', ValorInicial: 12000, ValorRestante: 108000, ComprobantePago: 'comprobante204.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
@@ -32,18 +29,15 @@ const pedidosiniciales: Pedidos[] = [
   { IdPedido: 608, IdCliente: 'Angel', MetodoPago: 'Efectivo', FechaPedido: '2025-05-08', FechaEntrega: '2025-05-12', Descripcion: 'Pedido de productos categoría 8', ValorInicial: 13000, ValorRestante: 117000, ComprobantePago: 'comprobante208.jpg', TotalPedido: 130000, Estado: 'Pendiente' }
 ];
 
-
 const ListarPedidos: React.FC = () => {
-  const [productos, setProductos] = useState<Pedidos[]>(pedidosiniciales);
+  const [pedidos, setPedidos] = useState<Pedidos[]>(pedidosIniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
+  const [mostrarModal, setMostrarModal] = useState(false);
 
+  const pedidosPorPagina = 6;
 
-  const PedidosPorPagina = 6;
-
-  const handleEliminarProducto = (id: number) => {
-    
-
+  const handleEliminarPedido = (id: number) => {
     Swal.fire({
       title: '¿Estás seguro?',
       text: 'Esta acción no se puede deshacer',
@@ -55,41 +49,46 @@ const ListarPedidos: React.FC = () => {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        setProductos(prev => prev.filter(p => p.IdPedido !== id));
+        setPedidos(prev => prev.filter(p => p.IdPedido !== id));
         Swal.fire({
           icon: 'success',
           title: 'Anulado',
-          text: 'El pedido ha sido Anulado correctamente',
+          text: 'El pedido ha sido anulado correctamente',
           confirmButtonColor: '#e83e8c',
         });
       }
     });
   };
 
-  // const handleEstadoChange = (id: number) => {
-  //   setProductos(prev =>
-  //     prev.map(p => (p.IdProducto === id ? { ...p, estado: !p.estado } : p))
-  //   );
-  // };
+  const handleCrearPedido = (nuevoPedido: Omit<Pedidos, 'IdPedido'>) => {
+    const nuevoId = Math.max(...pedidos.map(p => p.IdPedido)) + 1;
+    setPedidos(prev => [...prev, { ...nuevoPedido, IdPedido: nuevoId }]);
+    setMostrarModal(false);
+    Swal.fire({
+      icon: 'success',
+      title: 'Pedido creado',
+      text: 'El pedido fue registrado exitosamente',
+      confirmButtonColor: '#e83e8c',
+    });
+  };
 
-  
-
-  
-
-  const PedidosFiltrados = productos.filter(p =>
+  const pedidosFiltrados = pedidos.filter(p =>
     `${p.IdPedido}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const indexInicio = (paginaActual - 1) * PedidosPorPagina;
-  const indexFin = indexInicio + PedidosPorPagina;
-  const pedidosPagina = PedidosFiltrados.slice(indexInicio, indexFin);
-  const totalPaginas = Math.ceil(PedidosFiltrados.length / PedidosPorPagina);
+  const indexInicio = (paginaActual - 1) * pedidosPorPagina;
+  const indexFin = indexInicio + pedidosPorPagina;
+  const pedidosPagina = pedidosFiltrados.slice(indexInicio, indexFin);
+  const totalPaginas = Math.ceil(pedidosFiltrados.length / pedidosPorPagina);
 
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Pedidos</h2>
-        <button className="btn btn-pink">Crear Pedido</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
+          <FaPlus className="me-2" />
+          Crear Pedido
+        </button>
       </div>
 
       <input
@@ -108,11 +107,11 @@ const ListarPedidos: React.FC = () => {
           <thead>
             <tr>
 
-              <th>Id Cliente</th>
-              <th>MetodoPago</th>
-              <th>FechaEntrega</th>
-              <th>ValorInicial</th>
-              <th>TotalPedido</th>
+              <th>Cliente</th>
+              <th>Método de Pago</th>
+              <th>Entrega</th>
+              <th>Inicial</th>
+              <th>Total</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -123,26 +122,13 @@ const ListarPedidos: React.FC = () => {
                 <td>{p.IdCliente}</td>
                 <td>{p.MetodoPago}</td>
                 <td>{p.FechaEntrega}</td>
-                <td>{p.ValorInicial}</td>
-                <td>${p.TotalPedido}</td>
+                <td>${p.ValorInicial.toLocaleString()}</td>
+                <td>${p.TotalPedido.toLocaleString()}</td>
                 <td>{p.Estado}</td>
                 <td>
-                  <FaEye
-                    className="icono text-info"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleVerProducto(p)}
-                  />
-                  <FaBan
-                    className="icono text-warning"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarProducto(p.IdPedido)}
-                  />
-                  <FaFilePdf
-                    className="icono text-danger"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleEditarProducto(p)}
-                  />
-                  
+                  <FaEye className="icono text-info me-2" style={{ cursor: 'pointer' }} />
+                  <FaBan className="icono text-warning me-2" style={{ cursor: 'pointer' }} onClick={() => handleEliminarPedido(p.IdPedido)} />
+                  <FaFilePdf className="icono text-danger" style={{ cursor: 'pointer' }} />
                 </td>
               </tr>
             ))}
@@ -162,7 +148,27 @@ const ListarPedidos: React.FC = () => {
         </div>
       </div>
 
-      
+      {mostrarModal && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+          <div className="modal d-block" tabIndex={-1}>
+            <div className="modal-dialog modal-lg modal-dialog-scrollable">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Nuevo Pedido</h5>
+                  <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CrearPedido
+                    onClose={() => setMostrarModal(false)}
+                    onCrear={handleCrearPedido}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
