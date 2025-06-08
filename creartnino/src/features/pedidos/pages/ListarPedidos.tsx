@@ -1,7 +1,7 @@
 import { useState } from "react";
 import '../styles/style.css';
 import Swal from 'sweetalert2';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEye, FaFilePdf ,FaBan  } from 'react-icons/fa';
 
 // import CrearProductoModal from "./NuevoProducto";
 // import EditarProductoModal from "./Editar";
@@ -51,15 +51,15 @@ const ListarPedidos: React.FC = () => {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#aaa',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, Anular',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
         setProductos(prev => prev.filter(p => p.IdPedido !== id));
         Swal.fire({
           icon: 'success',
-          title: 'Eliminado',
-          text: 'El producto ha sido eliminado correctamente',
+          title: 'Anulado',
+          text: 'El pedido ha sido Anulado correctamente',
           confirmButtonColor: '#e83e8c',
         });
       }
@@ -133,16 +133,17 @@ const ListarPedidos: React.FC = () => {
                     style={{ cursor: 'pointer', marginRight: '10px' }}
                     // onClick={() => handleVerProducto(p)}
                   />
-                  <FaEdit
+                  <FaBan
                     className="icono text-warning"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleEditarProducto(p)}
-                  />
-                  <FaTrash
-                    className="icono text-danger"
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleEliminarProducto(p.IdPedido)}
                   />
+                  <FaFilePdf
+                    className="icono text-danger"
+                    style={{ cursor: 'pointer', marginRight: '10px' }}
+                    // onClick={() => handleEditarProducto(p)}
+                  />
+                  
                 </td>
               </tr>
             ))}
