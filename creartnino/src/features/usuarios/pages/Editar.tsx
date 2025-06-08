@@ -1,37 +1,39 @@
-// components/EditarProductoModal.tsx
+// components/EditarUsuarioModal.tsx
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
 
-interface Producto {
-  IdProducto: number;
-  IdCatProductos: string;//IdCatProductos?: number;
+interface Usuario {
+  IdUsuarios: number;
   Nombre: string;
-  Imagen: string; //IdImagen?: number;
-  cantidad: number;
-  marca: string;
-  precio: number;
+  Apellido: string;
+  Tipodocumento: string;
+  Numerodocumento: string;
+  Celular: string;
+  Direccion: string;
+  Barrio: string;
+  Correo: string;
+  idRol: string;
   estado: boolean;
-  //IdCatProductosNavigation?: IECatProductos;
-//IdImagenNavigation?: IEImagen;
 }
 
 interface Props {
-  producto: Producto;
+  usuario: Usuario;
   onClose: () => void;
-  onEditar: (formData: Producto) => void;
+  onEditar: (formData: Usuario) => void;
 }
 
-const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) => {
-  const [formData, setFormData] = useState<Producto>(producto);
+const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => {
+  const [formData, setFormData] = useState<Usuario>(usuario);
 
   useEffect(() => {
-    setFormData(producto);
-  }, [producto]);
+    setFormData(usuario);
+  }, [usuario]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement | HTMLSelectElement;
     const { name, value, type } = target;
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: type === 'checkbox' ? (target as HTMLInputElement).checked : value,
@@ -41,35 +43,33 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const cantidad = parseInt(formData.cantidad.toString());
-    const precio = parseFloat(formData.precio.toString());
-
-    if (cantidad < 0) {
+    // Validaciones básicas ejemplos:
+    if (!formData.Nombre.trim() || !formData.Apellido.trim()) {
       Swal.fire({
         icon: 'error',
-        title: 'Cantidad inválida',
-        text: 'La cantidad no puede ser un número negativo.',
+        title: 'Campos obligatorios',
+        text: 'El nombre y apellido son obligatorios.',
         confirmButtonColor: '#e83e8c',
       });
       return;
     }
 
-    if (precio < 0) {
+    if (!formData.Correo.includes('@')) {
       Swal.fire({
         icon: 'error',
-        title: 'Precio inválido',
-        text: 'El precio no puede ser un número negativo.',
+        title: 'Correo inválido',
+        text: 'Por favor ingresa un correo válido.',
         confirmButtonColor: '#e83e8c',
       });
       return;
     }
 
     try {
-      onEditar({ ...formData, cantidad, precio });
+      onEditar(formData);
 
       await Swal.fire({
         icon: 'success',
-        title: 'Producto actualizado',
+        title: 'Usuario actualizado',
         text: 'Los cambios se han guardado correctamente.',
         confirmButtonColor: '#e83e8c',
       });
@@ -91,23 +91,10 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
         <div className="modal-content">
           <form onSubmit={handleSubmit}>
             <div className="modal-header bg-pink text-white">
-              <h5 className="modal-title">Editar Producto</h5>
+              <h5 className="modal-title">Editar Usuario</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
-              <div className="mb-3">
-                <label className="form-label">Categoría</label>
-                <select
-                  className="form-select"
-                  name="IdCatProductos"
-                  value={formData.IdCatProductos}
-                  onChange={handleChange}
-                >
-                  {Array.from({ length: 8 }, (_, i) => (
-                    <option key={i}>Categoría {i + 1}</option>
-                  ))}
-                </select>
-              </div>
               <div className="mb-3">
                 <label className="form-label">Nombre</label>
                 <input
@@ -118,40 +105,98 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   required
                 />
               </div>
+
               <div className="mb-3">
-                <label className="form-label">Imagen</label>
+                <label className="form-label">Apellido</label>
                 <input
                   className="form-control"
-                  name="Imagen"
-                  value={formData.Imagen}
+                  name="Apellido"
+                  value={formData.Apellido}
                   onChange={handleChange}
-                />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Cantidad</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="cantidad"
-                  value={formData.cantidad}
-                  onChange={handleChange}
-                  
                   required
                 />
               </div>
+
               <div className="mb-3">
-                <label className="form-label">Precio</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="precio"
-                  value={formData.precio}
+                <label className="form-label">Tipo Documento</label>
+                <select
+                  className="form-select"
+                  name="Tipodocumento"
+                  value={formData.Tipodocumento}
                   onChange={handleChange}
-                 
-                  step="0.01"
+                  required
+                >
+                  <option value="">Selecciona...</option>
+                  <option value="CC">Cédula de Ciudadanía</option>
+                  <option value="TI">Tarjeta de Identidad</option>
+                  <option value="CE">Cédula de Extranjería</option>
+                  {/* Agrega más opciones si quieres */}
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Número Documento</label>
+                <input
+                  className="form-control"
+                  name="Numerodocumento"
+                  value={formData.Numerodocumento}
+                  onChange={handleChange}
                   required
                 />
               </div>
+
+              <div className="mb-3">
+                <label className="form-label">Celular</label>
+                <input
+                  className="form-control"
+                  name="Celular"
+                  value={formData.Celular}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Dirección</label>
+                <input
+                  className="form-control"
+                  name="Direccion"
+                  value={formData.Direccion}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Barrio</label>
+                <input
+                  className="form-control"
+                  name="Barrio"
+                  value={formData.Barrio}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Correo</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  name="Correo"
+                  value={formData.Correo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Rol</label>
+                <input
+                  className="form-control"
+                  name="idRol"
+                  value={formData.idRol}
+                  onChange={handleChange}
+                />
+              </div>
+
               <div className="form-check form-switch mb-3">
                 <input
                   className="form-check-input"
@@ -163,6 +208,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                 <label className="form-check-label">Activo</label>
               </div>
             </div>
+
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Cancelar
@@ -178,4 +224,4 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   );
 };
 
-export default EditarProductoModal;
+export default EditarUsuarioModal;

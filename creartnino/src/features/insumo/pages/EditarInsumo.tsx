@@ -1,36 +1,33 @@
-// components/EditarProductoModal.tsx
+// components/EditarInsumoModal.tsx
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
-
-interface Producto {
-  IdProducto: number;
-  IdCatProductos: string;//IdCatProductos?: number;
+interface Insumos {
+  IdInsumos: number;
+  IdCatInsumo: string;
   Nombre: string;
-  Imagen: string; //IdImagen?: number;
-  cantidad: number;
+  Descripcion: string;
   marca: string;
-  precio: number;
+  cantidad: number;
+  precioUnitario: number;
   estado: boolean;
-  //IdCatProductosNavigation?: IECatProductos;
-//IdImagenNavigation?: IEImagen;
 }
 
 interface Props {
-  producto: Producto;
+  insumo: Insumos;
   onClose: () => void;
-  onEditar: (formData: Producto) => void;
+  onEditar: (formData: Insumos) => void;
 }
 
-const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) => {
-  const [formData, setFormData] = useState<Producto>(producto);
+const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
+  const [formData, setFormData] = useState<Insumos>(insumo);
 
   useEffect(() => {
-    setFormData(producto);
-  }, [producto]);
+    setFormData(insumo);
+  }, [insumo]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const target = e.target;
     const { name, value, type } = target;
     setFormData((prevData) => ({
       ...prevData,
@@ -41,12 +38,10 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const cantidad = parseInt(formData.cantidad.toString());
-    const precio = parseFloat(formData.precio.toString());
-
-    if (cantidad < 0) {
-      Swal.fire({
-        icon: 'error',
+    // Validar cantidad negativa
+    if (formData.cantidad < 0) {
+      await Swal.fire({
+        icon: 'warning',
         title: 'Cantidad inválida',
         text: 'La cantidad no puede ser un número negativo.',
         confirmButtonColor: '#e83e8c',
@@ -54,22 +49,23 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       return;
     }
 
-    if (precio < 0) {
-      Swal.fire({
-        icon: 'error',
+    // Validar precio unitario negativo
+    if (formData.precioUnitario < 0) {
+      await Swal.fire({
+        icon: 'warning',
         title: 'Precio inválido',
-        text: 'El precio no puede ser un número negativo.',
+        text: 'El precio unitario no puede ser un número negativo.',
         confirmButtonColor: '#e83e8c',
       });
       return;
     }
 
     try {
-      onEditar({ ...formData, cantidad, precio });
+      onEditar(formData);
 
       await Swal.fire({
         icon: 'success',
-        title: 'Producto actualizado',
+        title: 'Insumo actualizado',
         text: 'Los cambios se han guardado correctamente.',
         confirmButtonColor: '#e83e8c',
       });
@@ -91,22 +87,19 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
         <div className="modal-content">
           <form onSubmit={handleSubmit}>
             <div className="modal-header bg-pink text-white">
-              <h5 className="modal-title">Editar Producto</h5>
+              <h5 className="modal-title">Editar Insumo</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
               <div className="mb-3">
-                <label className="form-label">Categoría</label>
-                <select
-                  className="form-select"
-                  name="IdCatProductos"
-                  value={formData.IdCatProductos}
+                <label className="form-label">ID Categoría de Insumo</label>
+                <input
+                  className="form-control"
+                  name="IdCatInsumo"
+                  value={formData.IdCatInsumo}
                   onChange={handleChange}
-                >
-                  {Array.from({ length: 8 }, (_, i) => (
-                    <option key={i}>Categoría {i + 1}</option>
-                  ))}
-                </select>
+                  required
+                />
               </div>
               <div className="mb-3">
                 <label className="form-label">Nombre</label>
@@ -119,12 +112,23 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label">Imagen</label>
+                <label className="form-label">Descripción</label>
+                <textarea
+                  className="form-control"
+                  name="Descripcion"
+                  value={formData.Descripcion}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Marca</label>
                 <input
                   className="form-control"
-                  name="Imagen"
-                  value={formData.Imagen}
+                  name="marca"
+                  value={formData.marca}
                   onChange={handleChange}
+                  required
                 />
               </div>
               <div className="mb-3">
@@ -135,20 +139,18 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   name="cantidad"
                   value={formData.cantidad}
                   onChange={handleChange}
-                  
                   required
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label">Precio</label>
+                <label className="form-label">Precio Unitario</label>
                 <input
                   type="number"
-                  className="form-control"
-                  name="precio"
-                  value={formData.precio}
-                  onChange={handleChange}
-                 
                   step="0.01"
+                  className="form-control"
+                  name="precioUnitario"
+                  value={formData.precioUnitario}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -178,4 +180,4 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   );
 };
 
-export default EditarProductoModal;
+export default EditarInsumoModal;
