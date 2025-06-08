@@ -144,7 +144,6 @@ const ListarUsuarios: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>Id Usuario</th>
               <th>Nombre</th>
               <th>Apellido</th>
               <th># Documento</th>
@@ -157,7 +156,6 @@ const ListarUsuarios: React.FC = () => {
           <tbody>
             {UsuariosPagina.map((p, index) => (
               <tr key={p.IdUsuarios} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{p.IdUsuarios}</td>
                 <td>{p.Nombre}</td>
                 <td>{p.Apellido}</td>
                 <td>{p.Numerodocumento}</td>

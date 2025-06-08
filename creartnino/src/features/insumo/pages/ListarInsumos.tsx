@@ -140,7 +140,6 @@ const insumosiniciales: Insumos[] = [
             <table className="table tabla-proveedores">
             <thead>
                 <tr>
-                <th>Id Producto</th>
                 <th>Categoría</th>
                 <th>Nombre</th>
                 <th>Marca</th>
@@ -153,7 +152,6 @@ const insumosiniciales: Insumos[] = [
             <tbody>
                 {productosPagina.map((p, index) => (
                 <tr key={p.IdInsumos} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                    <td>{p.IdInsumos}</td>
                     <td>{p.IdCatInsumo}</td>
                     <td>{p.Nombre}</td>
                     <td>{p.marca}</td>

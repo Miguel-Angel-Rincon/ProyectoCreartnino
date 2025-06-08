@@ -3,37 +3,37 @@ import '../styles/style.css';
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
-import CrearCategoriaModal from "./CrearCatProductos";
-import EditarCategoriaProductoModal from "./EditarCatProductos";
-import VerCategoriaModal from './VerCatProductos';
+import CrearCategoriaModal from "./Crear";
+import EditarCategoriaInsumosModal from "./Editar";
+import VerInsumoModal from './Ver';
 
-interface CategoriaProductos {
-  IdCategoriaProducto: number;
+interface CategoriaInsumos {
+  IdCategoriaInsumo: number;
   Nombre: string;
   Descripcion: string;
   Estado: boolean;
 }
 
-const categoriasIniciales: CategoriaProductos[] = [
-  { IdCategoriaProducto: 401, Nombre: 'Categoria1', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
-  { IdCategoriaProducto: 402, Nombre: 'Categoria2', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
-  { IdCategoriaProducto: 403, Nombre: 'Categoria3', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
-  { IdCategoriaProducto: 404, Nombre: 'Categoria4', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
-  { IdCategoriaProducto: 405, Nombre: 'Categoria5', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
-  { IdCategoriaProducto: 406, Nombre: 'Categoria6', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
-  { IdCategoriaProducto: 407, Nombre: 'Categoria7', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
-  { IdCategoriaProducto: 408, Nombre: 'Categoria8', Descripcion: 'Libros, música y material educativo', Estado: false },
+const categoriasIniciales: CategoriaInsumos[] = [
+  { IdCategoriaInsumo: 601, Nombre: 'Categoria1', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
+  { IdCategoriaInsumo: 602, Nombre: 'Categoria2', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
+  { IdCategoriaInsumo: 603, Nombre: 'Categoria3', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
+  { IdCategoriaInsumo: 604, Nombre: 'Categoria4', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
+  { IdCategoriaInsumo: 605, Nombre: 'Categoria5', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
+  { IdCategoriaInsumo: 606, Nombre: 'Categoria6', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
+  { IdCategoriaInsumo: 607, Nombre: 'Categoria7', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
+  { IdCategoriaInsumo: 608, Nombre: 'Categoria8', Descripcion: 'Libros, música y material educativo', Estado: false },
 ];
 
-const ListarCatProductos: React.FC = () => {
-  const [categorias, setCategorias] = useState<CategoriaProductos[]>(categoriasIniciales);
+const ListarCatInsumos: React.FC = () => {
+  const [categorias, setCategorias] = useState<CategoriaInsumos[]>(categoriasIniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
-  const [categoriaEditar, setCategoriaEditar] = useState<CategoriaProductos | null>(null);
+  const [categoriaEditar, setCategoriaEditar] = useState<CategoriaInsumos | null>(null);
   const [mostrarVerModal, setMostrarVerModal] = useState(false);
-  const [categoriaVer, setCategoriaVer] = useState<CategoriaProductos | null>(null);
+  const [categoriaVer, setCategoriaVer] = useState<CategoriaInsumos | null>(null);
 
   const categoriasPorPagina = 6;
 
@@ -59,7 +59,7 @@ const ListarCatProductos: React.FC = () => {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        setCategorias(prev => prev.filter(c => c.IdCategoriaProducto !== id));
+        setCategorias(prev => prev.filter(c => c.IdCategoriaInsumo !== id));
         Swal.fire({
           icon: 'success',
           title: 'Eliminado',
@@ -72,11 +72,11 @@ const ListarCatProductos: React.FC = () => {
 
   const handleEstadoChange = (id: number) => {
     setCategorias(prev =>
-      prev.map(c => (c.IdCategoriaProducto === id ? { ...c, Estado: !c.Estado } : c))
+      prev.map(c => (c.IdCategoriaInsumo === id ? { ...c, Estado: !c.Estado } : c))
     );
   };
 
-  const handleCrear = (nuevaCategoria: CategoriaProductos) => {
+  const handleCrear = (nuevaCategoria: CategoriaInsumos) => {
     setCategorias(prev => [...prev, nuevaCategoria]);
     setMostrarModal(false);
     Swal.fire({
@@ -86,19 +86,19 @@ const ListarCatProductos: React.FC = () => {
     });
   };
 
-  const handleEditarCategoria = (categoria: CategoriaProductos) => {
+  const handleEditarCategoria = (categoria: CategoriaInsumos) => {
     setCategoriaEditar(categoria);
     setMostrarEditarModal(true);
   };
 
-  const handleActualizarCategoria = (categoriaActualizada: CategoriaProductos) => {
+  const handleActualizarCategoria = (categoriaActualizada: CategoriaInsumos) => {
     setCategorias(prev =>
-      prev.map(c => (c.IdCategoriaProducto === categoriaActualizada.IdCategoriaProducto ? categoriaActualizada : c))
+      prev.map(c => (c.IdCategoriaInsumo === categoriaActualizada.IdCategoriaInsumo ? categoriaActualizada : c))
     );
     setMostrarEditarModal(false);
   };
 
-  const handleVerCategoria = (categoria: CategoriaProductos) => {
+  const handleVerCategoria = (categoria: CategoriaInsumos) => {
     setCategoriaVer(categoria);
     setMostrarVerModal(true);
   };
@@ -115,7 +115,7 @@ const ListarCatProductos: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Categorías de Productos</h2>
+        <h2 className="titulo">Categorías de Insumos</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Categoría</button>
       </div>
 
@@ -142,7 +142,7 @@ const ListarCatProductos: React.FC = () => {
           </thead>
           <tbody>
             {categoriasPagina.map((c, index) => (
-              <tr key={c.IdCategoriaProducto} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
+              <tr key={c.IdCategoriaInsumo} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
                 <td>{c.Nombre}</td>
                 <td>{c.Descripcion}</td>
                 <td>
@@ -150,7 +150,7 @@ const ListarCatProductos: React.FC = () => {
                     <input
                       type="checkbox"
                       checked={c.Estado}
-                      onChange={() => handleEstadoChange(c.IdCategoriaProducto)}
+                      onChange={() => handleEstadoChange(c.IdCategoriaInsumo)}
                     />
                     <span className="slider round"></span>
                   </label>
@@ -169,7 +169,7 @@ const ListarCatProductos: React.FC = () => {
                   <FaTrash
                     className="icono text-danger"
                     style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarCategoria(c.IdCategoriaProducto, c.Estado)}
+                    onClick={() => handleEliminarCategoria(c.IdCategoriaInsumo, c.Estado)}
                   />
                 </td>
               </tr>
@@ -198,7 +198,7 @@ const ListarCatProductos: React.FC = () => {
       )}
 
       {mostrarEditarModal && categoriaEditar && (
-        <EditarCategoriaProductoModal
+        <EditarCategoriaInsumosModal
           categoria={categoriaEditar}
           onClose={() => setMostrarEditarModal(false)}
           onEditar={handleActualizarCategoria}
@@ -206,8 +206,8 @@ const ListarCatProductos: React.FC = () => {
       )}
 
       {mostrarVerModal && categoriaVer && (
-        <VerCategoriaModal
-          catproducto={categoriaVer}
+        <VerInsumoModal
+          catinsumo={categoriaVer}
           onClose={() => setMostrarVerModal(false)}
         />
       )}
@@ -215,4 +215,4 @@ const ListarCatProductos: React.FC = () => {
   );
 };
 
-export default ListarCatProductos;
+export default ListarCatInsumos;

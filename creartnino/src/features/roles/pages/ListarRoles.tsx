@@ -115,7 +115,6 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Nombre</th>
               <th>Descripción</th>
               <th>Estado</th>
@@ -125,7 +124,6 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
           <tbody>
             {rolesPagina.map((rol, index) => (
               <tr key={rol.idRol} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{rol.idRol}</td>
                 <td>{rol.nombre}</td>
                 <td>{rol.descripcion}</td>
                 <td>
