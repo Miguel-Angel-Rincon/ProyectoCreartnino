@@ -2,36 +2,35 @@ import { useState } from "react";
 import '../styles/style.css';
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-
-// import CrearProduccionModal from "./NuevaProduccion";
-// import EditarProduccionModal from "./Editar";
-// import VerProduccionModal from './Ver';
+import CrearProduccion from "./Crear"; // Asegúrate que el archivo se llame Crear.tsx o ajusta la ruta si es diferente
 
 interface Producciones {
   IdProduccion: number;
-  Nombre: string; // string | number
+  Nombre: string;
   TipoProducción: string;
   FechaRegistro: string;
   FechaFinal: string;
   EstadosPedido: string;
   Estado: string;
+  Productos?: any[];
 }
 
 const produccionesIniciales: Producciones[] = [
-  { IdProduccion: 601, Nombre: 'Lucas', TipoProducción: 'Tipo A', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
-  { IdProduccion: 602, Nombre: 'Marta', TipoProducción: 'Tipo B', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'Inicial', Estado: 'Finalizado' },
-  { IdProduccion: 603, Nombre: 'Mario', TipoProducción: 'Tipo C', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
-  { IdProduccion: 604, Nombre: 'Laura', TipoProducción: 'Tipo D', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
-  { IdProduccion: 605, Nombre: 'Andres', TipoProducción: 'Tipo E', FechaRegistro: '2025-05-05', FechaFinal: '2025-05-09', EstadosPedido: 'Final', Estado: 'Finalizado' },
-  { IdProduccion: 606, Nombre: 'Penelope', TipoProducción: 'Tipo F', FechaRegistro: '2025-05-06', FechaFinal: '2025-05-10', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
-  { IdProduccion: 607, Nombre: 'Juan', TipoProducción: 'Tipo G', FechaRegistro: '2025-05-07', FechaFinal: '2025-05-11', EstadosPedido: 'Final', Estado: 'Finalizado' },
-  { IdProduccion: 608, Nombre: 'Angel', TipoProducción: 'Tipo H', FechaRegistro: '2025-05-08', FechaFinal: '2025-05-12', EstadosPedido: 'Inicial', Estado: 'Pendiente' }
+  { IdProduccion: 601, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
+  { IdProduccion: 602, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'Inicial', Estado: 'Finalizado' },
+  { IdProduccion: 603, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
+  { IdProduccion: 604, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
+  { IdProduccion: 605, Nombre: 'Produccion 5', TipoProducción: 'Pedido', FechaRegistro: '2025-05-05', FechaFinal: '2025-05-09', EstadosPedido: 'Final', Estado: 'Finalizado' },
+  { IdProduccion: 606, Nombre: 'Produccion 6', TipoProducción: 'Pedido', FechaRegistro: '2025-05-06', FechaFinal: '2025-05-10', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
+  { IdProduccion: 607, Nombre: 'Produccion 7', TipoProducción: 'Directa', FechaRegistro: '2025-05-07', FechaFinal: '2025-05-11', EstadosPedido: 'Final', Estado: 'Finalizado' },
+  { IdProduccion: 608, Nombre: 'Produccion 8', TipoProducción: 'Pedido', FechaRegistro: '2025-05-08', FechaFinal: '2025-05-12', EstadosPedido: 'Inicial', Estado: 'Pendiente' }
 ];
 
 const ListarProduccion: React.FC = () => {
   const [producciones, setProducciones] = useState<Producciones[]>(produccionesIniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
+  const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
 
   const produccionesPorPagina = 6;
 
@@ -58,6 +57,17 @@ const ListarProduccion: React.FC = () => {
     });
   };
 
+  const handleCrearProduccion = (nuevaProduccion: Producciones) => {
+    setProducciones(prev => [nuevaProduccion, ...prev]);
+    setMostrarModalCrear(false);
+    Swal.fire({
+      icon: 'success',
+      title: 'Creado',
+      text: 'La producción ha sido registrada correctamente',
+      confirmButtonColor: '#e83e8c',
+    });
+  };
+
   const produccionesFiltradas = producciones.filter(p =>
     `${p.IdProduccion}`.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -71,7 +81,7 @@ const ListarProduccion: React.FC = () => {
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Producciones</h2>
-        <button className="btn btn-pink">Crear Producción</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModalCrear(true)}>Crear Producción</button>
       </div>
 
       <input
@@ -89,7 +99,6 @@ const ListarProduccion: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>Id Producción</th>
               <th>Nombre</th>
               <th>Tipo</th>
               <th>Fecha Registro</th>
@@ -109,21 +118,9 @@ const ListarProduccion: React.FC = () => {
                 <td>{p.EstadosPedido}</td>
                 <td>{p.Estado}</td>
                 <td>
-                  <FaEye
-                    className="icono text-info"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleVerProduccion(p)}
-                  />
-                  <FaEdit
-                    className="icono text-warning"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    // onClick={() => handleEditarProduccion(p)}
-                  />
-                  <FaTrash
-                    className="icono text-danger"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarProduccion(p.IdProduccion)}
-                  />
+                  <FaEye className="icono text-info" style={{ cursor: 'pointer', marginRight: '10px' }} />
+                  <FaEdit className="icono text-warning" style={{ cursor: 'pointer', marginRight: '10px' }} />
+                  <FaTrash className="icono text-danger" style={{ cursor: 'pointer' }} onClick={() => handleEliminarProduccion(p.IdProduccion)} />
                 </td>
               </tr>
             ))}
@@ -142,6 +139,17 @@ const ListarProduccion: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {mostrarModalCrear && (
+        <div className="modal-fondo">
+          <div className="modal-contenido">
+            <CrearProduccion
+              onClose={() => setMostrarModalCrear(false)}
+              onCrear={handleCrearProduccion}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
