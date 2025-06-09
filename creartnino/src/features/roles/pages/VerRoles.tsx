@@ -24,10 +24,6 @@ const VerRolModal: React.FC<Props> = ({ rol, onClose }) => {
           </div>
           <div className="modal-body">
             <div className="mb-3">
-              <label className="form-label">ID del Rol</label>
-              <input className="form-control" value={rol.idRol} disabled />
-            </div>
-            <div className="mb-3">
               <label className="form-label">Nombre</label>
               <input className="form-control" value={rol.nombre} disabled />
             </div>

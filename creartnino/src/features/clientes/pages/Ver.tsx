@@ -32,10 +32,6 @@ const VerClienteModal: React.FC<Props> = ({ cliente, onClose }) => {
           </div>
           <div className="modal-body">
             <div className="mb-3">
-              <label className="form-label">ID Cliente</label>
-              <input className="form-control" value={cliente.IdClientes} disabled />
-            </div>
-            <div className="mb-3">
               <label className="form-label">Nombre</label>
               <input className="form-control" value={cliente.Nombre} disabled />
             </div>

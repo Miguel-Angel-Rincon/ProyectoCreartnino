@@ -53,12 +53,13 @@ export default function Sidebar() {
           </div>
           {openSection === "config" && (
             <>
+            <Link to="/roles" className={location.pathname === "/roles" ? "active" : ""}>
+                <FaUserShield /> Roles
+              </Link>
               <Link to="/usuario" className={location.pathname === "/usuario" ? "active" : ""}>
                 <FaUser /> Usuario
               </Link>
-              <Link to="/roles" className={location.pathname === "/roles" ? "active" : ""}>
-                <FaUserShield /> Roles
-              </Link>
+              
               <Link to="/clientes" className={location.pathname === "/clientes" ? "active" : ""}>
                 <FaUsers /> Clientes
               </Link>

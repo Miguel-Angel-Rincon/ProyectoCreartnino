@@ -27,14 +27,7 @@
                 <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
-                <div className="mb-3">
-                <label className="form-label">ID Insumo</label>
-                <input
-                    className="form-control"
-                    value={insumo.IdInsumos}
-                    disabled
-                />
-                </div>
+                
                 <div className="mb-3">
                 <label className="form-label">ID Categoría de Insumo</label>
                 <input
