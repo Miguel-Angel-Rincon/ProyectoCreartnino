@@ -18,8 +18,8 @@ const clientesMock = [
 ];
 
 const productosMock = [
-  { IdProducto: 201, Nombre: 'Camiseta', precio: 35000 },
-  { IdProducto: 202, Nombre: 'Gorra', precio: 15000 },
+  { IdProducto: 201, Nombre: 'Toppers', precio: 20000 },
+  { IdProducto: 202, Nombre: 'Caja ataúd', precio: 25000 },
   { IdProducto: 203, Nombre: 'Taza', precio: 18000 }
 ];
 

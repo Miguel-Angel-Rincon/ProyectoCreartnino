@@ -6,9 +6,9 @@ interface CrearProduccionProps {
 }
 
 const productosMock = [
-  { IdProducto: 301, Nombre: 'Chaqueta', precio: 60000 },
-  { IdProducto: 302, Nombre: 'Bufanda', precio: 25000 },
-  { IdProducto: 303, Nombre: 'Guantes', precio: 20000 }
+  { IdProducto: 201, Nombre: 'Toppers', precio: 20000 },
+  { IdProducto: 202, Nombre: 'Caja ataúd', precio: 25000 },
+  { IdProducto: 203, Nombre: 'Taza', precio: 18000 }
 ];
 
 interface DetalleProduccion {
