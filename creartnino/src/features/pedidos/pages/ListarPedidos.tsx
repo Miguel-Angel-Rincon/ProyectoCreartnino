@@ -1,12 +1,21 @@
 import { useState } from "react";
 import Swal from 'sweetalert2';
 import { FaEye, FaFilePdf, FaBan, FaPlus } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import CrearPedido from './Crear';
+import VerPedidoModal from './Ver';
 import '../styles/style.css';
+
+interface PedidoDetalle {
+  producto: string;
+  cantidad: number;
+  precio: number;
+}
 
 interface Pedidos {
   IdPedido: number;
-  IdCliente: string | number;
+  IdCliente: string;
   MetodoPago: string;
   FechaPedido: string;
   FechaEntrega: string;
@@ -16,6 +25,7 @@ interface Pedidos {
   ComprobantePago: string;
   TotalPedido: number;
   Estado: string;
+  detallePedido?: PedidoDetalle[];
 }
 
 const pedidosIniciales: Pedidos[] = [
@@ -34,6 +44,7 @@ const ListarPedidos: React.FC = () => {
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedidos | null>(null);
 
   const pedidosPorPagina = 6;
 
@@ -72,6 +83,73 @@ const ListarPedidos: React.FC = () => {
     });
   };
 
+  const generarPDF = (pedido: Pedidos) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`Resumen de Pedido #${pedido.IdPedido}`, 105, 20, { align: 'center' });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 25, 196, 25);
+
+    doc.setFontSize(12);
+    doc.setTextColor(60, 60, 60);
+
+    const infoY = 32;
+    const lineSpacing = 7;
+    const labels = [
+      ['Cliente', pedido.IdCliente],
+      ['Método de Pago', pedido.MetodoPago],
+      ['Fecha del Pedido', pedido.FechaPedido],
+      ['Fecha de Entrega', pedido.FechaEntrega],
+      ['Estado', pedido.Estado],
+      ['Descripción', pedido.Descripcion],
+      ['Valor Inicial', `$${pedido.ValorInicial.toLocaleString()}`],
+      ['Valor Restante', `$${pedido.ValorRestante.toLocaleString()}`],
+      ['Total Pedido', `$${pedido.TotalPedido.toLocaleString()}`],
+    ];
+
+    labels.forEach(([label, value], index) => {
+      const y = infoY + index * lineSpacing;
+      
+      doc.text(`${label}:`, 14, y);
+      
+      doc.text(String(value), 60, y);
+    });
+
+    const tablaStartY = infoY + labels.length * lineSpacing + 5;
+    doc.line(14, tablaStartY - 3, 196, tablaStartY - 3);
+
+    autoTable(doc, {
+      startY: tablaStartY,
+      head: [['Producto', 'Cantidad', 'Precio']],
+      body: pedido.detallePedido?.map((item) => [
+        item.producto,
+        item.cantidad.toString(),
+        `$${item.precio.toLocaleString()}`,
+      ]) || [],
+      theme: 'striped',
+      headStyles: {
+        fillColor: [224, 78, 131],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      styles: {
+        fontSize: 11,
+        cellPadding: 3,
+      },
+    });
+
+    // Use doc.lastAutoTable.finalY if available, otherwise fallback to 140
+    const finalY = (doc as any).lastAutoTable?.finalY || 140;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`, 14, finalY + 10);
+
+    doc.save(`Pedido-${pedido.IdPedido}.pdf`);
+  };
+
   const pedidosFiltrados = pedidos.filter(p =>
     `${p.IdPedido}`.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -106,7 +184,6 @@ const ListarPedidos: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-
               <th>Cliente</th>
               <th>Método de Pago</th>
               <th>Entrega</th>
@@ -126,9 +203,21 @@ const ListarPedidos: React.FC = () => {
                 <td>${p.TotalPedido.toLocaleString()}</td>
                 <td>{p.Estado}</td>
                 <td>
-                  <FaEye className="icono text-info me-2" style={{ cursor: 'pointer' }} />
-                  <FaBan className="icono text-warning me-2" style={{ cursor: 'pointer' }} onClick={() => handleEliminarPedido(p.IdPedido)} />
-                  <FaFilePdf className="icono text-danger" style={{ cursor: 'pointer' }} />
+                  <FaEye
+                    className="icono text-info me-2"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setPedidoSeleccionado(p)}
+                  />
+                  <FaBan
+                    className="icono text-warning me-2"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleEliminarPedido(p.IdPedido)}
+                  />
+                  <FaFilePdf
+                    className="icono text-danger"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => generarPDF(p)}
+                  />
                 </td>
               </tr>
             ))}
@@ -168,6 +257,16 @@ const ListarPedidos: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {pedidoSeleccionado && (
+        <VerPedidoModal
+          pedido={{
+            ...pedidoSeleccionado,
+            detallePedido: pedidoSeleccionado.detallePedido ?? []
+          }}
+          onClose={() => setPedidoSeleccionado(null)}
+        />
       )}
     </div>
   );
