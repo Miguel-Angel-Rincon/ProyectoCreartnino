@@ -89,7 +89,6 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-
                 {/* Nombre y Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">🛍️ Nombre</label>
@@ -142,7 +141,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   />
                 </div>
 
-                {/* Marca */}
+                {/* Marca y Imagen */}
                 <div className="col-md-6">
                   <label className="form-label">🏷️ Marca</label>
                   <input
@@ -153,9 +152,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                     required
                   />
                 </div>
-
-                {/* Imagen con lista y vista previa */}
-                <div className="col-md-12">
+                <div className="col-md-6">
                   <label className="form-label">🖼️ Imagen</label>
                   <select
                     className="form-select"
@@ -169,26 +166,27 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                       </option>
                     ))}
                   </select>
-
-                  {formData.Imagen && (
-                    <div className="text-center mt-3">
-                      <img
-                        src={formData.Imagen}
-                        alt="Vista previa"
-                        className="img-thumbnail"
-                        style={{
-                          maxWidth: '180px',
-                          maxHeight: '180px',
-                          objectFit: 'cover',
-                          borderRadius: '8px',
-                        }}
-                      />
-                    </div>
-                  )}
                 </div>
 
+                {/* Vista previa centrada */}
+                {formData.Imagen && (
+                  <div className="col-12 text-center">
+                    <img
+                      src={formData.Imagen}
+                      alt="Vista previa"
+                      className="img-thumbnail mt-2"
+                      style={{
+                        maxWidth: '180px',
+                        maxHeight: '180px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
