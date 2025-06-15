@@ -1,7 +1,7 @@
-// components/CrearCategoriaModal.tsx
 import React from 'react';
 import Swal from 'sweetalert2';
-
+import { FaTags } from 'react-icons/fa'; // Ícono para el título
+import '../styles/acciones.css';
 
 interface CategoriaInsumos {
   IdCategoriaInsumo: number;
@@ -15,7 +15,7 @@ interface Props {
   onCrear: (nuevaCategoria: CategoriaInsumos) => void;
 }
 
-// Contador incremental para IDs de categorías
+// Contador incremental simulado
 let idCategoriaActual = 609;
 
 const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
@@ -48,36 +48,61 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
   };
 
   return (
-    <div className="modal d-block" tabIndex={-1}>
-      <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content">
-          <form onSubmit={handleSubmit}>
-            <div className="modal-header bg-pink text-white">
-              <h5 className="modal-title">Crear Categoría</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
-            </div>
-            <div className="modal-body">
-              <div className="mb-3">
-                <label className="form-label">Nombre</label>
-                <input className="form-control" name="nombre" required />
+    <>
+      <div className="modal-backdrop fade show pastel-overlay"></div>
+      <div className="modal d-block" tabIndex={-1}>
+        <div className="modal-dialog modal-lg modal-dialog-centered">
+          <div className="modal-content pastel-modal">
+            <form onSubmit={handleSubmit}>
+              <div className="modal-header pastel-header">
+                <h5 className="modal-title d-flex align-items-center">
+                  <FaTags className="me-2" />
+                  Crear Categoría de Insumo
+                </h5>
+                <button type="button" className="btn-close" onClick={onClose}></button>
               </div>
-              <div className="mb-3">
-                <label className="form-label">Descripción</label>
-                <textarea className="form-control" name="descripcion" rows={3} required />
+
+              <div className="modal-body px-4">
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Nombre</label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      className="form-control"
+                      placeholder="Ej. Textiles"
+                      required
+                    />
+                  </div>
+
+                  
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Descripción</label>
+                  <textarea
+                    name="descripcion"
+                    className="form-control"
+                    rows={3}
+                    placeholder="Describe brevemente la categoría"
+                    required
+                  />
+                </div>
               </div>
-              <div className="form-check form-switch mb-3">
-                <input className="form-check-input" type="checkbox" name="estado" defaultChecked />
-                <label className="form-check-label">Activa</label>
+
+              <div className="modal-footer pastel-footer">
+                <button type="button" className="pastel-btn-secondary" onClick={onClose}>
+                  Cancelar
+                </button>
+                <button type="submit" className="pastel-btn-primary">
+                  Crear Categoría
+                </button>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn btn-pink">Crear</button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
