@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import '../styles/acciones.css';
+
 
 interface CrearProduccionProps {
   onClose: () => void;
@@ -48,11 +50,9 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
     setDetalle(copia);
   };
 
-  
-
   const handleSubmit = () => {
     const nuevaProduccion = {
-      IdProduccion: Math.floor(Math.random() * 1000) + 600, // Temporal
+      IdProduccion: Math.floor(Math.random() * 1000) + 600,
       Nombre: nombre,
       TipoProducción: tipoProduccion,
       FechaRegistro: fechaInicio,
@@ -61,95 +61,104 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
       Estado: estado,
       Productos: detalle
     };
-
     onCrear(nuevaProduccion);
   };
 
   return (
-    <div>
-      <h4>Registrar Producción</h4>
+    <div className="modal d-block pastel-overlay">
+      <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-content pastel-modal shadow">
+          <div className="modal-header pastel-header">
+            <h5 className="modal-title">🛠️ Crear Producción</h5>
+            <button type="button" className="btn-close" onClick={onClose}></button>
+          </div>
 
-      <div className="mb-3">
-        <label className="form-label">Nombre:</label>
-        <input className="form-control" value={nombre} onChange={e => setNombre(e.target.value)} />
-      </div>
+          <div className="modal-body px-4 py-3">
+            <div className="row g-4">
 
-      <div className="mb-3">
-  <label className="form-label">Tipo de Producción:</label>
-  <select
-    className="form-control"
-    value={tipoProduccion}
-    onChange={e => setTipoProduccion(e.target.value)}
-  >
-    <option value="">Seleccione</option>
-    <option value="Directa">Directa</option>
-    <option value="Prediseñada">Pedido</option>
-  </select>
-</div>
+              {/* Nombre y Tipo */}
+              <div className="col-md-6">
+                <label className="form-label">🏷️ Nombre</label>
+                <input type="text" className="form-control" value={nombre} onChange={e => setNombre(e.target.value)} />
+              </div>
 
-      <div className="mb-3">
-        <label className="form-label">Fecha de Inicio:</label>
-        <input type="date" className="form-control" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
-      </div>
+              <div className="col-md-6">
+                <label className="form-label">⚙️ Tipo de Producción</label>
+                <select className="form-select" value={tipoProduccion} onChange={e => setTipoProduccion(e.target.value)}>
+                  <option value="">Seleccione</option>
+                  <option value="Directa">Directa</option>
+                  <option value="Prediseñada">Pedido</option>
+                </select>
+              </div>
 
-      <div className="mb-3">
-        <label className="form-label">Fecha de Finalización:</label>
-        <input type="date" className="form-control" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
-      </div>
+              {/* Fechas */}
+              <div className="col-md-6">
+                <label className="form-label">📅 Fecha de Inicio</label>
+                <input type="date" className="form-control" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
+              </div>
 
-      <div className="mb-3">
-        <label className="form-label">Estado del Pedido:</label>
-        <select className="form-control" value={estadoPedido} onChange={e => setEstadoPedido(e.target.value)}>
-          <option value="">Seleccione</option>
-          <option value="Inicial">Inicial</option>
-          <option value="Intermedio">Intermedio</option>
-          <option value="Final">Final</option>
-        </select>
-      </div>
+              <div className="col-md-6">
+                <label className="form-label">📦 Fecha de Finalización</label>
+                <input type="date" className="form-control" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
+              </div>
 
-      <div className="mb-3">
-        <label className="form-label">Estado:</label>
-        <select className="form-control" value={estado} onChange={e => setEstado(e.target.value)}>
-          <option value="">Seleccione</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="En proceso">En proceso</option>
-          <option value="Finalizado">Finalizado</option>
-        </select>
-      </div>
+              {/* Estado del pedido y estado */}
+              <div className="col-md-6">
+                <label className="form-label">📋 Estado del Pedido</label>
+                <select className="form-select" value={estadoPedido} onChange={e => setEstadoPedido(e.target.value)}>
+                  <option value="">Seleccione</option>
+                  <option value="Inicial">Inicial</option>
+                  <option value="Intermedio">Intermedio</option>
+                  <option value="Final">Final</option>
+                </select>
+              </div>
 
-      <h5>Detalle de Productos</h5>
-      {detalle.map((item, index) => (
-        <div key={index} className="d-flex gap-2 mb-2">
-          <select
-            className="form-control"
-            value={item.producto}
-            onChange={e => actualizarDetalle(index, 'producto', e.target.value)}
-          >
-            <option value="">Seleccione un producto</option>
-            {productosMock.map(p => (
-              <option key={p.IdProducto} value={p.Nombre}>
-                {p.Nombre}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Cantidad"
-            value={item.cantidad}
-            onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)}
-          />
-          
-          <button className="btn btn-danger" onClick={() => eliminarDetalle(index)}>X</button>
+              <div className="col-md-6">
+                <label className="form-label">📌 Estado</label>
+                <select className="form-select" value={estado} onChange={e => setEstado(e.target.value)}>
+                  <option value="">Seleccione</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En proceso">En proceso</option>
+                  <option value="Finalizado">Finalizado</option>
+                </select>
+              </div>
+
+              {/* Detalle de productos */}
+              <div className="col-12 mt-4">
+                <h6 className="text-muted">📦 Detalle de la produccion</h6>
+                <div className="row fw-bold mb-2">
+                  <div className="col-md-5">Nombre del Producto</div>
+                  <div className="col-md-4">Cantidad</div>
+                  <div className="col-md-3"></div>
+                </div>
+                {detalle.map((item, index) => (
+                  <div key={index} className="row mb-2 align-items-center">
+                    <div className="col-md-5">
+                      <select className="form-select" value={item.producto} onChange={e => actualizarDetalle(index, 'producto', e.target.value)}>
+                        <option value="">Seleccione un producto</option>
+                        {productosMock.map(p => (
+                          <option key={p.IdProducto} value={p.Nombre}>{p.Nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-4">
+                      <input type="number" className="form-control" placeholder="Cantidad" value={item.cantidad} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} />
+                    </div>
+                    <div className="col-md-3 text-center">
+                      <button className="btn btn-danger btn-sm" onClick={() => eliminarDetalle(index)}>✖</button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="btn pastel-btn-secondary" onClick={agregarDetalle}>+ Agregar Producto</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-footer pastel-footer">
+            <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
+            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Registrar Producción</button>
+          </div>
         </div>
-      ))}
-      <button className="btn btn-secondary mb-3" onClick={agregarDetalle}>+ Agregar Producto</button>
-
-
-
-      <div className="text-end">
-        <button className="btn btn-secondary me-2" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-success" onClick={handleSubmit}>Registrar Producción</button>
       </div>
     </div>
   );
