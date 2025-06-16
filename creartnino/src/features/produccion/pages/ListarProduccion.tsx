@@ -1,8 +1,16 @@
 import { useState } from "react";
 import '../styles/style.css';
 import Swal from 'sweetalert2';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import CrearProduccion from "./Crear"; // Asegúrate que el archivo se llame Crear.tsx o ajusta la ruta si es diferente
+import { FaEye, FaEdit, FaBan } from 'react-icons/fa';
+import CrearProduccion from "./Crear";
+import VerProduccionModal from "./Ver";
+import EditarProduccionModal from "./Editar";
+
+interface DetalleProduccion {
+  producto: string;
+  cantidad: number;
+  precio: number;
+}
 
 interface Producciones {
   IdProduccion: number;
@@ -12,18 +20,19 @@ interface Producciones {
   FechaFinal: string;
   EstadosPedido: string;
   Estado: string;
-  Productos?: any[];
+  Productos?: DetalleProduccion[];
 }
 
 const produccionesIniciales: Producciones[] = [
-  { IdProduccion: 601, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
-  { IdProduccion: 602, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'Inicial', Estado: 'Finalizado' },
-  { IdProduccion: 603, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
-  { IdProduccion: 604, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'Inicial', Estado: 'Pendiente' },
-  { IdProduccion: 605, Nombre: 'Produccion 5', TipoProducción: 'Pedido', FechaRegistro: '2025-05-05', FechaFinal: '2025-05-09', EstadosPedido: 'Final', Estado: 'Finalizado' },
-  { IdProduccion: 606, Nombre: 'Produccion 6', TipoProducción: 'Pedido', FechaRegistro: '2025-05-06', FechaFinal: '2025-05-10', EstadosPedido: 'Intermedio', Estado: 'En proceso' },
-  { IdProduccion: 607, Nombre: 'Produccion 7', TipoProducción: 'Directa', FechaRegistro: '2025-05-07', FechaFinal: '2025-05-11', EstadosPedido: 'Final', Estado: 'Finalizado' },
-  { IdProduccion: 608, Nombre: 'Produccion 8', TipoProducción: 'Pedido', FechaRegistro: '2025-05-08', FechaFinal: '2025-05-12', EstadosPedido: 'Inicial', Estado: 'Pendiente' }
+  { IdProduccion: 601, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
+  { IdProduccion: 602, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
+  { IdProduccion: 603, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
+  { IdProduccion: 604, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
+   { IdProduccion: 605, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
+  { IdProduccion: 606, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
+  { IdProduccion: 607, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
+  { IdProduccion: 608, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
+  
 ];
 
 const ListarProduccion: React.FC = () => {
@@ -31,26 +40,57 @@ const ListarProduccion: React.FC = () => {
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
+  const [produccionSeleccionada, setProduccionSeleccionada] = useState<Producciones | null>(null);
+  const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [produccionAEditar, setProduccionAEditar] = useState<Producciones | null>(null);
 
   const produccionesPorPagina = 6;
 
-  const handleEliminarProduccion = (id: number) => {
+  const getColorClaseEstadoPedido = (estado: string) => {
+    switch (estado) {
+      case 'primer pago': return 'estado-primer-pago';
+      case 'en proceso': return 'estado-en-proceso';
+      case 'en producción': return 'estado-en-produccion';
+      case 'en proceso de entrega': return 'estado-en-proceso-entrega';
+      case 'entregado': return 'estado-entregado';
+      case 'anulado': return 'estado-anulado';
+      default: return '';
+    }
+  };
+
+  const getColorClaseEstadoProduccion = (estado: string) => {
+    switch (estado) {
+      case 'en proceso': return 'estado-produccion-en-proceso';
+      case 'completado': return 'estado-produccion-completado';
+      case 'anulado': return 'estado-produccion-anulado';
+      default: return '';
+    }
+  };
+
+  const handleAnularProduccion = (id: number) => {
+    const produccion = producciones.find(p => p.IdProduccion === id);
+    if (produccion?.Estado === 'anulado') return;
+
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      text: 'Esta acción cambiará el estado a "anulado"',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#aaa',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, anular',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        setProducciones(prev => prev.filter(p => p.IdProduccion !== id));
+        setProducciones(prev =>
+          prev.map(p =>
+            p.IdProduccion === id ? { ...p, Estado: 'anulado' } : p
+          )
+        );
         Swal.fire({
           icon: 'success',
-          title: 'Eliminado',
-          text: 'La producción ha sido eliminada correctamente',
+          title: 'Anulado',
+          text: 'La producción ha sido anulada correctamente',
           confirmButtonColor: '#e83e8c',
         });
       }
@@ -115,12 +155,78 @@ const ListarProduccion: React.FC = () => {
                 <td>{p.TipoProducción}</td>
                 <td>{p.FechaRegistro}</td>
                 <td>{p.FechaFinal}</td>
-                <td>{p.EstadosPedido}</td>
-                <td>{p.Estado}</td>
                 <td>
-                  <FaEye className="icono text-info" style={{ cursor: 'pointer', marginRight: '10px' }} />
-                  <FaEdit className="icono text-warning" style={{ cursor: 'pointer', marginRight: '10px' }} />
-                  <FaTrash className="icono text-danger" style={{ cursor: 'pointer' }} onClick={() => handleEliminarProduccion(p.IdProduccion)} />
+                  <select
+                    className={`form-select estado-select ${getColorClaseEstadoPedido(p.EstadosPedido)}`}
+                    value={p.EstadosPedido}
+                    onChange={(e) => {
+                      const nuevoEstado = e.target.value;
+                      setProducciones(prev =>
+                        prev.map(prod =>
+                          prod.IdProduccion === p.IdProduccion
+                            ? { ...prod, EstadosPedido: nuevoEstado }
+                            : prod
+                        )
+                      );
+                    }}
+                  >
+                    <option value="primer pago">Primer Pago</option>
+                    <option value="en proceso">En Proceso</option>
+                    <option value="en producción">En Producción</option>
+                    <option value="en proceso de entrega">En Proceso de Entrega</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="anulado">Anulado</option>
+                  </select>
+                </td>
+                <td>
+                  <select
+                    className={`form-select estado-select ${getColorClaseEstadoProduccion(p.Estado)}`}
+                    value={p.Estado}
+                    onChange={(e) => {
+                      const nuevoEstado = e.target.value;
+                      setProducciones(prev =>
+                        prev.map(prod =>
+                          prod.IdProduccion === p.IdProduccion
+                            ? { ...prod, Estado: nuevoEstado }
+                            : prod
+                        )
+                      );
+                    }}
+                    disabled={p.Estado === 'anulado'}
+                  >
+                    <option value="en proceso">En Proceso</option>
+                    <option value="completado">Completado</option>
+                    <option value="anulado">Anulado</option>
+                  </select>
+                </td>
+                <td>
+                  <FaEye
+                    className="icono text-info"
+                    style={{ cursor: 'pointer', marginRight: '10px' }}
+                    onClick={() => setProduccionSeleccionada(p)}
+                  />
+                  <FaEdit
+                    className={`icono ${p.Estado === 'anulado' ? 'text-secondary' : 'text-warning'}`}
+                    style={{
+                      cursor: p.Estado === 'anulado' ? 'not-allowed' : 'pointer',
+                      marginRight: '10px'
+                    }}
+                    onClick={() => {
+                      if (p.Estado !== 'anulado') {
+                        setProduccionAEditar(p);
+                        setMostrarModalEditar(true);
+                      }
+                    }}
+                  />
+                  <FaBan
+                    className={`icono ${p.Estado === 'anulado' ? 'text-secondary' : 'text-danger'}`}
+                    style={{ cursor: p.Estado === 'anulado' ? 'not-allowed' : 'pointer' }}
+                    onClick={() => {
+                      if (p.Estado !== 'anulado') {
+                        handleAnularProduccion(p.IdProduccion);
+                      }
+                    }}
+                  />
                 </td>
               </tr>
             ))}
@@ -149,6 +255,38 @@ const ListarProduccion: React.FC = () => {
             />
           </div>
         </div>
+      )}
+
+      {produccionSeleccionada && (
+        <VerProduccionModal
+          produccion={{
+            ...produccionSeleccionada,
+            Productos: produccionSeleccionada.Productos ?? []
+          }}
+          onClose={() => setProduccionSeleccionada(null)}
+        />
+      )}
+
+      {mostrarModalEditar && produccionAEditar && (
+        <EditarProduccionModal
+          produccion={{
+            ...produccionAEditar,
+            Productos: produccionAEditar.Productos ?? []
+          }}
+          onClose={() => setMostrarModalEditar(false)}
+          onGuardar={(produccionActualizada) => {
+            setProducciones(prev =>
+              prev.map(p => p.IdProduccion === produccionActualizada.IdProduccion ? produccionActualizada : p)
+            );
+            setMostrarModalEditar(false);
+            Swal.fire({
+              icon: 'success',
+              title: 'Actualizado',
+              text: 'La producción se actualizó correctamente',
+              confirmButtonColor: '#e83e8c',
+            });
+          }}
+        />
       )}
     </div>
   );
