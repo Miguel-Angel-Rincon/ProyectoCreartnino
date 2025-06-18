@@ -145,3 +145,81 @@
   font-size: 0.95rem;
   color: #4a3f61;
 }
+
+
+.estado-select {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  width: auto;
+  min-width: 140px;
+  appearance: none;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: inherit;
+  outline: none;
+  text-align: center;
+  cursor: default;
+  color: #333;
+}
+
+/* Ocultar flechas en navegadores */
+.estado-select::-ms-expand {
+  display: none;
+}
+.estado-select::-webkit-inner-spin-button,
+.estado-select::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.estado-select::-webkit-dropdown-arrow {
+  display: none;
+}
+
+/* Estados de Pedido */
+.estado-primer-pago {
+  background-color: #ffe0f0 !important;
+}
+
+.estado-en-proceso {
+  background-color: #ffcf7b !important;
+}
+
+.estado-en-produccion {
+  background-color: #fff4cc !important;
+}
+
+.estado-en-proceso-entrega {
+  background-color: #e6ffe6 !important;
+}
+
+.estado-entregado {
+  background-color: #d6f5d6 !important;
+}
+
+.estado-anulado {
+  background-color: #fcdcdc !important;
+}
+
+/* Estados de Producción */
+.estado-produccion-en-proceso {
+  background-color: #fff2cc !important;
+}
+
+.estado-produccion-completado {
+  background-color: #d9f9d9 !important;
+}
+
+.estado-produccion-anulado {
+  background-color: #f8cccc !important;
+}
+
+/* Ocultar flecha en navegadores antiguos */
+.estado-select::-ms-expand { display: none; }
