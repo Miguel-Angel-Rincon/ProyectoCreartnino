@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/acciones.css';
 
-
 interface CrearProduccionProps {
   onClose: () => void;
   onCrear: (produccion: any) => void;
@@ -24,8 +23,6 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
   const [tipoProduccion, setTipoProduccion] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [estadoPedido, setEstadoPedido] = useState('');
-  const [estado, setEstado] = useState('');
   const [detalle, setDetalle] = useState<DetalleProduccion[]>([]);
 
   const agregarDetalle = () => {
@@ -57,8 +54,8 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
       TipoProducción: tipoProduccion,
       FechaRegistro: fechaInicio,
       FechaFinal: fechaFin,
-      EstadosPedido: estadoPedido,
-      Estado: estado,
+      EstadosPedido: 'en producción', // Asignación automática
+      Estado: 'en proceso',           // Asignación automática
       Productos: detalle
     };
     onCrear(nuevaProduccion);
@@ -102,30 +99,9 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
                 <input type="date" className="form-control" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
               </div>
 
-              {/* Estado del pedido y estado */}
-              <div className="col-md-6">
-                <label className="form-label">📋 Estado del Pedido</label>
-                <select className="form-select" value={estadoPedido} onChange={e => setEstadoPedido(e.target.value)}>
-                  <option value="">Seleccione</option>
-                  <option value="Inicial">Inicial</option>
-                  <option value="Intermedio">Intermedio</option>
-                  <option value="Final">Final</option>
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label">📌 Estado</label>
-                <select className="form-select" value={estado} onChange={e => setEstado(e.target.value)}>
-                  <option value="">Seleccione</option>
-                  <option value="Pendiente">Pendiente</option>
-                  <option value="En proceso">En proceso</option>
-                  <option value="Finalizado">Finalizado</option>
-                </select>
-              </div>
-
               {/* Detalle de productos */}
               <div className="col-12 mt-4">
-                <h6 className="text-muted">📦 Detalle de la produccion</h6>
+                <h6 className="text-muted">📦 Detalle de la producción</h6>
                 <div className="row fw-bold mb-2">
                   <div className="col-md-5">Nombre del Producto</div>
                   <div className="col-md-4">Cantidad</div>
