@@ -142,7 +142,15 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
     }
 
     onEditar({ ...formData, IdClientes: cliente.IdClientes });
-    onClose();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Cliente actualizado',
+      text: 'La información del cliente se ha actualizado correctamente.',
+      confirmButtonColor: '#28a745',
+    }).then(() => {
+      onClose();
+    });
   };
 
   return (
@@ -161,7 +169,6 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                   <label className="form-label">🧾 Tipo de Documento</label>
                   <select name="Tipodocumento" className="form-select" value={formData.Tipodocumento} onChange={handleChange} required>
                     <option value="CC">Cédula de Ciudadanía</option>
-                    
                     <option value="CE">Cédula de Extranjería</option>
                     <option value="TI">Tarjeta de Identidad</option>
                   </select>
@@ -202,9 +209,15 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">🏡 Dirección</label>
-                  <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} required />
+                  <input
+                    name="Direccion"
+                    className="form-control"
+                    value={formData.Direccion}
+                    readOnly
+                    onClick={() => setShowDireccionModal(true)}
+                    required
+                  />
                 </div>
-
               </div>
             </div>
 
