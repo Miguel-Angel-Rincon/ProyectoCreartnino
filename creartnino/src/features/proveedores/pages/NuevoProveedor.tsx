@@ -6,7 +6,7 @@ let idProveedorActual = 9;
 
 interface Proveedores {
   IdProveedores: number;
-  IdTipoPersona: string;
+  TipoPersona: string;
   IdTipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
@@ -24,7 +24,7 @@ interface Props {
 const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [formData, setFormData] = useState<Proveedores>({
     IdProveedores: idProveedorActual,
-    IdTipoPersona: 'Natural',
+    TipoPersona: 'Natural',
     IdTipoDocumento: 'CC',
     NombreCompleto: '',
     NumDocumento: '',
@@ -106,7 +106,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <select
                     className="form-select"
                     name="IdTipoPersona"
-                    value={formData.IdTipoPersona}
+                    value={formData.TipoPersona}
                     onChange={handleChange}
                     required
                   >
@@ -123,7 +123,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     value={formData.IdTipoDocumento}
                     onChange={handleChange}
                     required
-                    disabled={formData.IdTipoPersona === 'Jurídica'}
+                    disabled={formData.TipoPersona === 'Jurídica'}
                   >
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
@@ -134,7 +134,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.IdTipoPersona === 'Jurídica'
+                    {formData.TipoPersona === 'Jurídica'
                       ? '🔢 Número NIT'
                       : '🔢 Número de Documento'}
                   </label>
@@ -149,7 +149,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.IdTipoPersona === 'Jurídica'
+                    {formData.TipoPersona === 'Jurídica'
                       ? '🏢 Nombre de la Empresa'
                       : '🙍 Nombre Completo'}
                   </label>
