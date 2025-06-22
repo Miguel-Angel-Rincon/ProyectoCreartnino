@@ -3,7 +3,7 @@ import '../style/acciones.css';
 
 interface Proveedores {
   IdProveedores: number;
-  IdTipoPersona: string;
+  TipoPersona: string;
   IdTipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
@@ -49,7 +49,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">👤 Tipo de Persona</label>
-                <select className="form-select" disabled value={proveedor.IdTipoPersona}>
+                <select className="form-select" disabled value={proveedor.TipoPersona}>
                   <option value="Natural">Natural</option>
                   <option value="Jurídica">Jurídica</option>
                 </select>
@@ -67,7 +67,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">
-                  {proveedor.IdTipoPersona === 'Jurídica'
+                  {proveedor.TipoPersona === 'Jurídica'
                     ? '🔢 Número NIT'
                     : '🔢 Número de Documento'}
                 </label>
@@ -80,7 +80,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">
-                  {proveedor.IdTipoPersona === 'Jurídica'
+                  {proveedor.TipoPersona === 'Jurídica'
                     ? '🏢 Nombre de la Empresa'
                     : '🙍 Nombre Completo'}
                 </label>

@@ -4,7 +4,7 @@ import '../style/acciones.css';
 
 interface Proveedores {
   IdProveedores: number;
-  IdTipoPersona: string;
+  TipoPersona: string;
   IdTipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
@@ -105,7 +105,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                   <select
                     className="form-select"
                     name="IdTipoPersona"
-                    value={formData.IdTipoPersona}
+                    value={formData.TipoPersona}
                     onChange={handleChange}
                     required
                   >
@@ -122,7 +122,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                     value={formData.IdTipoDocumento}
                     onChange={handleChange}
                     required
-                    disabled={formData.IdTipoPersona === 'Jurídica'}
+                    disabled={formData.TipoPersona === 'Jurídica'}
                   >
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
@@ -133,7 +133,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.IdTipoPersona === 'Jurídica'
+                    {formData.TipoPersona === 'Jurídica'
                       ? '🔢 Número NIT'
                       : '🔢 Número de Documento'}
                   </label>
@@ -148,7 +148,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.IdTipoPersona === 'Jurídica'
+                    {formData.TipoPersona === 'Jurídica'
                       ? '🏢 Nombre de la Empresa'
                       : '🙍 Nombre Completo'}
                   </label>
