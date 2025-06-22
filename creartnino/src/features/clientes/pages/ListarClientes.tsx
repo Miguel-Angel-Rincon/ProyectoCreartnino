@@ -5,12 +5,11 @@ import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
 import CrearClienteModal from "./Crear";
 import EditarClienteModal from "./Editar";
-import VerClienteModal from './Ver'; // 👈 Asegúrate de tener este componente
+import VerClienteModal from './Ver';
 
 interface Clientes {
   IdClientes: number;
-  Nombre: string;
-  Apellido: string;
+  NombreCompleto: string;
   Tipodocumento: string;
   Numerodocumento: string;
   Correo: string;
@@ -18,19 +17,18 @@ interface Clientes {
   Departamento: string;
   Ciudad: string;
   Direccion: string;
-  Barrio: string;
   estado: boolean;
 }
 
 const clientesiniciales: Clientes[] = [
-  { IdClientes: 1, Nombre: 'Juan', Apellido: 'Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Correo: 'juan.perez@example.com', Celular: '3001234567', Departamento: 'Antioquia', Ciudad: 'Medellín', Direccion: 'Calle 123 #45-67', Barrio: 'San Fernando', estado: true },
-  { IdClientes: 2, Nombre: 'María', Apellido: 'Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Correo: 'maria.gomez@example.com', Celular: '3007654321', Departamento: 'Cundinamarca', Ciudad: 'Bogotá', Direccion: 'Carrera 10 #20-30', Barrio: 'La Floresta', estado: true },
-  { IdClientes: 3, Nombre: 'Carlos', Apellido: 'Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Correo: 'carlos.ramirez@example.com', Celular: '3012345678', Departamento: 'Valle del Cauca', Ciudad: 'Cali', Direccion: 'Av. Siempre Viva 742', Barrio: 'Centro', estado: false },
-  { IdClientes: 4, Nombre: 'Laura', Apellido: 'Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Correo: 'laura.martinez@example.com', Celular: '3023456789', Departamento: 'Antioquia', Ciudad: 'Medellín', Direccion: 'Calle 50 #10-20', Barrio: 'El Poblado', estado: true },
-  { IdClientes: 5, Nombre: 'Andrés', Apellido: 'López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Correo: 'andres.lopez@example.com', Celular: '3034567890', Departamento: 'Atlántico', Ciudad: 'Barranquilla', Direccion: 'Diagonal 60 #30-40', Barrio: 'Los Álamos', estado: false },
-  { IdClientes: 6, Nombre: 'Sofía', Apellido: 'Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Correo: 'sofia.torres@example.com', Celular: '3045678901', Departamento: 'Santander', Ciudad: 'Bucaramanga', Direccion: 'Transversal 80 #40-50', Barrio: 'Villa Hermosa', estado: true },
-  { IdClientes: 7, Nombre: 'Miguel', Apellido: 'Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Correo: 'miguel.salazar@example.com', Celular: '3056789012', Departamento: 'Tolima', Ciudad: 'Ibagué', Direccion: 'Calle 70 #30-31', Barrio: 'Boston', estado: true },
-  { IdClientes: 8, Nombre: 'Valentina', Apellido: 'Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Correo: 'valentina.rios@example.com', Celular: '3067890123', Departamento: 'Risaralda', Ciudad: 'Pereira', Direccion: 'Carrera 25 #15-16', Barrio: 'La América', estado: false }
+  { IdClientes: 1, NombreCompleto: 'Juan Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Correo: 'juan.perez@example.com', Celular: '3001234567', Departamento: 'Antioquia', Ciudad: 'Medellín', Direccion: 'Calle 123 #45-67',  estado: true },
+  { IdClientes: 2, NombreCompleto: 'María Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Correo: 'maria.gomez@example.com', Celular: '3007654321', Departamento: 'Cundinamarca', Ciudad: 'Bogotá', Direccion: 'Carrera 10 #20-30',  estado: true },
+  { IdClientes: 3, NombreCompleto: 'Carlos Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Correo: 'carlos.ramirez@example.com', Celular: '3012345678', Departamento: 'Valle del Cauca', Ciudad: 'Cali', Direccion: 'Av. Siempre Viva 742',  estado: false },
+  { IdClientes: 4, NombreCompleto: 'Laura Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Correo: 'laura.martinez@example.com', Celular: '3023456789', Departamento: 'Antioquia', Ciudad: 'Medellín', Direccion: 'Calle 50 #10-20', estado: true },
+  { IdClientes: 5, NombreCompleto: 'Andrés López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Correo: 'andres.lopez@example.com', Celular: '3034567890', Departamento: 'Atlántico', Ciudad: 'Barranquilla', Direccion: 'Diagonal 60 #30-40',  estado: false },
+  { IdClientes: 6, NombreCompleto: 'Sofía Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Correo: 'sofia.torres@example.com', Celular: '3045678901', Departamento: 'Santander', Ciudad: 'Bucaramanga', Direccion: 'Transversal 80 #40-50',  estado: true },
+  { IdClientes: 7, NombreCompleto: 'Miguel Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Correo: 'miguel.salazar@example.com', Celular: '3056789012', Departamento: 'Tolima', Ciudad: 'Ibagué', Direccion: 'Calle 70 #30-31', estado: true },
+  { IdClientes: 8, NombreCompleto: 'Valentina Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Correo: 'valentina.rios@example.com', Celular: '3067890123', Departamento: 'Risaralda', Ciudad: 'Pereira', Direccion: 'Carrera 25 #15-16',  estado: false }
 ];
 
 const ListarClientes: React.FC = () => {
@@ -112,7 +110,7 @@ const ListarClientes: React.FC = () => {
   };
 
   const clientesFiltrados = clientes.filter(c =>
-    `${c.Nombre} ${c.Apellido}`.toLowerCase().includes(busqueda.toLowerCase())
+    c.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * clientesPorPagina;
@@ -143,7 +141,6 @@ const ListarClientes: React.FC = () => {
           <thead>
             <tr>
               <th>Nombre Completo</th>
-              <th>T.D</th>
               <th># Documento</th>
               <th>Correo</th>
               <th>Celular</th>
@@ -154,9 +151,9 @@ const ListarClientes: React.FC = () => {
           <tbody>
             {clientesPagina.map((c, index) => (
               <tr key={c.IdClientes} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{c.Nombre} {c.Apellido}</td>
-                <td>{c.Tipodocumento}</td>
-                <td>{c.Numerodocumento}</td>
+                <td>{c.NombreCompleto}</td>
+                <td>{c.Tipodocumento} {c.Numerodocumento}</td>
+                
                 <td>{c.Correo}</td>
                 <td>{c.Celular}</td>
                 <td>
