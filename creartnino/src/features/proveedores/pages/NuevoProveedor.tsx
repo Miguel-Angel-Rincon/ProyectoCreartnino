@@ -46,11 +46,12 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   ) => {
     const { name, value } = e.target;
 
-    if (name === 'IdTipoPersona') {
+    if (name === 'TipoPersona') {
+      const nuevaPersona = value;
       setFormData((prev) => ({
         ...prev,
-        [name]: value,
-        IdTipoDocumento: value === 'Jurídica' ? 'NIT' : prev.IdTipoDocumento,
+        TipoPersona: nuevaPersona,
+        IdTipoDocumento: nuevaPersona === 'Jurídica' ? 'NIT' : 'CC',
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -89,6 +90,8 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
     onCrear({ ...formData, IdProveedores: idProveedorActual++ });
   };
 
+  const esJuridica = formData.TipoPersona === 'Jurídica';
+
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -105,7 +108,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">👤 Tipo de Persona</label>
                   <select
                     className="form-select"
-                    name="IdTipoPersona"
+                    name="TipoPersona"
                     value={formData.TipoPersona}
                     onChange={handleChange}
                     required
@@ -123,7 +126,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     value={formData.IdTipoDocumento}
                     onChange={handleChange}
                     required
-                    disabled={formData.TipoPersona === 'Jurídica'}
+                    disabled={esJuridica}
                   >
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
@@ -134,9 +137,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
-                      ? '🔢 Número NIT'
-                      : '🔢 Número de Documento'}
+                    {esJuridica ? '🔢 Número NIT' : '🔢 Número de Documento'}
                   </label>
                   <input
                     className="form-control"
@@ -149,13 +150,12 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
-                      ? '🏢 Nombre de la Empresa'
-                      : '🙍 Nombre Completo'}
+                    {esJuridica ? '🏢 Nombre de la Empresa' : '🙍 Nombre Completo'}
                   </label>
                   <input
                     className="form-control"
                     name="NombreCompleto"
+                    placeholder={esJuridica ? '' : ''}
                     value={formData.NombreCompleto}
                     onChange={handleChange}
                     required

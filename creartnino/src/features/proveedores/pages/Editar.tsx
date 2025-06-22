@@ -38,11 +38,11 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   ) => {
     const { name, value } = e.target;
 
-    if (name === 'IdTipoPersona') {
+    if (name === 'TipoPersona') {
       setFormData((prev) => ({
         ...prev,
-        [name]: value,
-        IdTipoDocumento: value === 'Jurídica' ? 'NIT' : prev.IdTipoDocumento,
+        TipoPersona: value,
+        IdTipoDocumento: value === 'Jurídica' ? 'NIT' : 'CC',
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -58,7 +58,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!/^[0-9]+$/.test(formData.Celular)) {
+    if (!/^\d+$/.test(formData.Celular)) {
       Swal.fire({
         icon: 'error',
         title: 'Celular inválido',
@@ -68,7 +68,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
       return;
     }
 
-    if (!/^[0-9]+$/.test(formData.NumDocumento)) {
+    if (!/^\d+$/.test(formData.NumDocumento)) {
       Swal.fire({
         icon: 'error',
         title: 'Documento inválido',
@@ -88,6 +88,8 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
     onClose();
   };
 
+  const esJuridica = formData.TipoPersona === 'Jurídica';
+
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -104,7 +106,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                   <label className="form-label">👤 Tipo de Persona</label>
                   <select
                     className="form-select"
-                    name="IdTipoPersona"
+                    name="TipoPersona"
                     value={formData.TipoPersona}
                     onChange={handleChange}
                     required
@@ -122,7 +124,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                     value={formData.IdTipoDocumento}
                     onChange={handleChange}
                     required
-                    disabled={formData.TipoPersona === 'Jurídica'}
+                    disabled={esJuridica}
                   >
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
@@ -133,9 +135,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
-                      ? '🔢 Número NIT'
-                      : '🔢 Número de Documento'}
+                    {esJuridica ? '🔢 Número NIT' : '🔢 Número de Documento'}
                   </label>
                   <input
                     className="form-control"
@@ -148,9 +148,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
-                      ? '🏢 Nombre de la Empresa'
-                      : '🙍 Nombre Completo'}
+                    {esJuridica ? '🏢 Nombre de la Empresa' : '🙍 Nombre Completo'}
                   </label>
                   <input
                     className="form-control"
