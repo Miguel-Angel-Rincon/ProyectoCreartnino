@@ -76,7 +76,7 @@ const ListarCompras: React.FC = () => {
           icon: 'success',
           title: 'Compra anulada',
           text: 'El estado fue actualizado correctamente',
-          confirmButtonColor: '#e83e8c',
+          confirmButtonColor: '#f78fb3',
         });
       }
     });
@@ -98,7 +98,12 @@ const ListarCompras: React.FC = () => {
     };
     setCompras([...compras, nueva]);
     setMostrarModal(false);
-    Swal.fire('Éxito', 'Compra registrada correctamente', 'success');
+    Swal.fire({
+      title: 'Compra creada correctamente',
+      icon: 'success',
+      confirmButtonColor: '#f78fb3',
+    });
+
   };
 
   const handleVerCompra = (compra: Compras) => {

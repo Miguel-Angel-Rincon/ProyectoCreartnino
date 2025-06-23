@@ -78,7 +78,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
       ValorRestante: calcularValorRestante(),
       ComprobantePago: comprobantePago ? comprobantePago.name : '',
       TotalPedido: calcularTotalConIVA(),
-      Estado: 'Pendiente',
+      Estado: 'en proceso',
       detallePedido
     };
     onCrear(nuevoPedido);

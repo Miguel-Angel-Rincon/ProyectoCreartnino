@@ -224,8 +224,9 @@ const ListarPedidos: React.FC = () => {
                     }}
                     disabled={p.Estado === 'anulado'}
                   >
-                    <option value="primer pago">Primer Pago</option>
                     <option value="en proceso">En Proceso</option>
+                    <option value="primer pago">Primer Pago</option>
+                    
                     <option value="en producción">En Producción</option>
                     <option value="en proceso de entrega">En Proceso de Entrega</option>
                     <option value="entregado">Entregado</option>

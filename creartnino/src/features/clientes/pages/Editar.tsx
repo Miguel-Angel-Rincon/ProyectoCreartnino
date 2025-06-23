@@ -147,7 +147,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
       icon: 'success',
       title: 'Cliente actualizado',
       text: 'La información del cliente se ha actualizado correctamente.',
-      confirmButtonColor: '#28a745',
+      confirmButtonColor: '#f78fb3',
     }).then(() => {
       onClose();
     });

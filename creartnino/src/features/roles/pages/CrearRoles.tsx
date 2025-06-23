@@ -18,18 +18,9 @@ interface Props {
 let idRolActual = 4;
 
 const MODULOS = [
-  'Dashboard',
-  'Roles',
-  'Usuario',
-  'Clientes',
-  'Proveedores',
-  'Cate.Insumo',
-  'Insumos',
-  'Compras',
-  'Producción',
-  'Cat.Productos',
-  'Productos',
-  'Pedidos',
+  'Dashboard', 'Roles', 'Usuario', 'Clientes', 'Proveedores',
+  'Cate.Insumo', 'Insumos', 'Compras', 'Producción',
+  'Cat.Productos', 'Productos', 'Pedidos',
 ];
 
 const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
@@ -47,7 +38,10 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
     e.preventDefault();
     const form = e.currentTarget;
 
-    if (!form.nombre.value.trim()) {
+    const nombre = (form.nombre as HTMLInputElement).value.trim();
+    const descripcion = (form.descripcion as HTMLInputElement).value.trim();
+
+    if (!nombre) {
       Swal.fire({
         icon: 'error',
         title: 'Nombre requerido',
@@ -59,13 +53,24 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
     const nuevoRol: Rol = {
       idRol: idRolActual++,
-      nombre: form.nombre.value,
-      descripcion: form.descripcion.value,
-      estado: form.estado.checked,
+      nombre,
+      descripcion,
+      estado: true, // automáticamente activo
       permisos: permisosSeleccionados,
     };
 
     onCrear(nuevoRol);
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Rol creado!',
+      text: `El rol "${nombre}" se ha creado exitosamente.`,
+      confirmButtonColor: '#f78fb3',
+    });
+
+    form.reset();
+    setPermisosSeleccionados([]);
+    onClose();
   };
 
   return (
@@ -88,21 +93,8 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">🧾 Descripción</label>
-                  <textarea
-                    className="form-control"
-                    name="descripcion"
-                    rows={1}
-                    style={{ resize: 'none', overflow: 'hidden' }}
-                    onFocus={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.height = 'auto';
-                    }}
-                  />
+                  <input className="form-control" name="descripcion" />
                 </div>
-
 
                 <div className="col-md-12">
                   <label className="form-label">🔐 Permisos</label>

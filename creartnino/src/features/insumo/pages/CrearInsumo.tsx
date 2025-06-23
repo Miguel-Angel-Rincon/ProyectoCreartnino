@@ -11,6 +11,9 @@ interface Props {
 }
 
 const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
+  // Lista local de marcas (simulando una tabla local)
+  const listaMarcas = ['Paps', 'Pinturillo', 'Papelfony', 'mirellon', 'sabanero'];
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -36,7 +39,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       marca: form.marca.value,
       cantidad,
       precioUnitario,
-      estado: form.estado.checked,
+      estado: form.estado?.value || 'Activo',
     };
 
     onCrear(nuevoInsumo);
@@ -72,27 +75,31 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 {/* Fila 2: Marca y Descripción */}
                 <div className="col-md-6">
                   <label className="form-label">🏷️ Marca</label>
-                  <input className="form-control" name="marca" required />
+                  <select className="form-select" name="marca" required>
+                    <option value="">Seleccione una marca</option>
+                    {listaMarcas.map((marca, i) => (
+                      <option key={i} value={marca}>{marca}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🧾 Descripción</label>
-  <textarea
-    className="form-control"
-    name="descripcion"
-    onFocus={(e) => {
-      e.target.style.height = 'auto';
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onBlur={(e) => {
-      e.target.style.height = 'auto';
-    }}
-    title=""
-    rows={1}
-    style={{ resize: 'none', overflow: 'hidden' }}
-    required
-  />
-</div>
+                  <label className="form-label">🧾 Descripción</label>
+                  <textarea
+                    className="form-control"
+                    name="descripcion"
+                    onFocus={(e) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.height = 'auto';
+                    }}
+                    rows={1}
+                    style={{ resize: 'none', overflow: 'hidden' }}
+                    required
+                  />
+                </div>
 
                 {/* Fila 3: Cantidad y Precio Unitario */}
                 <div className="col-md-6">
