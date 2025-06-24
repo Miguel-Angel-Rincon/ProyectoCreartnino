@@ -1,23 +1,42 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
-import '../style/style.css'
+import '../style/style.css';
 
 import CrearRolModal from "./CrearRoles";
 import EditarRolModal from "./EditarRoles";
 import VerRolModal from "./VerRoles";
 
-interface Rol {
+export interface Rol {
   idRol: number;
   nombre: string;
   descripcion: string;
   estado: boolean;
+  permisos: string[];
 }
 
 const rolesIniciales: Rol[] = [
-  { idRol: 1, nombre: "Administrador", descripcion: "Control total del sistema", estado: true },
-  { idRol: 2, nombre: "Vendedor", descripcion: "Gestión de productos y ventas", estado: true },
-  { idRol: 3, nombre: "Cliente", descripcion: "Acceso limitado a compras", estado: false },
+  {
+    idRol: 1,
+    nombre: "Administrador",
+    descripcion: "Control total del sistema",
+    estado: true,
+    permisos: ['Dashboard', 'Roles', 'Usuario', 'Clientes', 'Proveedores', 'Compras', 'Productos'],
+  },
+  {
+    idRol: 2,
+    nombre: "Vendedor",
+    descripcion: "Gestión de productos y ventas",
+    estado: true,
+    permisos: ['Clientes', 'Proveedores', 'Pedidos', 'Productos'],
+  },
+  {
+    idRol: 3,
+    nombre: "Cliente",
+    descripcion: "Acceso limitado a compras",
+    estado: false,
+    permisos: ['Pedidos'],
+  },
 ];
 
 const ListarRoles: React.FC = () => {
@@ -27,9 +46,8 @@ const ListarRoles: React.FC = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
   const [rolEditar, setRolEditar] = useState<Rol | null>(null);
-const [mostrarVerModal, setMostrarVerModal] = useState(false);
-const [RolesVer, setRolesVer] = useState<Rol| null>(null);
-
+  const [mostrarVerModal, setMostrarVerModal] = useState(false);
+  const [rolVer, setRolVer] = useState<Rol | null>(null);
 
   const rolesPorPagina = 5;
 
@@ -59,15 +77,15 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
     setRoles(prev => prev.map(r => r.idRol === id ? { ...r, estado: !r.estado } : r));
   };
 
- const handleCrearRol = (nuevoRol: Rol) => {
-      setRoles(prev => [...prev, nuevoRol]);
-      setMostrarModal(false);
-      Swal.fire({
-        icon: 'success',
-        title: 'Rol creado correctamente',
-        confirmButtonColor: '#e83e8c',
-      });
-    };
+  const handleCrearRol = (nuevoRol: Rol) => {
+    setRoles(prev => [...prev, nuevoRol]);
+    setMostrarModal(false);
+    Swal.fire({
+      icon: 'success',
+      title: 'Rol creado correctamente',
+      confirmButtonColor: '#f78fb3',
+    });
+  };
 
   const handleEditarRol = (rol: Rol) => {
     setRolEditar(rol);
@@ -80,7 +98,7 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
   };
 
   const handleVerRol = (rol: Rol) => {
-    setRolesVer(rol);
+    setRolVer(rol);
     setMostrarVerModal(true);
   };
 
@@ -93,11 +111,11 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
   const indexFin = indexInicio + rolesPorPagina;
   const rolesPagina = rolesFiltrados.slice(indexInicio, indexFin);
 
-    return ( 
+  return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Roles</h2>
-       <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Rol</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Rol</button>
       </div>
 
       <input
@@ -142,8 +160,16 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
                     style={{ cursor: 'pointer', marginRight: '10px' }}
                     onClick={() => handleVerRol(rol)}
                   />
-                  <FaEdit className="icono text-warning me-2" onClick={() => handleEditarRol(rol)} />
-                  <FaTrash className="icono text-danger" onClick={() => handleEliminarRol(rol.idRol, rol.estado)} />
+                  <FaEdit
+                    className="icono text-warning me-2"
+                    style={{ cursor: 'pointer', marginRight: '10px' }}
+                    onClick={() => handleEditarRol(rol)}
+                  />
+                  <FaTrash
+                    className="icono text-danger"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleEliminarRol(rol.idRol, rol.estado)}
+                  />
                 </td>
               </tr>
             ))}
@@ -163,25 +189,28 @@ const [RolesVer, setRolesVer] = useState<Rol| null>(null);
         </div>
       </div>
 
-          {mostrarModal && (
-          <CrearRolModal onClose={() => setMostrarModal(false)} onCrear={handleCrearRol} />
-        )}
+      {/* Modales */}
+      {mostrarModal && (
+        <CrearRolModal
+          onClose={() => setMostrarModal(false)}
+          onCrear={handleCrearRol}
+        />
+      )}
 
-       
       {mostrarEditarModal && rolEditar && (
         <EditarRolModal
           rol={rolEditar}
           onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleEditarRol}
+          onEditar={handleActualizarRol}
         />
       )}
 
-       {mostrarVerModal &&  RolesVer && (
+      {mostrarVerModal && rolVer && (
         <VerRolModal
-          rol={RolesVer}
+          rol={rolVer}
           onClose={() => setMostrarVerModal(false)}
-        /> 
-  )}
+        />
+      )}
     </div>
   );
 };

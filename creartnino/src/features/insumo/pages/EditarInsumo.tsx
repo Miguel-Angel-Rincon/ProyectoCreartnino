@@ -22,6 +22,7 @@ interface Props {
 
 const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
   const [formData, setFormData] = useState<Insumos>(insumo);
+  const listaMarcas = ['Paps', 'Pinturillo', 'Papelfony', 'mirellon', 'sabanero'];
 
   useEffect(() => {
     setFormData(insumo);
@@ -128,15 +129,22 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
                 {/* Marca y Descripción */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Marca</label>
-                  <input
-                    className="form-control"
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+  <label className="form-label">🏷️ Marca</label>
+  <select
+    className="form-select"
+    name="marca"
+    value={formData.marca}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Seleccione una marca</option>
+    {listaMarcas.map((marca, i) => (
+      <option key={i} value={marca}>
+        {marca}
+      </option>
+    ))}
+  </select>
+</div>
 
                 <div className="col-md-6">
   <label className="form-label">🧾 Descripción</label>

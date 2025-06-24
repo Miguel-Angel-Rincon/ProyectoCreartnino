@@ -1,5 +1,4 @@
-//import React from 'react';
-import Rina from "../../assets/Imagenes/Rina.png";
+
 
 
 const Footer = () => {

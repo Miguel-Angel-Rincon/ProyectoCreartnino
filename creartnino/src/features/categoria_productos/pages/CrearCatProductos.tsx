@@ -25,7 +25,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
     const nombre = form.nombre.value.trim();
     const descripcion = form.descripcion.value.trim();
-    const estado = form.estado.checked;
+    const estado = form.estado?.checked ?? true; // Por defecto, estado es true si no se especifica
 
     if (!nombre || !descripcion) {
       Swal.fire({
