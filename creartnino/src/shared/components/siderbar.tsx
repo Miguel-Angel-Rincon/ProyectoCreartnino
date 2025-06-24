@@ -17,6 +17,21 @@ import {
   
 } from "react-icons/fa";
 import logo from '../../assets/Imagenes/logo.jpg'; // Adjust the path as necessary
+import slider1 from '../../assets/Imagenes/slider1.png'; // Adjust the path as necessary
+import slider2 from '../../assets/Imagenes/slider2.png'; 
+import slider3 from '../../assets/Imagenes/slider3.png'; 
+import Logo2 from '../../assets/Imagenes/Logo2.png'; 
+import velas from '../../assets/Imagenes/velas.jpg'; 
+import velasx2 from '../../assets/Imagenes/velasx2.jpg'; 
+import topper from '../../assets/Imagenes/topper.jpg'; 
+import cajita from '../../assets/Imagenes/cajita.jpg'; 
+import topperCircular from '../../assets/Imagenes/topperCircular.jpg'; 
+import tablasStitch from '../../assets/Imagenes/tablasStitch.jpg'; 
+import tazaParaiso from '../../assets/Imagenes/tazaParaiso.jpg'; 
+import Rina from '../../assets/Imagenes/Rina.png'; 
+import slider1_2 from '../../assets/Imagenes/slider1_2.png'; 
+import slider2_2 from '../../assets/Imagenes/slider2_2.png'; 
+import slider3_2 from '../../assets/Imagenes/slider3_2.png'; 
 import '../styles/siderbar.css'; // Adjust the path as necessary
 
 export default function Sidebar() {
@@ -37,6 +52,21 @@ export default function Sidebar() {
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-header">
           <img src={logo} alt="Logo" className="logo" />
+          <img src={slider1} alt="slider1" className="slider1" />
+          <img src={slider2} alt="slider2" className="slider2" />
+          <img src={slider3} alt="slider3" className="slider3" />
+          <img src={Logo2} alt="Logo2" className="Logo2" />
+          <img src={velas} alt="velas" className="velas" />
+          <img src={velasx2} alt="velasx2" className="velasx2" />
+          <img src={topper} alt="topper" className="topper" />
+          <img src={cajita} alt="cajita" className="cajita" />
+          <img src={tablasStitch} alt="tablasStitch" className="tablasStitch" />
+          <img src={topperCircular} alt="topperCircular" className="topperCircular" />
+          <img src={tazaParaiso} alt="tazaParaiso" className="tazaParaiso" />
+          <img src={Rina} alt="Rina" className="Rina" />
+          <img src={slider1_2} alt="slider1_2" className="slider1_2" />
+          <img src={slider2_2} alt="slider2_2" className="slider2_2" />
+          <img src={slider3_2} alt="slider3_2" className="slider3_2" />
           <h2>CREART NINO</h2>
         </div>
 

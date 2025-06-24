@@ -1,0 +1,13 @@
+.btn-pedido {
+background-color: #dea864;
+color: black;
+border: none;
+border-radius: 4px;
+font-weight: 500;
+transition: 0.2s ease-in-out;
+}
+
+.btn-pedido:hover {
+background-color: #c78943;
+color: white;
+}
