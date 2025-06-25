@@ -1,10 +1,9 @@
-// components/VerClienteModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
+import '../styles/acciones.css';
 
 interface Cliente {
   IdClientes: number;
-  Nombre: string;
-  Apellido: string;
+  NombreCompleto: string;
   Tipodocumento: string;
   Numerodocumento: string;
   Correo: string;
@@ -12,7 +11,6 @@ interface Cliente {
   Departamento: string;
   Ciudad: string;
   Direccion: string;
-  Barrio: string;
   estado: boolean;
 }
 
@@ -22,72 +20,112 @@ interface Props {
 }
 
 const VerClienteModal: React.FC<Props> = ({ cliente, onClose }) => {
+  const [showDireccionModal, setShowDireccionModal] = useState(false);
+
+  const partesDireccion = cliente.Direccion?.split(',') || [];
+  const barrio = partesDireccion[0]?.trim() || '';
+  const calle = partesDireccion[1]?.trim() || '';
+  const codigoPostal = partesDireccion[2]?.replace('CP', '').trim() || '';
+
   return (
-    <div className="modal d-block" tabIndex={-1}>
+    <div className="modal d-block pastel-overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content">
-          <div className="modal-header bg-pink text-white">
-            <h5 className="modal-title">Detalles del Cliente</h5>
+        <div className="modal-content pastel-modal shadow-lg">
+          <div className="modal-header pastel-header">
+            <h5 className="modal-title">👁️ Ver Cliente</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
-          <div className="modal-body">
-            <div className="mb-3">
-              <label className="form-label">Nombre</label>
-              <input className="form-control" value={cliente.Nombre} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Apellido</label>
-              <input className="form-control" value={cliente.Apellido} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Tipo Documento</label>
-              <input className="form-control" value={cliente.Tipodocumento} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Número Documento</label>
-              <input className="form-control" value={cliente.Numerodocumento} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Correo</label>
-              <input className="form-control" value={cliente.Correo} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Celular</label>
-              <input className="form-control" value={cliente.Celular} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Departamento</label>
-              <input className="form-control" value={cliente.Departamento} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Ciudad</label>
-              <input className="form-control" value={cliente.Ciudad} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Dirección</label>
-              <input className="form-control" value={cliente.Direccion} disabled />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Barrio</label>
-              <input className="form-control" value={cliente.Barrio} disabled />
-            </div>
-            <div className="form-check form-switch mb-3">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                checked={cliente.estado}
-                disabled
-              />
-              <label className="form-check-label">Activo</label>
+
+          <div className="modal-body px-4 py-3">
+            <div className="row g-4">
+              <div className="col-md-6">
+                <label className="form-label">🙍 Nombre Completo</label>
+                <input className="form-control" value={cliente.NombreCompleto} disabled />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">📧 Correo Electrónico</label>
+                <input className="form-control" value={cliente.Correo} disabled />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">🧾 Tipo de Documento</label>
+                <input className="form-control" value={cliente.Tipodocumento} disabled />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">🔢 Número de Documento</label>
+                <input className="form-control" value={cliente.Numerodocumento} disabled />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">📱 Celular</label>
+                <input className="form-control" value={cliente.Celular} disabled />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">🏞️ Departamento</label>
+                <input className="form-control" value={cliente.Departamento} disabled />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">🏙️ Ciudad</label>
+                <input className="form-control" value={cliente.Ciudad} disabled />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">🏡 Dirección</label>
+                <input
+                  className="form-control"
+                  value={cliente.Direccion}
+                  readOnly
+                  onClick={() => setShowDireccionModal(true)}
+                  style={{ cursor: 'pointer' }}
+                  title="Haz clic para ver detalles"
+                />
+              </div>
+
+              
             </div>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+
+          <div className="modal-footer pastel-footer">
+            <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
               Cerrar
             </button>
           </div>
         </div>
       </div>
+
+      {/* Submodal Dirección */}
+      {showDireccionModal && (
+        <div className="modal d-block pastel-overlay" tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content pastel-modal shadow">
+              <div className="modal-header pastel-header">
+                <h5 className="modal-title">🏠 Información de Dirección</h5>
+                <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
+              </div>
+              <div className="modal-body px-4 py-3">
+                <div className="mb-3">
+                  <label>Barrio</label>
+                  <input className="form-control" value={barrio} disabled />
+                </div>
+                <div className="mb-3">
+                  <label>Calle / Carrera</label>
+                  <input className="form-control" value={calle} disabled />
+                </div>
+                <div className="mb-3">
+                  <label>Código Postal</label>
+                  <input className="form-control" value={codigoPostal} disabled />
+                </div>
+              </div>
+              <div className="modal-footer pastel-footer">
+                <button className="btn pastel-btn-primary" onClick={() => setShowDireccionModal(false)}>
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
