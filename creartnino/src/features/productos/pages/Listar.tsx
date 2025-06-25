@@ -152,7 +152,8 @@ const ListarProductos: React.FC = () => {
                 <td>{p.Nombre}</td>
                 <td>{p.IdCatProductos}</td>
                 <td>{p.cantidad}</td>
-                <td>${p.precio}</td>
+                <td>${p.precio.toLocaleString('es-CO')}</td>
+
                 <td>
                   <label className="switch">
                     <input
