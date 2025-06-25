@@ -2,8 +2,8 @@
 import { Route, Routes } from "react-router-dom";
 import Inicio from "./web/pages/Inicio";
 import Quienes from "./web/pages/Qsomos";
-import Ingresar from "./web/pages/Ingresar";
-import Registrar from "./web/pages/Registar";
+import Ingresar from "./web/pages/Acceso/Ingresar";
+import Registrar from "./web/pages/Acceso/Registar";
 import PublicLayout from './web/layouts/PublicLayouts';
 
 
