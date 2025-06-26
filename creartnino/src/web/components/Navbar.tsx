@@ -47,7 +47,7 @@ const Navbar = () => {
 
         <div className="nav-right">
           <Link to="/ingresar" className="btn-outline">Ingresar</Link>
-          <Link to="/registrarse" className="btn-filled">Registrarse</Link>
+          <Link to="/Registrar" className="btn-filled">Registrarse</Link>
         </div>
       </div>
     </nav>

@@ -51,7 +51,9 @@ const ListarRoles: React.FC = () => {
 
   const rolesPorPagina = 5;
 
-  const handleEliminarRol = (id: number, estado: boolean) => {
+  const handleEliminarRol = (id: number, estado: boolean, nombre: string) => {
+    if (nombre === "Administrador") return;
+
     if (estado) {
       Swal.fire('Rol activo', 'No puedes eliminar un rol activo. Desactívalo primero.', 'warning');
       return;
@@ -73,7 +75,9 @@ const ListarRoles: React.FC = () => {
     });
   };
 
-  const handleEstadoChange = (id: number) => {
+  const handleEstadoChange = (id: number, nombre: string) => {
+    if (nombre === "Administrador") return;
+
     setRoles(prev => prev.map(r => r.idRol === id ? { ...r, estado: !r.estado } : r));
   };
 
@@ -88,6 +92,8 @@ const ListarRoles: React.FC = () => {
   };
 
   const handleEditarRol = (rol: Rol) => {
+    if (rol.nombre === "Administrador") return;
+
     setRolEditar(rol);
     setMostrarEditarModal(true);
   };
@@ -149,7 +155,8 @@ const ListarRoles: React.FC = () => {
                     <input
                       type="checkbox"
                       checked={rol.estado}
-                      onChange={() => handleEstadoChange(rol.idRol)}
+                      onChange={() => handleEstadoChange(rol.idRol, rol.nombre)}
+                      disabled={rol.nombre === "Administrador"}
                     />
                     <span className="slider round"></span>
                   </label>
@@ -161,14 +168,18 @@ const ListarRoles: React.FC = () => {
                     onClick={() => handleVerRol(rol)}
                   />
                   <FaEdit
-                    className="icono text-warning me-2"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
-                    onClick={() => handleEditarRol(rol)}
+                    className={`icono me-2 ${rol.nombre === "Administrador" ? 'text-secondary' : 'text-warning'}`}
+                    style={{ cursor: rol.nombre === "Administrador" ? 'not-allowed' : 'pointer', marginRight: '10px' }}
+                    onClick={() => {
+                      if (rol.nombre !== "Administrador") handleEditarRol(rol);
+                    }}
                   />
                   <FaTrash
-                    className="icono text-danger"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarRol(rol.idRol, rol.estado)}
+                    className={`icono ${rol.nombre === "Administrador" ? 'text-secondary' : 'text-danger'}`}
+                    style={{ cursor: rol.nombre === "Administrador" ? 'not-allowed' : 'pointer' }}
+                    onClick={() => {
+                      if (rol.nombre !== "Administrador") handleEliminarRol(rol.idRol, rol.estado, rol.nombre);
+                    }}
                   />
                 </td>
               </tr>

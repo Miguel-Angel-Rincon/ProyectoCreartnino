@@ -203,8 +203,8 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
       <label className="form-label">🛡️ Rol</label>
       <select name="idRol" className="form-select" value={formData.idRol} onChange={handleChange} required>
         <option value="">Seleccione...</option>
-        <option value="admin">Administrador</option>
-        <option value="user">Usuario</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Usuario">Usuario</option>
       </select>
     </div>
               </div>
