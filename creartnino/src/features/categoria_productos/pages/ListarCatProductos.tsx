@@ -82,7 +82,7 @@ const ListarCatProductos: React.FC = () => {
     Swal.fire({
       icon: 'success',
       title: 'Categoría creada correctamente',
-      confirmButtonColor: '#e83e8c',
+      confirmButtonColor: '#f78fb3',
     });
   };
 
