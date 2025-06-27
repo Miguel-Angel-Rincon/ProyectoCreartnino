@@ -58,6 +58,30 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   };
 
   const handleDireccionModalSave = () => {
+    if (
+      direccionData.barrio.trim() === '' ||
+      direccionData.calle.trim() === '' ||
+      direccionData.codigoPostal.trim() === ''
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos de la dirección.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^\d{6}$/.test(direccionData.codigoPostal)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Código postal inválido',
+        text: 'El código postal debe tener 6 dígitos numéricos.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     const direccionCompleta = `${direccionData.barrio}, ${direccionData.calle}, CP ${direccionData.codigoPostal}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
@@ -66,12 +90,37 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    for (const key in formData) {
+      if (
+        Object.prototype.hasOwnProperty.call(formData, key) &&
+        (formData[key as keyof typeof formData] === '' || formData[key as keyof typeof formData] === null)
+      ) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Campo obligatorio faltante',
+          text: `Por favor completa todos los campos.`,
+          confirmButtonColor: '#f78fb3',
+        });
+        return;
+      }
+    }
+
     if (!/^\d+$/.test(formData.Celular)) {
       Swal.fire({
         icon: 'error',
         title: 'Celular inválido',
         text: 'El número de celular debe contener solo dígitos.',
-        confirmButtonColor: '#e83e8c',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(formData.Celular)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Celular inválido',
+        text: 'El número de celular debe tener exactamente 10 dígitos.',
+        confirmButtonColor: '#f78fb3',
       });
       return;
     }
@@ -81,12 +130,61 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
         icon: 'error',
         title: 'Documento inválido',
         text: 'El número de documento debe contener solo dígitos.',
-        confirmButtonColor: '#e83e8c',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (formData.NumDocumento.length < 6 || formData.NumDocumento.length > 15) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Documento inválido',
+        text: 'El número de documento debe tener entre 6 y 15 dígitos.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.NombreCompleto)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Nombre inválido',
+        text: 'El nombre solo debe contener letras y espacios.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.Ciudad)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ciudad inválida',
+        text: 'El nombre de la ciudad solo debe contener letras.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!formData.Direccion.includes('CP') || formData.Direccion.length < 10) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Dirección inválida',
+        text: 'Debes ingresar una dirección válida desde el submodal.',
+        confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
     onCrear({ ...formData, IdProveedores: idProveedorActual++ });
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Proveedor creado',
+      text: 'El proveedor ha sido registrado correctamente.',
+      confirmButtonColor: '#f78fb3',
+    }).then(() => {
+      onClose();
+    });
   };
 
   return (
@@ -208,7 +306,6 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
             </div>
           </form>
 
-          {/* Submodal Dirección */}
           {showDireccionModal && (
             <div className="modal d-block pastel-overlay" tabIndex={-1}>
               <div className="modal-dialog modal-dialog-centered">
