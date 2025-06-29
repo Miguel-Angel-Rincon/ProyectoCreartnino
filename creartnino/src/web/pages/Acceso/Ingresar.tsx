@@ -144,7 +144,8 @@ const Ingresar = () => {
         }} style={botonPrincipal}>Ingresar</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
           <span onClick={() => setMostrarRecuperar(true)} style={{ cursor: 'pointer', color: '#7d3cf0' }}>¿Olvidaste tu contraseña?</span>
-          <Link to="/Registar" style={{ color: '#000', textDecoration: 'none' }}>Crear una cuenta</Link>
+          <Link to="/Registrar" style={{ color: '#000', textDecoration: 'none' }}>Crear una cuenta</Link>
+
         </div>
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <a href="/" style={{ color: 'black' }}>← Regresar</a>
