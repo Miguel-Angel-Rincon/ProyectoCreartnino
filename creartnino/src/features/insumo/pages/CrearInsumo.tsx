@@ -81,7 +81,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">📦 Categoría</label>
                   <select className="form-select" name="categoria" required>
                     {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={Categoría ${i + 1}}>Categoría {i + 1}</option>
+                      <option key={i} value={Categoría ${i + 1}}>{Categoría ${i + 1}}</option>
                     ))}
                   </select>
                 </div>
