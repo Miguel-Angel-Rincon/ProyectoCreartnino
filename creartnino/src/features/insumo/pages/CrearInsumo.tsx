@@ -81,14 +81,14 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">📦 Categoría</label>
                   <select className="form-select" name="categoria" required>
                     {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={`Categoría ${i + 1}`}>Categoría {i + 1}</option>
+                      <option key={i} value={Categoría ${i + 1}}>Categoría {i + 1}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Marca y Descripción */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Marca</label>
+                  <label className="form-label">🏷 Marca</label>
                   <input className="form-control" name="marca" required />
                 </div>
 
@@ -99,7 +99,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     name="descripcion"
                     onFocus={(e) => {
                       e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
+                      e.target.style.height = ${e.target.scrollHeight}px;
                     }}
                     onBlur={(e) => {
                       e.target.style.height = 'auto';

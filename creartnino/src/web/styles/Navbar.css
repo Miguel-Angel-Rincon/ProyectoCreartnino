@@ -1,0 +1,274 @@
+.custom-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  background-color: #ffeef2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  font-family: 'Segoe UI', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #111;
+  text-decoration: none;
+}
+
+.nav-center {
+  display: flex;
+  justify-content: center;       /* ← CENTRA horizontalmente */
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;                /* ← IMPORTANTE para centrar */
+  gap: 25px;
+  flex-wrap: wrap;
+  max-width: 600px;              /* ← Tamaño fijo para controlar centrado */
+  width: 100%;
+}
+
+.nav-center a,
+.dropdown-toggle {
+  text-decoration: none;
+  font-weight: 500;
+  color: #111;
+  transition: color 0.3s ease;
+}
+
+.nav-center a:hover,
+.dropdown-toggle:hover {
+  color: #e60073;
+}
+
+/* ✅ Hace que el cursor sea manito al pasar sobre "Productos" */
+.dropdown-toggle {
+  cursor: pointer;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown .mega-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 500px;
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  border: 1px solid #f2c3d1;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.dropdown:hover .mega-menu {
+  display: block;
+}
+
+.mega-menu h4 {
+  margin-bottom: 1rem;
+  color: #e60073;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1.25rem;
+}
+
+.categories a {
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s ease-in-out;
+}
+
+.categories a:hover {
+  background-color: #ffeef2;
+  color: #e60073;
+}
+
+.nav-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-outline {
+  padding: 6px 16px;
+  border: 2px solid #111;
+  border-radius: 999px;
+  background: transparent;
+  color: #111;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-outline:hover {
+  background-color: #111;
+  color: #fff;
+}
+
+.btn-filled {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background-color: #111;
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-filled:hover {
+  background-color: #e60073;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .custom-navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-center {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .nav-right {
+    margin-top: 1rem;
+  }
+
+  .dropdown .mega-menu {
+    left: 0;
+    transform: none;
+    width: 100%;
+  }
+
+  .categories {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+.logo-img {
+  height: 48px;
+  width: auto;
+  border-radius: 999px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 48px;
+  width: auto;
+  border-radius: 999px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #111;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ... (mantén tu estilo base aquí) ... */
+
+.hamburger {
+  display: none;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #111;
+  cursor: pointer;
+}
+
+.menu-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+  }
+
+  .menu-content {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    background-color: #ffeef2;
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .menu-content.open {
+    display: flex;
+  }
+
+  .nav-center,
+  .nav-right {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .mega-menu {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .categories {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .btn-outline,
+  .btn-filled {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+

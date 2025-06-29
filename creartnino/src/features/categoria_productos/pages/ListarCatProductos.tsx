@@ -15,14 +15,14 @@ interface CategoriaProductos {
 }
 
 const categoriasIniciales: CategoriaProductos[] = [
-  { IdCategoriaProducto: 401, Nombre: 'Categoria1', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
-  { IdCategoriaProducto: 402, Nombre: 'Categoria2', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
-  { IdCategoriaProducto: 403, Nombre: 'Categoria3', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
-  { IdCategoriaProducto: 404, Nombre: 'Categoria4', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
-  { IdCategoriaProducto: 405, Nombre: 'Categoria5', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
-  { IdCategoriaProducto: 406, Nombre: 'Categoria6', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
-  { IdCategoriaProducto: 407, Nombre: 'Categoria7', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
-  { IdCategoriaProducto: 408, Nombre: 'Categoria8', Descripcion: 'Libros, música y material educativo', Estado: false },
+  { IdCategoriaProducto: 401, Nombre: 'Tazas', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
+  { IdCategoriaProducto: 402, Nombre: 'Toppers', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
+  { IdCategoriaProducto: 403, Nombre: 'Pesebres', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
+  { IdCategoriaProducto: 404, Nombre: 'Camisas', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
+  { IdCategoriaProducto: 405, Nombre: 'Luminosos', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
+  { IdCategoriaProducto: 406, Nombre: 'Busos', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
+  { IdCategoriaProducto: 407, Nombre: 'Etiquetas', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
+  { IdCategoriaProducto: 408, Nombre: 'Stikers', Descripcion: 'Libros, música y material educativo', Estado: false },
 ];
 
 const ListarCatProductos: React.FC = () => {
@@ -82,7 +82,7 @@ const ListarCatProductos: React.FC = () => {
     Swal.fire({
       icon: 'success',
       title: 'Categoría creada correctamente',
-      confirmButtonColor: '#e83e8c',
+      confirmButtonColor: '#f78fb3',
     });
   };
 
@@ -104,8 +104,8 @@ const ListarCatProductos: React.FC = () => {
   };
 
   const categoriasFiltradas = categorias.filter(c =>
-    c.Nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase())
+);
 
   const indexInicio = (paginaActual - 1) * categoriasPorPagina;
   const indexFin = indexInicio + categoriasPorPagina;
@@ -121,7 +121,7 @@ const ListarCatProductos: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar por nombre de categoría"
+        placeholder="Buscar por Nombre de categoría"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {

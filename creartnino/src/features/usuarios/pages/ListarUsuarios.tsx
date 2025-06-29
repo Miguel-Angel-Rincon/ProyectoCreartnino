@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
@@ -9,29 +8,28 @@ import VerUsuarioModal from './Ver';
 
 interface Usuarios {
   IdUsuarios: number;
-  Nombre: string;
-  Apellido: string;
+  NombreCompleto: string;
   Tipodocumento: string;
   Numerodocumento: string;
   Celular: string;
   Direccion: string;
-  Barrio: string;
+  Departamento: string;
+  Ciudad: string;
   Correo: string;
   idRol: string;
   estado: boolean;
 }
 
 const usuariosiniciales: Usuarios[] = [
-  { IdUsuarios: 1, Nombre: 'Juan', Apellido: 'Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Barrio: 'San Fernando', Correo: 'juan.perez@example.com', idRol: 'admin', estado: true },
-  { IdUsuarios: 2, Nombre: 'María', Apellido: 'Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Barrio: 'La Floresta', Correo: 'maria.gomez@example.com', idRol: 'cliente', estado: true },
-  { IdUsuarios: 3, Nombre: 'Carlos', Apellido: 'Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Barrio: 'Centro', Correo: 'carlos.ramirez@example.com', idRol: 'vendedor', estado: false },
-  { IdUsuarios: 4, Nombre: 'Laura', Apellido: 'Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Barrio: 'El Poblado', Correo: 'laura.martinez@example.com', idRol: 'admin', estado: true },
-  { IdUsuarios: 5, Nombre: 'Andrés', Apellido: 'López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Barrio: 'Los Álamos', Correo: 'andres.lopez@example.com', idRol: 'cliente', estado: false },
-  { IdUsuarios: 6, Nombre: 'Sofía', Apellido: 'Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Barrio: 'Villa Hermosa', Correo: 'sofia.torres@example.com', idRol: 'cliente', estado: true },
-  { IdUsuarios: 7, Nombre: 'Miguel', Apellido: 'Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Celular: '3056789012', Direccion: 'Calle 70 #30-31', Barrio: 'Boston', Correo: 'miguel.salazar@example.com', idRol: 'vendedor', estado: true },
-  { IdUsuarios: 8, Nombre: 'Valentina', Apellido: 'Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Celular: '3067890123', Direccion: 'Carrera 25 #15-16', Barrio: 'La América', Correo: 'valentina.rios@example.com', idRol: 'admin', estado: false }
+  { IdUsuarios: 1, NombreCompleto: 'Juan Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'juan.perez@example.com', idRol: 'admin', estado: true },
+  { IdUsuarios: 2, NombreCompleto: 'María Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'maria.gomez@example.com', idRol: 'cliente', estado: true },
+  { IdUsuarios: 3, NombreCompleto: 'Carlos Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'carlos.ramirez@example.com', idRol: 'vendedor', estado: false },
+  { IdUsuarios: 4, NombreCompleto: 'Laura Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'laura.martinez@example.com', idRol: 'admin', estado: true },
+  { IdUsuarios: 5, NombreCompleto: 'Andrés López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'andres.lopez@example.com', idRol: 'cliente', estado: false },
+  { IdUsuarios: 6, NombreCompleto: 'Sofía Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'sofia.torres@example.com', idRol: 'cliente', estado: true },
+  { IdUsuarios: 7, NombreCompleto: 'Miguel Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Celular: '3056789012', Direccion: 'Calle 70 #30-31', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'miguel.salazar@example.com', idRol: 'vendedor', estado: true },
+  { IdUsuarios: 8, NombreCompleto: 'Valentina Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Celular: '3067890123', Direccion: 'Carrera 25 #15-16', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'valentina.rios@example.com', idRol: 'admin', estado: false }
 ];
-
 
 const ListarUsuarios: React.FC = () => {
   const [Usuarios, setusuarios] = useState<Usuarios[]>(usuariosiniciales);
@@ -84,23 +82,20 @@ const ListarUsuarios: React.FC = () => {
   };
 
   const handleCrear = (nuevoUsuario: Usuarios) => {
-      setusuarios(prev => [...prev, nuevoUsuario]);
-      setMostrarModal(false);
-      Swal.fire({
-        icon: 'success',
-        title: 'Producto creado correctamente',
-        confirmButtonColor: '#e83e8c',
-      });
-    };
+    setusuarios(prev => [...prev, nuevoUsuario]);
+    setMostrarModal(false);
+    Swal.fire({
+      icon: 'success',
+      title: 'Usuario creado correctamente',
+      confirmButtonColor: '#e83e8c',
+    });
+  };
 
-
-
-     const handleVerusuario = (usuario: Usuarios) => {
+  const handleVerusuario = (usuario: Usuarios) => {
     setUsuariosVer(usuario);
     setMostrarVerModal(true);
   };
 
-   
   const handleEditarUsuario = (usuario: Usuarios) => {
     setUsuarioEditar(usuario);
     setMostrarEditarModal(true);
@@ -114,7 +109,7 @@ const ListarUsuarios: React.FC = () => {
   };
 
   const UsuariosFiltrados = Usuarios.filter(p =>
-    p.Nombre.toLowerCase().includes(busqueda.toLowerCase())
+    p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * UsuariosPorPagina;
@@ -126,7 +121,7 @@ const ListarUsuarios: React.FC = () => {
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Usuarios</h2>
-       <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Usuario</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Usuario</button>
       </div>
 
       <input
@@ -144,9 +139,9 @@ const ListarUsuarios: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Apellido</th>
               <th># Documento</th>
+              <th>Nombre Completo</th>
+              
               <th>Celular</th>
               <th>Rol</th>
               <th>Estado</th>
@@ -156,9 +151,9 @@ const ListarUsuarios: React.FC = () => {
           <tbody>
             {UsuariosPagina.map((p, index) => (
               <tr key={p.IdUsuarios} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{p.Nombre}</td>
-                <td>{p.Apellido}</td>
-                <td>{p.Numerodocumento}</td>
+                <td>{p.Tipodocumento} {p.Numerodocumento}</td>
+                <td>{p.NombreCompleto}</td>
+                
                 <td>{p.Celular}</td>
                 <td>{p.idRol}</td>
                 <td>
@@ -206,19 +201,17 @@ const ListarUsuarios: React.FC = () => {
         </div>
       </div>
 
-      
-        {mostrarModal && (
-          <CrearUsuarioModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
-        )}
+      {mostrarModal && (
+        <CrearUsuarioModal onClose={() => setMostrarModal(false)} onCrear={handleCrear} />
+      )}
 
-        {mostrarEditarModal && UsuarioEditar && (
-          <EditarUsuarioModal usuario={UsuarioEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
-        )}
+      {mostrarEditarModal && UsuarioEditar && (
+        <EditarUsuarioModal usuario={UsuarioEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
+      )}
 
-        {mostrarVerModal && usuarioVer && (
-          <VerUsuarioModal usuario={usuarioVer} onClose={() => setMostrarVerModal(false)} />
-        )}
-     
+      {mostrarVerModal && usuarioVer && (
+        <VerUsuarioModal usuario={usuarioVer} onClose={() => setMostrarVerModal(false)} />
+      )}
     </div>
   );
 };

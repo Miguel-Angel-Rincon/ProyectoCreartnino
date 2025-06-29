@@ -136,7 +136,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   >
                     <option value={formData.IdCatInsumo}>{formData.IdCatInsumo}</option>
                     {Array.from({ length: 8 }, (_, i) => {
-                      const cat = `Categoría ${i + 1}`;
+                      const cat = Categoría ${i + 1};
                       return cat !== formData.IdCatInsumo ? (
                         <option key={i} value={cat}>{cat}</option>
                       ) : null;
@@ -146,7 +146,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
                 {/* Marca y Descripción */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Marca</label>
+                  <label className="form-label">🏷 Marca</label>
                   <input
                     className="form-control"
                     name="marca"
@@ -165,7 +165,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     onChange={handleChange}
                     onFocus={(e) => {
                       e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
+                      e.target.style.height = ${e.target.scrollHeight}px;
                     }}
                     onBlur={(e) => {
                       e.target.style.height = 'auto';

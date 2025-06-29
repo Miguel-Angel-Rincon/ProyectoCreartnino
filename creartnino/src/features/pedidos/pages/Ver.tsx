@@ -40,9 +40,8 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
             <h5 className="modal-title">📋 Ver Pedido</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
-          <div className="modal-body px-4 py-3">
+          <div className="modal-body px-4 py-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <div className="row g-4">
-
               <div className="col-md-6">
                 <label className="form-label">👤 Cliente</label>
                 <input className="form-control" value={pedido.IdCliente} disabled />
@@ -63,9 +62,9 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
                 <input className="form-control" value={pedido.FechaEntrega} disabled />
               </div>
 
-              <div className="col-12">
+              <div className="col-md-6">
                 <label className="form-label">📝 Descripción</label>
-                <textarea className="form-control" value={pedido.Descripcion} disabled />
+                <input className="form-control" value={pedido.Descripcion} disabled />
               </div>
 
               {pedido.MetodoPago === 'Transferencia' && (
@@ -100,53 +99,56 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
 
               {/* Resumen del Pedido */}
               <div className="col-12 mt-4">
-                <h6 className="text-muted mb-3">📊 Resumen del Pedido</h6>
-                <div className="row g-3">
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaMoneyBillWave size={20} className="mb-2 text-success" />
-                        <h6>Subtotal</h6>
-                        <p className="m-0">${calcularSubtotal().toLocaleString()}</p>
+                <h6 className="text-muted mb-2">📊 Resumen del Pedido</h6>
+                <div className="row g-2">
+                  {[{
+                    icon: <FaMoneyBillWave size={16} className="text-success" />,
+                    label: 'Subtotal',
+                    value: calcularSubtotal()
+                  }, {
+                    icon: <FaPercent size={16} className="text-warning" />,
+                    label: 'IVA (19%)',
+                    value: calcularIVA()
+                  }, {
+                    icon: <FaCalculator size={16} className="text-primary" />,
+                    label: 'Total con IVA',
+                    value: calcularTotalConIVA()
+                  }].map((item, idx) => (
+                    <div className="col-md-4" key={idx}>
+                      <div className="card pastel-card p-1">
+                        <div className="d-flex align-items-center gap-1">
+                          <div>{item.icon}</div>
+                          <div>
+                            <div className="fw-semibold fs-7">{item.label}</div>
+                            <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaPercent size={20} className="mb-2 text-warning" />
-                        <h6>IVA (19%)</h6>
-                        <p className="m-0">${calcularIVA().toLocaleString()}</p>
+                  ))}
+                </div>
+                <div className="row g-2 mt-1">
+                  {[{
+                    icon: <FaWallet size={16} className="text-info" />,
+                    label: 'Valor Inicial',
+                    value: pedido.ValorInicial
+                  }, {
+                    icon: <FaCoins size={16} className="text-danger" />,
+                    label: 'Valor Restante',
+                    value: pedido.ValorRestante
+                  }].map((item, idx) => (
+                    <div className="col-md-6" key={idx}>
+                      <div className="card pastel-card p-1">
+                        <div className="d-flex align-items-center gap-1">
+                          <div>{item.icon}</div>
+                          <div>
+                            <div className="fw-semibold fs-7">{item.label}</div>
+                            <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaCalculator size={20} className="mb-2 text-primary" />
-                        <h6>Total con IVA</h6>
-                        <p className="m-0">${calcularTotalConIVA().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaWallet size={20} className="mb-2 text-info" />
-                        <h6>Valor Inicial (50%)</h6>
-                        <p className="m-0">${pedido.ValorInicial.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaCoins size={20} className="mb-2 text-danger" />
-                        <h6>Valor Restante</h6>
-                        <p className="m-0">${pedido.ValorRestante.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 

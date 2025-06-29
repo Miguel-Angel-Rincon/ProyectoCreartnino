@@ -57,12 +57,6 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
                 <input className="form-control" value={producto.marca} disabled />
               </div>
 
-              {/* URL de Imagen */}
-              <div className="col-md-6">
-                <label className="form-label">🔗 Imagen</label>
-                <input className="form-control" value={producto.Imagen} disabled />
-              </div>
-
               {/* Vista previa de Imagen */}
               <div className="col-md-12">
                 <div className="border rounded pastel-img-container p-2 text-center">
