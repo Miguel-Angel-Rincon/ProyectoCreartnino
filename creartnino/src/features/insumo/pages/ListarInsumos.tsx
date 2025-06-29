@@ -110,8 +110,8 @@ const insumosiniciales: Insumos[] = [
     };
 
     const insumosFiltrados = insumos.filter(p =>
-        `${p.Nombre}`.toLowerCase().includes(busqueda.toLowerCase())
-    );
+  p.Nombre.toLowerCase().startsWith(busqueda.toLowerCase())
+);
 
     const indexInicio = (paginaActual - 1) * INSUMOS_POR_PAGINA;
     const indexFin = indexInicio + INSUMOS_POR_PAGINA;
@@ -158,7 +158,7 @@ const insumosiniciales: Insumos[] = [
                     
                     <td>{p.marca}</td>
                     <td>{p.cantidad}</td>
-                    <td>${p.precioUnitario}</td>
+                    <td>{p.precioUnitario.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</td>
                     <td>
                     <label className="switch">
                         <input

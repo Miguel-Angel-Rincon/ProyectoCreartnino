@@ -28,6 +28,13 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
     }
   }, []);
 
+  // Formato COP para precio
+  const precioFormateado = insumo.precioUnitario.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  });
+
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -40,33 +47,20 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
             <div className="row g-4">
 
               {/* Categoría y Nombre */}
-
-            <div className="col-md-6">
+              <div className="col-md-6">
                 <label className="form-label">📝 Nombre</label>
-                <input
-                className="form-control"
-                value={insumo.Nombre}
-                disabled
-                />
-            </div>
+                <input className="form-control" value={insumo.Nombre} disabled />
+              </div>
 
-            <div className="col-md-6">
+              <div className="col-md-6">
                 <label className="form-label">📦 Categoría</label>
-                <input
-                className="form-control"
-                value={insumo.IdCatInsumo}
-                disabled
-            />
+                <input className="form-control" value={insumo.IdCatInsumo} disabled />
               </div>
 
               {/* Marca y Descripción */}
               <div className="col-md-6">
                 <label className="form-label">🏷️ Marca</label>
-                <input
-                  className="form-control"
-                  value={insumo.marca}
-                  disabled
-                />
+                <input className="form-control" value={insumo.marca} disabled />
               </div>
 
               <div className="col-md-6">
@@ -85,20 +79,12 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
               {/* Cantidad y Precio */}
               <div className="col-md-6">
                 <label className="form-label">🔢 Cantidad</label>
-                <input
-                  className="form-control"
-                  value={insumo.cantidad}
-                  disabled
-                />
+                <input className="form-control" value={insumo.cantidad} disabled />
               </div>
 
               <div className="col-md-6">
                 <label className="form-label">💲 Precio Unitario</label>
-                <input
-                  className="form-control"
-                  value={insumo.precioUnitario}
-                  disabled
-                />
+                <input className="form-control" value={precioFormateado} disabled />
               </div>
 
             </div>

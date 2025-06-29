@@ -1,4 +1,3 @@
-// components/EditarInsumoModal.tsx
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import '../styles/acciones.css';
@@ -22,40 +21,62 @@ interface Props {
 
 const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
   const [formData, setFormData] = useState<Insumos>(insumo);
-  const listaMarcas = ['Paps', 'Pinturillo', 'Papelfony', 'mirellon', 'sabanero'];
+  const [precioTexto, setPrecioTexto] = useState('');
 
   useEffect(() => {
     setFormData(insumo);
+    setPrecioTexto(insumo.precioUnitario.toLocaleString('es-CO'));
   }, [insumo]);
+
+  const formatearCOP = (valor: string) => {
+    const num = parseInt(valor);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('es-CO');
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+
+    if (name === 'precioUnitario') {
+      const soloNumeros = value.replace(/[^\d]/g, '');
+      if (soloNumeros === '' || parseInt(soloNumeros) <= 0) {
+        setPrecioTexto('');
+        setFormData((prev) => ({ ...prev, precioUnitario: 0 }));
+      } else {
+        setPrecioTexto(formatearCOP(soloNumeros));
+        setFormData((prev) => ({
+          ...prev,
+          precioUnitario: parseFloat(soloNumeros),
+        }));
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (formData.cantidad < 0) {
+    if (formData.cantidad <= 0) {
       await Swal.fire({
         icon: 'warning',
-        title: 'Cantidad inválida',
-        text: 'La cantidad no puede ser un número negativo.',
+        title: '❌ Cantidad inválida',
+        text: 'La cantidad debe ser mayor a cero.',
         confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
-    if (formData.precioUnitario < 0) {
+    if (formData.precioUnitario <= 0) {
       await Swal.fire({
         icon: 'warning',
-        title: 'Precio inválido',
-        text: 'El precio unitario no puede ser un número negativo.',
+        title: '❌ Precio inválido',
+        text: 'El precio unitario debe ser mayor a cero.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -92,7 +113,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
 
-                {/* Categoría y Nombre */}
+                {/* Nombre y Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">📝 Nombre</label>
                   <input
@@ -104,7 +125,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   />
                 </div>
 
-                 <div className="col-md-6">
+                <div className="col-md-6">
                   <label className="form-label">📦 Categoría</label>
                   <select
                     className="form-select"
@@ -113,13 +134,9 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     onChange={handleChange}
                     required
                   >
-                    {/* Categoría actual */}
-                    <option value={formData.IdCatInsumo}>
-                      {formData.IdCatInsumo}
-                    </option>
-                    {/* Otras categorías */}
+                    <option value={formData.IdCatInsumo}>{formData.IdCatInsumo}</option>
                     {Array.from({ length: 8 }, (_, i) => {
-                      const cat = `Categoría ${i + 1}`;
+                      const cat = Categoría ${i + 1};
                       return cat !== formData.IdCatInsumo ? (
                         <option key={i} value={cat}>{cat}</option>
                       ) : null;
@@ -129,45 +146,34 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
                 {/* Marca y Descripción */}
                 <div className="col-md-6">
-  <label className="form-label">🏷️ Marca</label>
-  <select
-    className="form-select"
-    name="marca"
-    value={formData.marca}
-    onChange={handleChange}
-    required
-  >
-    <option value="">Seleccione una marca</option>
-    {listaMarcas.map((marca, i) => (
-      <option key={i} value={marca}>
-        {marca}
-      </option>
-    ))}
-  </select>
-</div>
+                  <label className="form-label">🏷 Marca</label>
+                  <input
+                    className="form-control"
+                    name="marca"
+                    value={formData.marca}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🧾 Descripción</label>
-  <textarea
-    className="form-control"
-    name="Descripcion"
-    value={formData.Descripcion}
-    onChange={handleChange}
-    onFocus={(e) => {
-      // Mostrar todo el contenido expandiendo el textarea al enfocarse
-      e.target.style.height = 'auto';
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onBlur={(e) => {
-      // Opcional: colapsar nuevamente si quieres
-      e.target.style.height = 'auto';
-    }}
-    title={formData.Descripcion}
-    rows={1}
-    style={{ resize: 'none', overflow: 'hidden' }}
-    required
-  />
-</div>
+                  <label className="form-label">🧾 Descripción</label>
+                  <textarea
+                    className="form-control"
+                    name="Descripcion"
+                    value={formData.Descripcion}
+                    onChange={handleChange}
+                    onFocus={(e) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = ${e.target.scrollHeight}px;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.height = 'auto';
+                    }}
+                    rows={1}
+                    style={{ resize: 'none', overflow: 'hidden' }}
+                  />
+                </div>
 
                 {/* Cantidad y Precio */}
                 <div className="col-md-6">
@@ -177,24 +183,32 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     className="form-control"
                     name="cantidad"
                     value={formData.cantidad}
+                    min={1}
                     onChange={handleChange}
+                    onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                      const input = e.currentTarget;
+                      if (parseInt(input.value) < 1) input.value = '';
+                    }}
                     required
                   />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio Unitario</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="form-control"
-                    name="precioUnitario"
-                    value={formData.precioUnitario}
-                    onChange={handleChange}
-                    required
-                  />
+                  <label className="form-label">💲 Precio Unitario (COP)</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="form-control"
+                      name="precioUnitario"
+                      placeholder="Ej: 15000"
+                      value={precioTexto}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
-
 
               </div>
             </div>
