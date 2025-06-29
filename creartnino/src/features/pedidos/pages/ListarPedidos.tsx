@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Swal from 'sweetalert2';
-import { FaEye, FaFilePdf, FaBan, FaPlus } from 'react-icons/fa';
+import { FaEye, FaFilePdf, FaBan } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import CrearPedido from './Crear';
@@ -29,12 +29,12 @@ interface Pedidos {
 }
 
 const pedidosIniciales: Pedidos[] = [
-  { IdPedido: 601, IdCliente: 'Producción 1', MetodoPago: 'Directa', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante601.jpg', TotalPedido: 120000, Estado: 'primer pago' },
-  { IdPedido: 602, IdCliente: 'Producción 2', MetodoPago: 'Directa', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante602.jpg', TotalPedido: 120000, Estado: 'en proceso' },
-  { IdPedido: 603, IdCliente: 'Producción 3', MetodoPago: 'Pedido', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido por producción', ValorInicial: 50000, ValorRestante: 70000, ComprobantePago: 'comprobante603.jpg', TotalPedido: 120000, Estado: 'en producción' },
-  { IdPedido: 604, IdCliente: 'Producción 4', MetodoPago: 'Directa', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido por producción', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante604.jpg', TotalPedido: 120000, Estado: 'en proceso de entrega' },
-  { IdPedido: 605, IdCliente: 'Producción 1', MetodoPago: 'Directa', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante605.jpg', TotalPedido: 120000, Estado: 'entregado' },
-  { IdPedido: 606, IdCliente: 'Producción 2', MetodoPago: 'Directa', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante606.jpg', TotalPedido: 120000, Estado: 'anulado' },
+  { IdPedido: 601, IdCliente: 'Ana ', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante601.jpg', TotalPedido: 120000, Estado: 'primer pago' },
+  { IdPedido: 602, IdCliente: 'Lucas', MetodoPago: 'Transferencia', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante602.jpg', TotalPedido: 120000, Estado: 'en proceso' },
+  { IdPedido: 603, IdCliente: 'Maribel', MetodoPago: 'Efectivo', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido por producción', ValorInicial: 50000, ValorRestante: 70000, ComprobantePago: 'comprobante603.jpg', TotalPedido: 120000, Estado: 'en producción' },
+  { IdPedido: 604, IdCliente: 'Sergio', MetodoPago: 'Efectivo', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido por producción', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante604.jpg', TotalPedido: 120000, Estado: 'en proceso de entrega' },
+  { IdPedido: 605, IdCliente: 'Lupita', MetodoPago: 'Tarjeta ', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante605.jpg', TotalPedido: 120000, Estado: 'entregado' },
+  { IdPedido: 606, IdCliente: 'Enrique', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante606.jpg', TotalPedido: 120000, Estado: 'anulado' },
 ];
 
 const getColorClaseEstadoPedido = (estado: string) => {
@@ -159,8 +159,10 @@ const ListarPedidos: React.FC = () => {
     doc.save(`Pedido-${pedido.IdPedido}.pdf`);
   };
 
+  // Filtro corregido
   const pedidosFiltrados = pedidos.filter(p =>
-    `${p.IdPedido}`.toLowerCase().includes(busqueda.toLowerCase())
+    p.IdPedido.toString().toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.IdCliente.toLowerCase().startsWith(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * pedidosPorPagina;
@@ -173,7 +175,7 @@ const ListarPedidos: React.FC = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Pedidos</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
-          <FaPlus className="me-2" />
+          
           Crear Pedido
         </button>
       </div>
@@ -226,7 +228,6 @@ const ListarPedidos: React.FC = () => {
                   >
                     <option value="en proceso">En Proceso</option>
                     <option value="primer pago">Primer Pago</option>
-                    
                     <option value="en producción">En Producción</option>
                     <option value="en proceso de entrega">En Proceso de Entrega</option>
                     <option value="entregado">Entregado</option>
@@ -240,9 +241,9 @@ const ListarPedidos: React.FC = () => {
                     onClick={() => setPedidoSeleccionado(p)}
                   />
                   <FaBan
-                    className="icono text-warning me-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarPedido(p.IdPedido)}
+                    className={`icono me-2 ${p.Estado === 'anulado' ? 'text-dark' : 'text-warning'}`}
+                    style={{ cursor: p.Estado === 'anulado' ? 'not-allowed' : 'pointer' }}
+                    onClick={p.Estado === 'anulado' ? undefined : () => handleEliminarPedido(p.IdPedido)}
                   />
                   <FaFilePdf
                     className="icono text-danger"
