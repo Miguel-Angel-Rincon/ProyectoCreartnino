@@ -33,7 +33,8 @@ const VerCompra: React.FC<VerCompraProps> = ({ compra, onClose }) => {
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
 
-          <div className="modal-body px-4 py-3">
+          {/* Agregado scroll al body */}
+          <div className="modal-body px-4 py-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <div className="row g-3">
 
               {/* Información general */}
