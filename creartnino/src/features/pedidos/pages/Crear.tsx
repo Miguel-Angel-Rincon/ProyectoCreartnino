@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import '../styles/acciones.css';
 import { FaMoneyBillWave, FaPercent, FaCalculator, FaWallet, FaCoins } from 'react-icons/fa';
 
@@ -25,6 +26,17 @@ const productosMock = [
   { IdProducto: 203, Nombre: 'Taza', precio: 18000 }
 ];
 
+const sumarDiasHabiles = (fechaStr: string, diasHabiles: number) => {
+  const fecha = new Date(fechaStr);
+  let sumados = 0;
+  while (sumados < diasHabiles) {
+    fecha.setDate(fecha.getDate() + 1);
+    const dia = fecha.getDay();
+    if (dia !== 0 && dia !== 6) sumados++;
+  }
+  return fecha.toISOString().split('T')[0];
+};
+
 const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState('');
   const [metodoPago, setMetodoPago] = useState('');
@@ -33,6 +45,12 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [descripcion, setDescripcion] = useState('');
   const [comprobantePago, setComprobantePago] = useState<File | null>(null);
   const [detallePedido, setDetallePedido] = useState<PedidoDetalle[]>([]);
+
+  useEffect(() => {
+    const hoy = new Date().toISOString().split('T')[0];
+    setFechaPedido(hoy);
+    setFechaEntrega(sumarDiasHabiles(hoy, 3));
+  }, []);
 
   const agregarDetalle = () => {
     setDetallePedido([...detallePedido, { producto: '', cantidad: 0, precio: 0 }]);
@@ -64,9 +82,33 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const calcularValorInicial = () => calcularTotalConIVA() * 0.5;
   const calcularValorRestante = () => calcularTotalConIVA() - calcularValorInicial();
 
-  const handleSubmit = () => {
-    const clienteObj = clientesMock.find(c => c.IdClientes.toString() === clienteSeleccionado);
-    const nombreCliente = clienteObj ? `${clienteObj.Nombre} ${clienteObj.Apellido}` : '';
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const productosValidos = detallePedido.filter(
+      item => item.producto && item.cantidad > 0 && item.precio > 0
+    );
+
+    if (productosValidos.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Producto requerido',
+        text: 'Debe agregar al menos un producto al pedido.'
+      });
+      return;
+    }
+
+    if (metodoPago === 'Transferencia' && !comprobantePago) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comprobante requerido',
+        text: 'Debe adjuntar el comprobante de pago.'
+      });
+      return;
+    }
+
+    const clienteSeleccionadoObj = clientesMock.find(c => c.IdClientes.toString() === clienteSeleccionado);
+    const nombreCliente = clienteSeleccionadoObj ? `${clienteSeleccionadoObj.Nombre} ${clienteSeleccionadoObj.Apellido}` : '';
 
     const nuevoPedido = {
       IdCliente: nombreCliente,
@@ -78,9 +120,10 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
       ValorRestante: calcularValorRestante(),
       ComprobantePago: comprobantePago ? comprobantePago.name : '',
       TotalPedido: calcularTotalConIVA(),
-      Estado: 'Pendiente',
+      Estado: 'primer pago',
       detallePedido
     };
+
     onCrear(nuevoPedido);
   };
 
@@ -92,152 +135,163 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             <h5 className="modal-title">📝 Crear Pedido</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
-          <div className="modal-body px-4 py-3">
-            <div className="row g-4">
 
-              {/* Cliente y Método de Pago */}
-              <div className="col-md-6">
-                <label className="form-label">👤 Cliente</label>
-                <select className="form-select" value={clienteSeleccionado} onChange={e => setClienteSeleccionado(e.target.value)} required>
-                  <option value="">Seleccione</option>
-                  {clientesMock.map(c => (
-                    <option key={c.IdClientes} value={c.IdClientes}>
-                      {c.Nombre} {c.Apellido}
-                    </option>
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body px-4 py-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <label className="form-label">👤 Cliente</label>
+                  <select className="form-select" value={clienteSeleccionado} onChange={e => setClienteSeleccionado(e.target.value)} required>
+                    <option value="">Seleccione</option>
+                    {clientesMock.map(c => (
+                      <option key={c.IdClientes} value={c.IdClientes}>
+                        {c.Nombre} {c.Apellido}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">💳 Método de Pago</label>
+                  <select className="form-select" value={metodoPago} onChange={e => setMetodoPago(e.target.value)} required>
+                    <option value="">Seleccione</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    <option value="Transferencia">Transferencia</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">📅 Fecha del Pedido</label>
+                  <input type="date" className="form-control" value={fechaPedido} readOnly />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">📦 Fecha de Entrega</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={fechaEntrega}
+                    min={sumarDiasHabiles(new Date().toISOString().split('T')[0], 3)}
+                    onChange={e => setFechaEntrega(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">📝 Descripción</label>
+                  <textarea
+                    className="form-control"
+                    rows={2}
+                    value={descripcion}
+                    onChange={e => setDescripcion(e.target.value)}
+                  />
+                </div>
+
+                {metodoPago === 'Transferencia' && (
+                  <div className="col-12">
+                    <label className="form-label">📎 Comprobante de Pago</label>
+                    <input type="file" className="form-control" onChange={e => {
+                      if (e.target.files?.length) {
+                        setComprobantePago(e.target.files[0]);
+                      }
+                    }} />
+                  </div>
+                )}
+
+                <div className="col-12 mt-4">
+                  <h6 className="text-muted">🧾 Detalle del Pedido</h6>
+                  <div className="row fw-bold mb-2">
+                    <div className="col-md-4">Nombre del Producto</div>
+                    <div className="col-md-4">Cantidad</div>
+                    <div className="col-md-3">Precio</div>
+                    <div className="col-md-1"></div>
+                  </div>
+                  {detallePedido.map((item, index) => (
+                    <div key={index} className="row mb-2 align-items-center">
+                      <div className="col-md-4">
+                        <select className="form-select" value={item.producto} onChange={e => actualizarDetalle(index, 'producto', e.target.value)} required>
+                          <option value="">Seleccione un producto</option>
+                          {productosMock.map(p => (
+                            <option key={p.IdProducto} value={p.Nombre}>{p.Nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-md-4">
+                        <input type="number" className="form-control" value={item.cantidad} min={1} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} required />
+                      </div>
+                      <div className="col-md-3">
+                        <input type="number" className="form-control" value={item.precio} min={1} onChange={e => actualizarDetalle(index, 'precio', e.target.value)} required />
+                      </div>
+                      <div className="col-md-1 text-center">
+                        <button className="btn btn-danger btn-sm" type="button" onClick={() => eliminarDetalle(index)}>✖</button>
+                      </div>
+                    </div>
                   ))}
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label">💳 Método de Pago</label>
-                <select className="form-select" value={metodoPago} onChange={e => setMetodoPago(e.target.value)} required>
-                  <option value="">Seleccione</option>
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Transferencia">Transferencia</option>
-                </select>
-              </div>
-
-              {/* Fechas */}
-              <div className="col-md-6">
-                <label className="form-label">📅 Fecha del Pedido</label>
-                <input type="date" className="form-control" value={fechaPedido} onChange={e => setFechaPedido(e.target.value)} required />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label">📦 Fecha de Entrega</label>
-                <input type="date" className="form-control" value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} required />
-              </div>
-
-              {/* Descripción */}
-              <div className="col-12">
-                <label className="form-label">📝 Descripción</label>
-                <textarea className="form-control" value={descripcion} onChange={e => setDescripcion(e.target.value)} />
-              </div>
-
-              {/* Comprobante de pago */}
-              {metodoPago === 'Transferencia' && (
-                <div className="col-12">
-                  <label className="form-label">📎 Comprobante de Pago</label>
-                  <input type="file" className="form-control" onChange={e => {
-                    if (e.target.files?.length) {
-                      setComprobantePago(e.target.files[0]);
-                    }
-                  }} />
+                  <button type="button" className="btn pastel-btn-secondary" onClick={agregarDetalle}>+ Agregar Producto</button>
                 </div>
-              )}
 
-              {/* Detalle de productos */}
-              <div className="col-12 mt-4">
-                <h6 className="text-muted">🧾 Detalle del Pedido</h6>
-                <div className="row fw-bold mb-2">
-                  <div className="col-md-4">Nombre del Producto</div>
-                  <div className="col-md-4">Cantidad</div>
-                  <div className="col-md-3">Precio</div>
-                  <div className="col-md-1"></div>
-                </div>
-                {detallePedido.map((item, index) => (
-                  <div key={index} className="row mb-2 align-items-center">
-                    <div className="col-md-4">
-                      <select className="form-select" value={item.producto} onChange={e => actualizarDetalle(index, 'producto', e.target.value)}>
-                        <option value="">Seleccione un producto</option>
-                        {productosMock.map(p => (
-                          <option key={p.IdProducto} value={p.Nombre}>{p.Nombre}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <input type="number" className="form-control" value={item.cantidad} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} />
-                    </div>
-                    <div className="col-md-3">
-                      <input type="number" className="form-control" value={item.precio} onChange={e => actualizarDetalle(index, 'precio', e.target.value)} />
-                    </div>
-                    <div className="col-md-1 text-center">
-                      <button className="btn btn-danger btn-sm" onClick={() => eliminarDetalle(index)}>✖</button>
-                    </div>
-                  </div>
-                ))}
-                <button type="button" className="btn pastel-btn-secondary" onClick={agregarDetalle}>+ Agregar Producto</button>
-              </div>
-
-              {/* RESUMEN DEL PEDIDO */}
-              <div className="col-12 mt-4">
-                <h6 className="text-muted mb-3">📊 Resumen del Pedido</h6>
-                <div className="row g-3">
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaMoneyBillWave size={20} className="mb-2 text-success" />
-                        <h6>Subtotal</h6>
-                        <p className="m-0">${calcularSubtotal().toLocaleString()}</p>
+                <div className="col-12 mt-4">
+                  <h6 className="text-muted mb-2">📊 Resumen del Pedido</h6>
+                  <div className="row g-2">
+                    {[{
+                      icon: <FaMoneyBillWave size={16} className="text-success" />,
+                      label: 'Subtotal',
+                      value: calcularSubtotal()
+                    }, {
+                      icon: <FaPercent size={16} className="text-warning" />,
+                      label: 'IVA (19%)',
+                      value: calcularIVA()
+                    }, {
+                      icon: <FaCalculator size={16} className="text-primary" />,
+                      label: 'Total con IVA',
+                      value: calcularTotalConIVA()
+                    }].map((item, idx) => (
+                      <div className="col-md-4" key={idx}>
+                        <div className="card pastel-card p-1">
+                          <div className="d-flex align-items-center gap-1">
+                            <div>{item.icon}</div>
+                            <div>
+                              <div className="fw-semibold fs-7">{item.label}</div>
+                              <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaPercent size={20} className="mb-2 text-warning" />
-                        <h6>IVA (19%)</h6>
-                        <p className="m-0">${calcularIVA().toLocaleString()}</p>
+                  <div className="row g-2 mt-1">
+                    {[{
+                      icon: <FaWallet size={16} className="text-info" />,
+                      label: 'Valor Inicial',
+                      value: calcularValorInicial()
+                    }, {
+                      icon: <FaCoins size={16} className="text-danger" />,
+                      label: 'Valor Restante',
+                      value: calcularValorRestante()
+                    }].map((item, idx) => (
+                      <div className="col-md-6" key={idx}>
+                        <div className="card pastel-card p-1">
+                          <div className="d-flex align-items-center gap-1">
+                            <div>{item.icon}</div>
+                            <div>
+                              <div className="fw-semibold fs-7">{item.label}</div>
+                              <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaCalculator size={20} className="mb-2 text-primary" />
-                        <h6>Total con IVA</h6>
-                        <p className="m-0">${calcularTotalConIVA().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaWallet size={20} className="mb-2 text-info" />
-                        <h6>Valor Inicial (50%)</h6>
-                        <p className="m-0">${calcularValorInicial().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaCoins size={20} className="mb-2 text-danger" />
-                        <h6>Valor Restante</h6>
-                        <p className="m-0">${calcularValorRestante().toLocaleString()}</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
-
             </div>
-          </div>
-          <div className="modal-footer pastel-footer">
-            <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Registrar Pedido</button>
-          </div>
+
+            <div className="modal-footer pastel-footer">
+              <button className="btn pastel-btn-secondary" type="button" onClick={onClose}>Cancelar</button>
+              <button className="btn pastel-btn-primary" type="submit">Registrar Pedido</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

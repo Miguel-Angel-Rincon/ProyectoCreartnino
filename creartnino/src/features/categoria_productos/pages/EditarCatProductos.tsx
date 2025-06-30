@@ -48,7 +48,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
         icon: 'success',
         title: 'Categoría actualizada',
         text: 'Los cambios se han guardado correctamente.',
-        confirmButtonColor: '#e83e8c',
+        confirmButtonColor: '#f78fb3',
       });
 
       onClose();
@@ -57,7 +57,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
         icon: 'error',
         title: 'Error al editar',
         text: 'Ocurrió un error inesperado al guardar los cambios.',
-        confirmButtonColor: '#e83e8c',
+        confirmButtonColor: '#f78fb3',
       });
     }
   };

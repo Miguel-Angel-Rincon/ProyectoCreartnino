@@ -10,7 +10,7 @@ interface Producto {
   cantidad: number;
   marca: string;
   precio: number;
-  estado: boolean; // Aunque se elimina del formulario, se mantiene por compatibilidad de tipo
+  estado: boolean;
 }
 
 interface Props {
@@ -21,8 +21,17 @@ interface Props {
 
 const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) => {
   const [formData, setFormData] = useState<Producto>(producto);
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<string>('');
+  const [imagenPersonalURL, setImagenPersonalURL] = useState<string>('');
+  const [imagenLocal, setImagenLocal] = useState<string>('');
+  const [urlValida, setUrlValida] = useState<boolean | null>(null);
+  const [validandoURL, setValidandoURL] = useState(false);
+  const [cantidadValida, setCantidadValida] = useState(true);
+  const [precioValido, setPrecioValido] = useState(true);
+  const [precioFormateado, setPrecioFormateado] = useState('');
+  const [nombreValido, setNombreValido] = useState(true);
+  const [categoriaValida, setCategoriaValida] = useState(true);
 
-  // Simulación de imágenes disponibles
   const imagenesDisponibles = [
     'https://via.placeholder.com/300x200.png?text=Imagen+1',
     'https://via.placeholder.com/300x200.png?text=Imagen+2',
@@ -30,35 +39,144 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   ];
 
   useEffect(() => {
-    setFormData(producto);
+    setFormData({ ...producto, marca: 'CreartNino' });
+    setPrecioFormateado(producto.precio.toLocaleString('es-CO'));
+    setImagenSeleccionada(producto.Imagen);
+    setImagenPersonalURL(producto.Imagen.startsWith('http') ? producto.Imagen : '');
   }, [producto]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  useEffect(() => {
+    const validar = async () => {
+      if (!imagenPersonalURL || imagenPersonalURL.startsWith('data:image')) {
+        setUrlValida(null);
+        return;
+      }
+
+      const urlRegex = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i;
+      if (!urlRegex.test(imagenPersonalURL)) {
+        setUrlValida(false);
+        return;
+      }
+
+      setValidandoURL(true);
+      const esValida = await validarURLImagen(imagenPersonalURL);
+      setUrlValida(esValida);
+      setValidandoURL(false);
+    };
+
+    const delay = setTimeout(validar, 500);
+    return () => clearTimeout(delay);
+  }, [imagenPersonalURL]);
+
+  const validarURLImagen = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+    });
+  };
+
+  const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    const numero = parseInt(valor);
+    const esEntero = /^\d+$/.test(valor);
+    setCantidadValida(esEntero && numero > 0); // 🟢 Modificado: solo permite mayor a 0
+    setFormData((prev) => ({ ...prev, cantidad: numero }));
+  };
+
+  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value.replace(/[.,\s]/g, '');
+    const numero = parseInt(valor);
+    const esNumeroValido = !isNaN(numero) && numero > 0; // 🟢 Modificado: solo permite mayor a 0
+
+    setPrecioValido(esNumeroValido);
+    setFormData((prev) => ({ ...prev, precio: numero }));
+    setPrecioFormateado(esNumeroValido ? numero.toLocaleString('es-CO') : '');
+  };
+
+  const handleArchivoLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+
+    const extensionesValidas = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!extensionesValidas.includes(archivo.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Archivo no válido',
+        text: 'Solo se permiten imágenes JPG, PNG, GIF o WebP.',
+        confirmButtonColor: '#f78fb3',
+      });
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setImagenLocal(base64);
+      setImagenPersonalURL(base64);
+      setImagenSeleccionada('');
+    };
+    reader.readAsDataURL(archivo);
+  };
+
+  const limpiarImagen = () => {
+    setImagenSeleccionada('');
+    setImagenLocal('');
+    setImagenPersonalURL('');
+    setUrlValida(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const cantidad = parseInt(formData.cantidad.toString());
-    const precio = parseFloat(formData.precio.toString());
+    const nombreVal = formData.Nombre.trim();
+    const categoriaVal = formData.IdCatProductos.trim();
+    setNombreValido(nombreVal.length > 2);
+    setCategoriaValida(categoriaVal.length > 0);
 
-    if (cantidad < 0 || precio < 0) {
+    if (!cantidadValida || !precioValido || !nombreValido || !categoriaValida) {
       Swal.fire({
         icon: 'error',
         title: 'Datos inválidos',
-        text: 'Cantidad y precio deben ser valores positivos.',
+        text: 'Corrige todos los campos obligatorios antes de continuar.',
         confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
+    const imagenFinal = imagenLocal || imagenPersonalURL || imagenSeleccionada || producto.Imagen;
+
+    if (!imagenFinal) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Imagen requerida',
+        text: 'Debe seleccionar o ingresar una imagen.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (imagenFinal.startsWith('http')) {
+      const esValida = await validarURLImagen(imagenFinal);
+      if (!esValida) {
+        Swal.fire({
+          icon: 'error',
+          title: 'URL inválida',
+          text: 'La imagen no se puede cargar desde la URL proporcionada.',
+          confirmButtonColor: '#f78fb3',
+        });
+        return;
+      }
+    }
+
     try {
-      onEditar({ ...formData, cantidad, precio });
+      onEditar({
+        ...formData,
+        marca: 'CreartNino',
+        Imagen: imagenFinal,
+      });
 
       await Swal.fire({
         icon: 'success',
@@ -78,6 +196,8 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     }
   };
 
+  const vistaPrevia = imagenLocal || imagenPersonalURL || imagenSeleccionada || producto.Imagen;
+
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -89,25 +209,27 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-                {/* Nombre y Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">🛍️ Nombre</label>
                   <input
-                    className="form-control"
+                    className={`form-control ${!nombreValido ? 'is-invalid' : ''}`}
                     name="Nombre"
                     value={formData.Nombre}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({ ...formData, Nombre: e.target.value })}
                     required
                   />
                 </div>
+
                 <div className="col-md-6">
                   <label className="form-label">📦 Categoría</label>
                   <select
-                    className="form-select"
+                    className={`form-select ${!categoriaValida ? 'is-invalid' : ''}`}
                     name="IdCatProductos"
                     value={formData.IdCatProductos}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({ ...formData, IdCatProductos: e.target.value })}
+                    required
                   >
+                    <option value="">Seleccione una categoría</option>
                     {Array.from({ length: 8 }, (_, i) => (
                       <option key={i} value={`Categoría ${i + 1}`}>
                         Categoría {i + 1}
@@ -116,50 +238,40 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   </select>
                 </div>
 
-                {/* Cantidad y Precio */}
                 <div className="col-md-6">
                   <label className="form-label">🔢 Cantidad</label>
                   <input
                     type="number"
-                    className="form-control"
-                    name="cantidad"
+                    className={`form-control ${!cantidadValida ? 'is-invalid' : ''}`}
                     value={formData.cantidad}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">💲 Precio</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="precio"
-                    step="0.01"
-                    value={formData.precio}
-                    onChange={handleChange}
+                    onChange={handleCantidadChange}
                     required
                   />
                 </div>
 
-                {/* Marca y Imagen */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Marca</label>
+                  <label className="form-label">💲 Precio</label>
                   <input
-                    className="form-control"
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
+                    type="text"
+                    className={`form-control ${!precioValido ? 'is-invalid' : ''}`}
+                    value={precioFormateado}
+                    onChange={handlePrecioChange}
                     required
                   />
                 </div>
+
                 <div className="col-md-6">
-                  <label className="form-label">🖼️ Imagen</label>
+                  <label className="form-label">🖼️ Imagen desde lista</label>
                   <select
                     className="form-select"
-                    name="Imagen"
-                    value={formData.Imagen}
-                    onChange={handleChange}
+                    value={imagenSeleccionada}
+                    onChange={(e) => {
+                      setImagenSeleccionada(e.target.value);
+                      setImagenPersonalURL('');
+                      setImagenLocal('');
+                    }}
                   >
+                    <option value="">Seleccione una imagen</option>
                     {imagenesDisponibles.map((img, index) => (
                       <option key={index} value={img}>
                         Imagen {index + 1}
@@ -168,19 +280,55 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   </select>
                 </div>
 
-                {/* Vista previa centrada */}
-                {formData.Imagen && (
-                  <div className="col-12 text-center">
-                    <img
-                      src={formData.Imagen}
-                      alt="Vista previa"
-                      className="img-thumbnail mt-2"
-                      style={{
-                        maxWidth: '180px',
-                        maxHeight: '180px',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
+                <div className="col-md-6">
+                  <label className="form-label">🔗 URL de imagen personalizada</label>
+                  <div className="input-group">
+                    <input
+                      type="url"
+                      className={`form-control ${urlValida === false ? 'is-invalid' : ''}`}
+                      placeholder="https://tusitio.com/imagen.jpg"
+                      value={imagenPersonalURL.startsWith('data:image') ? '' : imagenPersonalURL}
+                      onChange={(e) => {
+                        setImagenPersonalURL(e.target.value);
+                        setImagenSeleccionada('');
+                        setImagenLocal('');
                       }}
+                      disabled={!!imagenSeleccionada && !imagenLocal}
+                    />
+                    <label className="btn btn-outline-secondary btn-sm mb-0">
+                      📁
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleArchivoLocal}
+                      />
+                    </label>
+                  </div>
+                  {validandoURL && (
+                    <div className="form-text text-warning">
+                      Validando URL de la imagen...
+                    </div>
+                  )}
+                  {urlValida === false && !validandoURL && (
+                    <div className="invalid-feedback d-block">
+                      La URL proporcionada no es válida o no se pudo cargar la imagen.
+                    </div>
+                  )}
+                  {(imagenSeleccionada || imagenPersonalURL || imagenLocal) && (
+                    <button type="button" className="btn btn-sm btn-danger mt-2" onClick={limpiarImagen}>
+                      Quitar imagen seleccionada
+                    </button>
+                  )}
+                </div>
+
+                {vistaPrevia && (
+                  <div className="col-12 text-center mt-3">
+                    <img
+                      src={vistaPrevia}
+                      alt="Vista previa"
+                      className="img-thumbnail"
+                      style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
                     />
                   </div>
                 )}

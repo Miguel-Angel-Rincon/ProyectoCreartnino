@@ -4,7 +4,7 @@ import '../style/acciones.css';
 
 interface Proveedores {
   IdProveedores: number;
-  TipoPersona: string;
+  IdTipoPersona: string;
   IdTipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
@@ -50,6 +50,30 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   };
 
   const handleDireccionModalSave = () => {
+    if (
+      direccionData.barrio.trim() === '' ||
+      direccionData.calle.trim() === '' ||
+      direccionData.codigoPostal.trim() === ''
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos de la dirección.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^\d{6}$/.test(direccionData.codigoPostal)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Código postal inválido',
+        text: 'El código postal debe tener 5 dígitos numéricos.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     const direccionCompleta = `${direccionData.barrio}, ${direccionData.calle}, CP ${direccionData.codigoPostal}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
@@ -58,34 +82,68 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!/^[0-9]+$/.test(formData.Celular)) {
+    // Validaciones generales
+    if (!/^\d{10}$/.test(formData.Celular)) {
       Swal.fire({
         icon: 'error',
         title: 'Celular inválido',
-        text: 'El número de celular debe contener solo dígitos.',
-        confirmButtonColor: '#e83e8c',
+        text: 'El número de celular debe contener exactamente 10 dígitos numéricos.',
+        confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
-    if (!/^[0-9]+$/.test(formData.NumDocumento)) {
+    if (!/^\d{6,15}$/.test(formData.NumDocumento)) {
       Swal.fire({
         icon: 'error',
         title: 'Documento inválido',
-        text: 'El número de documento debe contener solo dígitos.',
-        confirmButtonColor: '#e83e8c',
+        text: 'El número de documento debe tener entre 6 y 15 dígitos numéricos.',
+        confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.NombreCompleto)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Nombre inválido',
+        text: 'El nombre solo debe contener letras y espacios.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.Ciudad)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ciudad inválida',
+        text: 'El nombre de la ciudad solo debe contener letras.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (!formData.Direccion.includes('CP') || formData.Direccion.length < 10) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Dirección inválida',
+        text: 'Debes ingresar una dirección válida desde el submodal.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    // Si pasa todas las validaciones:
     onEditar(formData);
+
     Swal.fire({
       icon: 'success',
       title: 'Proveedor actualizado',
       text: 'Cambios guardados correctamente.',
-      confirmButtonColor: '#e83e8c',
+      confirmButtonColor: '#f78fb3',
+    }).then(() => {
+      onClose();
     });
-    onClose();
   };
 
   return (
@@ -105,7 +163,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                   <select
                     className="form-select"
                     name="IdTipoPersona"
-                    value={formData.TipoPersona}
+                    value={formData.IdTipoPersona}
                     onChange={handleChange}
                     required
                   >
@@ -122,7 +180,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                     value={formData.IdTipoDocumento}
                     onChange={handleChange}
                     required
-                    disabled={formData.TipoPersona === 'Jurídica'}
+                    disabled={formData.IdTipoPersona === 'Jurídica'}
                   >
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
@@ -133,7 +191,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
+                    {formData.IdTipoPersona === 'Jurídica'
                       ? '🔢 Número NIT'
                       : '🔢 Número de Documento'}
                   </label>
@@ -148,7 +206,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {formData.TipoPersona === 'Jurídica'
+                    {formData.IdTipoPersona === 'Jurídica'
                       ? '🏢 Nombre de la Empresa'
                       : '🙍 Nombre Completo'}
                   </label>
