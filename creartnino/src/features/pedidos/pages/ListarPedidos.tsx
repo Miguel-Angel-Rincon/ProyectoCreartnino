@@ -182,7 +182,7 @@ const ListarPedidos: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar por ID del Pedido"
+        placeholder="Buscar Por Nombre de Cliente"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {
