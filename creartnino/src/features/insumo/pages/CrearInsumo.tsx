@@ -1,5 +1,4 @@
-// components/CrearInsumoModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import '../styles/acciones.css';
 
@@ -11,18 +10,31 @@ interface Props {
 }
 
 const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
+  const [precioTexto, setPrecioTexto] = useState('');
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
 
-    const cantidad = parseInt(form.cantidad.value);
-    const precioUnitario = parseFloat(form.precioUnitario.value);
+    const cantidad = parseInt(form.cantidad.value.replace(/[^\d]/g, ''));
+    const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, '');
+    const precioUnitario = parseFloat(precioLimpio);
 
-    if (cantidad < 0 || precioUnitario < 0) {
+    if (isNaN(cantidad) || cantidad <= 0) {
       Swal.fire({
         icon: 'error',
-        title: 'Datos inválidos',
-        text: 'La cantidad y el precio deben ser positivos.',
+        title: '❌ Cantidad inválida',
+        text: 'La cantidad debe ser mayor a cero.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (isNaN(precioUnitario) || precioUnitario <= 0) {
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Precio inválido',
+        text: 'El precio unitario debe ser mayor a cero.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -36,10 +48,16 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       marca: form.marca.value,
       cantidad,
       precioUnitario,
-      estado: form.estado.checked,
+      estado: form.estado?.checked ?? false,
     };
 
     onCrear(nuevoInsumo);
+  };
+
+  const formatearCOPInput = (valor: string) => {
+    const num = parseInt(valor);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('es-CO');
   };
 
   return (
@@ -53,8 +71,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-
-                {/* Fila 1: Categoría y Nombre */}
+                {/* Nombre y Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">📝 Nombre</label>
                   <input className="form-control" name="nombre" required />
@@ -64,45 +81,72 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">📦 Categoría</label>
                   <select className="form-select" name="categoria" required>
                     {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={`Categoría ${i + 1}`}>Categoría {i + 1}</option>
+                      <option key={i} value={`Categoría ${i + 1}`}>{`Categoría ${i + 1}`}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* Fila 2: Marca y Descripción */}
+                {/* Marca y Descripción */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Marca</label>
+                  <label className="form-label">🏷 Marca</label>
                   <input className="form-control" name="marca" required />
                 </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🧾 Descripción</label>
-  <textarea
-    className="form-control"
-    name="descripcion"
-    onFocus={(e) => {
-      e.target.style.height = 'auto';
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onBlur={(e) => {
-      e.target.style.height = 'auto';
-    }}
-    title=""
-    rows={1}
-    style={{ resize: 'none', overflow: 'hidden' }}
-    required
-  />
-</div>
+                  <label className="form-label">🧾 Descripción</label>
+                  <textarea
+                    className="form-control"
+                    name="descripcion"
+                    onFocus={(e) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.height = 'auto';
+                    }}
+                    rows={1}
+                    style={{ resize: 'none', overflow: 'hidden' }}
+                  />
+                </div>
 
-                {/* Fila 3: Cantidad y Precio Unitario */}
+                {/* Cantidad y Precio Unitario */}
                 <div className="col-md-6">
                   <label className="form-label">🔢 Cantidad</label>
-                  <input type="number" className="form-control" name="cantidad" required />
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="cantidad"
+                    required
+                    min={1}
+                    onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                      const input = e.currentTarget;
+                      if (parseInt(input.value) < 1) input.value = '';
+                    }}
+                  />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio Unitario</label>
-                  <input type="number" step="0.01" className="form-control" name="precioUnitario" required />
+                  <label className="form-label">💲 Precio Unitario (COP)</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="form-control"
+                      name="precioUnitario"
+                      required
+                      placeholder="Ej: 15000"
+                      value={precioTexto}
+                      onChange={(e) => {
+                        const soloNumeros = e.target.value.replace(/[^\d]/g, '');
+                        if (soloNumeros === '' || parseInt(soloNumeros) === 0) {
+                          setPrecioTexto('');
+                        } else {
+                          setPrecioTexto(formatearCOPInput(soloNumeros));
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
 
               </div>

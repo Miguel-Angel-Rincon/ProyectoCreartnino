@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Swal from 'sweetalert2';
-import { FaEye, FaFilePdf, FaBan, FaPlus } from 'react-icons/fa';
+import { FaEye, FaFilePdf, FaBan } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import CrearPedido from './Crear';
@@ -29,15 +29,25 @@ interface Pedidos {
 }
 
 const pedidosIniciales: Pedidos[] = [
- { IdPedido: 601, IdCliente: 'Lucas', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido de productos categoría 1', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante201.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
-  { IdPedido: 602, IdCliente: 'Marta', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido de productos categoría 2', ValorInicial: 10000, ValorRestante: 200000, ComprobantePago: 'comprobante202.jpg', TotalPedido: 200000, Estado: 'Pagado' },
-  { IdPedido: 603, IdCliente: 'Mario', MetodoPago: 'Transferencia', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido de productos categoría 3', ValorInicial: 5000, ValorRestante: 145000, ComprobantePago: 'comprobante203.jpg', TotalPedido: 150000, Estado: 'Parcial' },
-  { IdPedido: 604, IdCliente: 'Laura', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido de productos categoría 4', ValorInicial: 12000, ValorRestante: 108000, ComprobantePago: 'comprobante204.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
-  { IdPedido: 605, IdCliente: 'Andres', MetodoPago: 'Efectivo', FechaPedido: '2025-05-05', FechaEntrega: '2025-05-09', Descripcion: 'Pedido de productos categoría 5', ValorInicial: 50000, ValorRestante: 180000, ComprobantePago: 'comprobante205.jpg', TotalPedido: 180000, Estado: 'Pagado' },
-  { IdPedido: 606, IdCliente: 'Penelope', MetodoPago: 'Transferencia', FechaPedido: '2025-05-06', FechaEntrega: '2025-05-10', Descripcion: 'Pedido de productos categoría 6', ValorInicial: 4000, ValorRestante: 156000, ComprobantePago: 'comprobante206.jpg', TotalPedido: 160000, Estado: 'Parcial' },
-  { IdPedido: 607, IdCliente: 'Juan', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-07', FechaEntrega: '2025-05-11', Descripcion: 'Pedido de productos categoría 7', ValorInicial: 30000, ValorRestante: 210000, ComprobantePago: 'comprobante207.jpg', TotalPedido: 210000, Estado: 'Pagado' },
-  { IdPedido: 608, IdCliente: 'Angel', MetodoPago: 'Efectivo', FechaPedido: '2025-05-08', FechaEntrega: '2025-05-12', Descripcion: 'Pedido de productos categoría 8', ValorInicial: 13000, ValorRestante: 117000, ComprobantePago: 'comprobante208.jpg', TotalPedido: 130000, Estado: 'Pendiente' }
+  { IdPedido: 601, IdCliente: 'Ana ', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante601.jpg', TotalPedido: 120000, Estado: 'primer pago' },
+  { IdPedido: 602, IdCliente: 'Lucas', MetodoPago: 'Transferencia', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante602.jpg', TotalPedido: 120000, Estado: 'en proceso' },
+  { IdPedido: 603, IdCliente: 'Maribel', MetodoPago: 'Efectivo', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido por producción', ValorInicial: 50000, ValorRestante: 70000, ComprobantePago: 'comprobante603.jpg', TotalPedido: 120000, Estado: 'en producción' },
+  { IdPedido: 604, IdCliente: 'Sergio', MetodoPago: 'Efectivo', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido por producción', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante604.jpg', TotalPedido: 120000, Estado: 'en proceso de entrega' },
+  { IdPedido: 605, IdCliente: 'Lupita', MetodoPago: 'Tarjeta ', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante605.jpg', TotalPedido: 120000, Estado: 'entregado' },
+  { IdPedido: 606, IdCliente: 'Enrique', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante606.jpg', TotalPedido: 120000, Estado: 'anulado' },
 ];
+
+const getColorClaseEstadoPedido = (estado: string) => {
+  switch (estado) {
+    case 'primer pago': return 'estado-primer-pago';
+    case 'en proceso': return 'estado-en-proceso';
+    case 'en producción': return 'estado-en-produccion';
+    case 'en proceso de entrega': return 'estado-en-proceso-entrega';
+    case 'entregado': return 'estado-entregado';
+    case 'anulado': return 'estado-anulado';
+    default: return '';
+  }
+};
 
 const ListarPedidos: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedidos[]>(pedidosIniciales);
@@ -60,7 +70,9 @@ const ListarPedidos: React.FC = () => {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        setPedidos(prev => prev.filter(p => p.IdPedido !== id));
+        setPedidos(prev => prev.map(p =>
+          p.IdPedido === id ? { ...p, Estado: 'anulado' } : p
+        ));
         Swal.fire({
           icon: 'success',
           title: 'Anulado',
@@ -112,9 +124,7 @@ const ListarPedidos: React.FC = () => {
 
     labels.forEach(([label, value], index) => {
       const y = infoY + index * lineSpacing;
-      
       doc.text(`${label}:`, 14, y);
-      
       doc.text(String(value), 60, y);
     });
 
@@ -141,7 +151,6 @@ const ListarPedidos: React.FC = () => {
       },
     });
 
-    // Use doc.lastAutoTable.finalY if available, otherwise fallback to 140
     const finalY = (doc as any).lastAutoTable?.finalY || 140;
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -150,8 +159,10 @@ const ListarPedidos: React.FC = () => {
     doc.save(`Pedido-${pedido.IdPedido}.pdf`);
   };
 
+  // Filtro corregido
   const pedidosFiltrados = pedidos.filter(p =>
-    `${p.IdPedido}`.toLowerCase().includes(busqueda.toLowerCase())
+    p.IdPedido.toString().toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.IdCliente.toLowerCase().startsWith(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * pedidosPorPagina;
@@ -164,7 +175,7 @@ const ListarPedidos: React.FC = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Pedidos</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
-          <FaPlus className="me-2" />
+          
           Crear Pedido
         </button>
       </div>
@@ -201,7 +212,28 @@ const ListarPedidos: React.FC = () => {
                 <td>{p.FechaEntrega}</td>
                 <td>${p.ValorInicial.toLocaleString()}</td>
                 <td>${p.TotalPedido.toLocaleString()}</td>
-                <td>{p.Estado}</td>
+                <td>
+                  <select
+                    className={`form-select estado-select ${getColorClaseEstadoPedido(p.Estado)}`}
+                    value={p.Estado}
+                    onChange={(e) => {
+                      const nuevoEstado = e.target.value;
+                      setPedidos(prev =>
+                        prev.map(ped =>
+                          ped.IdPedido === p.IdPedido ? { ...ped, Estado: nuevoEstado } : ped
+                        )
+                      );
+                    }}
+                    disabled={p.Estado === 'anulado'}
+                  >
+                    <option value="en proceso">En Proceso</option>
+                    <option value="primer pago">Primer Pago</option>
+                    <option value="en producción">En Producción</option>
+                    <option value="en proceso de entrega">En Proceso de Entrega</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="anulado">Anulado</option>
+                  </select>
+                </td>
                 <td>
                   <FaEye
                     className="icono text-info me-2"
@@ -209,9 +241,9 @@ const ListarPedidos: React.FC = () => {
                     onClick={() => setPedidoSeleccionado(p)}
                   />
                   <FaBan
-                    className="icono text-warning me-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarPedido(p.IdPedido)}
+                    className={`icono me-2 ${p.Estado === 'anulado' ? 'text-dark' : 'text-warning'}`}
+                    style={{ cursor: p.Estado === 'anulado' ? 'not-allowed' : 'pointer' }}
+                    onClick={p.Estado === 'anulado' ? undefined : () => handleEliminarPedido(p.IdPedido)}
                   />
                   <FaFilePdf
                     className="icono text-danger"

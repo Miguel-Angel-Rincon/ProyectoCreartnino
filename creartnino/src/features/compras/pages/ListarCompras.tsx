@@ -108,7 +108,7 @@ const ListarCompras: React.FC = () => {
   const generarPDF = (compra: Compras) => {
     const doc = new jsPDF();
     doc.setFontSize(20);
-    doc.text(`Resumen de Compra #${compra.IdCompra}`, 105, 20, { align: 'center' });
+    doc.text(Resumen de Compra #${compra.IdCompra}, 105, 20, { align: 'center' });
     doc.setLineWidth(0.5);
     doc.line(14, 25, 196, 25);
 
@@ -117,13 +117,13 @@ const ListarCompras: React.FC = () => {
       ['Método de Pago', compra.MetodoPago],
       ['Fecha de Compra', compra.FechaCompra],
       ['Estado', compra.IdEstado],
-      ['Total Compra', `$${compra.TotalCompra.toLocaleString()}`],
+      ['Total Compra', $${compra.TotalCompra.toLocaleString()}],
     ];
 
     labels.forEach(([label, value], index) => {
       const y = 32 + index * 7;
       doc.setFontSize(12);
-      doc.text(`${label}:`, 14, y);
+      doc.text(${label}:, 14, y);
       doc.text(String(value), 60, y);
     });
 
@@ -136,7 +136,7 @@ const ListarCompras: React.FC = () => {
       body: compra.detalleCompra?.map((item) => [
         item.producto,
         item.cantidad.toString(),
-        `$${item.precio.toLocaleString()}`,
+        $${item.precio.toLocaleString()},
       ]) || [],
       theme: 'striped',
       headStyles: {
@@ -153,8 +153,8 @@ const ListarCompras: React.FC = () => {
     const finalY = (doc as any).lastAutoTable?.finalY || 140;
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`, 14, finalY + 10);
-    doc.save(`Compra-${compra.IdCompra}.pdf`);
+    doc.text(Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}, 14, finalY + 10);
+    doc.save(Compra-${compra.IdCompra}.pdf);
   };
 
   // 🔍 Filtrar por primera letra del nombre del proveedor
@@ -209,7 +209,7 @@ const ListarCompras: React.FC = () => {
                 <td>${c.TotalCompra.toLocaleString()}</td>
                 <td>
                   <select
-                    className={`form-select estado-select ${getColorClaseEstadocompra(c.IdEstado)}`}
+                    className={form-select estado-select ${getColorClaseEstadocompra(c.IdEstado)}}
                     value={c.IdEstado}
                     onChange={(e) => {
                       const nuevoEstado = e.target.value;
@@ -235,7 +235,7 @@ const ListarCompras: React.FC = () => {
                     onClick={() => handleVerCompra(c)}
                   />
                   <FaBan
-                    className={`icono me-2 ${c.IdEstado === 'Anulado' ? 'text-secondary' : 'text-warning'}`}
+                    className={icono me-2 ${c.IdEstado === 'Anulado' ? 'text-secondary' : 'text-warning'}}
                     style={{ cursor: c.IdEstado === 'Anulado' ? 'not-allowed' : 'pointer' }}
                     onClick={() => {
                       if (c.IdEstado !== 'Anulado') handleAnularCompra(c.IdCompra);
@@ -256,7 +256,7 @@ const ListarCompras: React.FC = () => {
           {[...Array(totalPaginas)].map((_, i) => (
             <button
               key={i}
-              className={`btn me-2 ${paginaActual === i + 1 ? 'btn-pink' : 'btn-light'}`}
+              className={btn me-2 ${paginaActual === i + 1 ? 'btn-pink' : 'btn-light'}}
               onClick={() => setPaginaActual(i + 1)}
             >
               {i + 1}
