@@ -15,7 +15,7 @@ interface DetalleProduccion {
 interface Producciones {
   IdProduccion: number;
   Nombre: string;
-  TipoProducción: string;
+  TipoProduccion: string;
   FechaRegistro: string;
   FechaFinal: string;
   EstadosPedido: string;
@@ -24,14 +24,14 @@ interface Producciones {
 }
 
 const produccionesIniciales: Producciones[] = [
-  { IdProduccion: 601, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
-  { IdProduccion: 602, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
-  { IdProduccion: 603, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
-  { IdProduccion: 604, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
-   { IdProduccion: 605, Nombre: 'Produccion 1', TipoProducción: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
-  { IdProduccion: 606, Nombre: 'Produccion 2', TipoProducción: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
-  { IdProduccion: 607, Nombre: 'Produccion 3', TipoProducción: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
-  { IdProduccion: 608, Nombre: 'Produccion 4', TipoProducción: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
+  { IdProduccion: 601, Nombre: 'Produccion 1', TipoProduccion: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
+  { IdProduccion: 602, Nombre: 'Produccion 2', TipoProduccion: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
+  { IdProduccion: 603, Nombre: 'Produccion 3', TipoProduccion: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
+  { IdProduccion: 604, Nombre: 'Produccion 4', TipoProduccion: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
+   { IdProduccion: 605, Nombre: 'Produccion 1', TipoProduccion: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
+  { IdProduccion: 606, Nombre: 'Produccion 2', TipoProduccion: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
+  { IdProduccion: 607, Nombre: 'Produccion 3', TipoProduccion: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
+  { IdProduccion: 608, Nombre: 'Produccion 4', TipoProduccion: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
   
 ];
 
@@ -152,7 +152,7 @@ const ListarProduccion: React.FC = () => {
             {produccionesPagina.map((p, index) => (
               <tr key={p.IdProduccion} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
                 <td>{p.Nombre}</td>
-                <td>{p.TipoProducción}</td>
+                <td>{p.TipoProduccion}</td>
                 <td>{p.FechaRegistro}</td>
                 <td>{p.FechaFinal}</td>
                 <td>
