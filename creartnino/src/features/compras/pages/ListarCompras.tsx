@@ -4,7 +4,7 @@ import { FaEye, FaBan, FaFilePdf, FaPlus } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import CrearCompra from './Crear';
-import VerCompra from './Ver'; // ✅ Agregado
+import VerCompra from './Ver';
 import '../styles/style.css';
 
 interface CompraDetalle {
@@ -39,21 +39,20 @@ const ListarCompras: React.FC = () => {
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
-
-  const [mostrarVer, setMostrarVer] = useState(false); // ✅ Nuevo estado
-  const [compraSeleccionada, setCompraSeleccionada] = useState<Compras | null>(null); // ✅ Nuevo estado
+  const [mostrarVer, setMostrarVer] = useState(false);
+  const [compraSeleccionada, setCompraSeleccionada] = useState<Compras | null>(null);
 
   const comprasPorPagina = 6;
 
   const getColorClaseEstadocompra = (estado: string) => {
-  const estadoNormalizado = estado.toLowerCase().replace(/\s/g, '');
-  switch (estadoNormalizado) {
-    case 'enproceso': return 'estado-compra-en-proceso';
-    case 'completado': return 'estado-compra-completado';
-    case 'anulado': return 'estado-compra-anulado';
-    default: return '';
-  }
-};
+    const estadoNormalizado = estado.toLowerCase().replace(/\s/g, '');
+    switch (estadoNormalizado) {
+      case 'enproceso': return 'estado-compra-en-proceso';
+      case 'completado': return 'estado-compra-completado';
+      case 'anulado': return 'estado-compra-anulado';
+      default: return '';
+    }
+  };
 
   const handleAnularCompra = (id: number) => {
     Swal.fire({
@@ -98,7 +97,7 @@ const ListarCompras: React.FC = () => {
     };
     setCompras([...compras, nueva]);
     setMostrarModal(false);
-    Swal.fire('Éxito', 'Compra registrada correctamente', 'success');
+    Swal.fire('Compra Exitosa', 'Compra registrada correctamente', 'success');
   };
 
   const handleVerCompra = (compra: Compras) => {
@@ -158,8 +157,9 @@ const ListarCompras: React.FC = () => {
     doc.save(`Compra-${compra.IdCompra}.pdf`);
   };
 
+  // 🔍 Filtrar por primera letra del nombre del proveedor
   const comprasFiltradas = compras.filter(p =>
-    p.IdCompra.toString().includes(busqueda)
+    p.IdProveedor.toLowerCase().startsWith(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * comprasPorPagina;
@@ -179,7 +179,7 @@ const ListarCompras: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar por ID de la compra"
+        placeholder="Buscar Por Nombre de Proveedor"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {
@@ -232,12 +232,14 @@ const ListarCompras: React.FC = () => {
                   <FaEye
                     className="icono text-info me-2"
                     style={{ cursor: 'pointer' }}
-                    onClick={() => handleVerCompra(c)} // ✅ Actualizado
+                    onClick={() => handleVerCompra(c)}
                   />
                   <FaBan
-                    className="icono text-warning me-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleAnularCompra(c.IdCompra)}
+                    className={`icono me-2 ${c.IdEstado === 'Anulado' ? 'text-secondary' : 'text-warning'}`}
+                    style={{ cursor: c.IdEstado === 'Anulado' ? 'not-allowed' : 'pointer' }}
+                    onClick={() => {
+                      if (c.IdEstado !== 'Anulado') handleAnularCompra(c.IdCompra);
+                    }}
                   />
                   <FaFilePdf
                     className="icono text-danger"
@@ -283,14 +285,14 @@ const ListarCompras: React.FC = () => {
             proveedorSeleccionado: compraSeleccionada.IdProveedor,
             metodoPago: compraSeleccionada.MetodoPago,
             fechaCompra: compraSeleccionada.FechaCompra,
-            Subtotal: compraSeleccionada.TotalCompra, // Ajusta si tienes un subtotal real
+            Subtotal: compraSeleccionada.TotalCompra,
             detalleCompra: (compraSeleccionada.detalleCompra || []).map(item => ({
               insumo: item.producto,
               cantidad: item.cantidad,
               precio: item.precio
             })),
-            IVA: compraSeleccionada.TotalCompra * 0.19, // Ajusta el cálculo de IVA si es necesario
-            Total: compraSeleccionada.TotalCompra * 1.19, // Ajusta el cálculo de Total si es necesario
+            IVA: compraSeleccionada.TotalCompra * 0.19,
+            Total: compraSeleccionada.TotalCompra * 1.19,
           }}
           onClose={() => setMostrarVer(false)}
         />
