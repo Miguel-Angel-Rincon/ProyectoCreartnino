@@ -1,10 +1,44 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../styles/Navbar.css';
+import { FaUserCircle } from 'react-icons/fa';
 import logorina from '../../assets/Imagenes/logorina.png';
+import Swal from 'sweetalert2';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
+  const { usuario, isAuthenticated, cerrarSesion } = useAuth();
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleCerrarSesion = async () => {
+    await Swal.fire({
+      title: 'Sesión cerrada',
+      text: 'Tu sesión ha sido cerrada correctamente.',
+      icon: 'success',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#7d3cf0',
+    });
+    cerrarSesion();
+    navigate('/ingresar');
+  };
+
+  // Cierra el menú de usuario si se hace clic fuera de él
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setMostrarMenuUsuario(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="custom-navbar">
@@ -15,9 +49,7 @@ const Navbar = () => {
         </Link>
       </div>
 
-      <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-        ☰
-      </button>
+      <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
 
       <div className={`menu-content ${menuOpen ? 'open' : ''}`}>
         <ul className="nav-center">
@@ -45,9 +77,29 @@ const Navbar = () => {
           </li>
         </ul>
 
-        <div className="nav-right">
-          <Link to="/ingresar" className="btn-outline">Ingresar</Link>
-          <Link to="/Registrar" className="btn-filled">Registrarse</Link>
+        <div className="nav-right" ref={menuRef}>
+          {!isAuthenticated ? (
+            <>
+              <Link to="/ingresar" className="btn-outline">Ingresar</Link>
+              <Link to="/Registrar" className="btn-filled">Registrarse</Link>
+            </>
+          ) : (
+            <div className="usuario-logueado">
+              <FaUserCircle
+                size={30}
+                onClick={() => setMostrarMenuUsuario(prev => !prev)}
+                style={{ cursor: 'pointer' }}
+              />
+              {mostrarMenuUsuario && (
+                <div className="menu-usuario">
+                  <p onClick={() => { navigate('/perfil'); setMostrarMenuUsuario(false); }}>
+                    Mi perfil
+                  </p>
+                  <p onClick={handleCerrarSesion}>Cerrar sesión</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </nav>
