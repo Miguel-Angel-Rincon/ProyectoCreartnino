@@ -10,8 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "bootstrap": "^5.3.6",
+    "bootstrap": "^5.3.7",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.22.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.511.0",
