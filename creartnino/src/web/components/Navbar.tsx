@@ -1,8 +1,11 @@
+// src/web/components/Navbar.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCarrito } from '../../context/CarritoContext';
+import { useCompras } from '../../context/CompraContext';
 import '../styles/Navbar.css';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaShoppingCart, FaClipboardList } from 'react-icons/fa';
 import logorina from '../../assets/Imagenes/logorina.png';
 import Swal from 'sweetalert2';
 
@@ -10,6 +13,8 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const { usuario, isAuthenticated, cerrarSesion } = useAuth();
+  const { carrito } = useCarrito();
+  const { compras } = useCompras();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -25,20 +30,17 @@ const Navbar = () => {
     navigate('/ingresar');
   };
 
-  // Cierra el menú de usuario si se hace clic fuera de él
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMostrarMenuUsuario(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const comprasActivas = compras.filter(c => c.estado !== 'anulado').length;
 
   return (
     <nav className="custom-navbar">
@@ -60,6 +62,7 @@ const Navbar = () => {
             <div className="mega-menu">
               <h4>Categorías Productos</h4>
               <div className="categories">
+                <Link to="/productos/todos">Todos los productos</Link>
                 <Link to="/productos/toppers">Toppers</Link>
                 <Link to="/productos/tazas">Tazas</Link>
                 <Link to="/productos/tarjetas">Tarjetas</Link>
@@ -81,15 +84,30 @@ const Navbar = () => {
           {!isAuthenticated ? (
             <>
               <Link to="/ingresar" className="btn-outline">Ingresar</Link>
-              <Link to="/Registrar" className="btn-filled">Registrarse</Link>
+              <Link to="/registrar" className="btn-filled">Registrarse</Link>
             </>
           ) : (
             <div className="usuario-logueado">
-              <FaUserCircle
-                size={30}
-                onClick={() => setMostrarMenuUsuario(prev => !prev)}
-                style={{ cursor: 'pointer' }}
-              />
+              <div className="iconos-usuario">
+                <Link to="/carrito" className="icono-nav">
+                  <FaShoppingCart />
+                  {carrito.length > 0 && (
+                    <span className="cantidad">{carrito.length}</span>
+                  )}
+                </Link>
+                <Link to="/miscompras" className="icono-nav">
+                  <FaClipboardList />
+                  {comprasActivas > 0 && (
+                    <span className="cantidad">{comprasActivas}</span>
+                  )}
+                </Link>
+                <FaUserCircle
+                  size={30}
+                  onClick={() => setMostrarMenuUsuario(prev => !prev)}
+                  style={{ cursor: 'pointer' }}
+                />
+              </div>
+
               {mostrarMenuUsuario && (
                 <div className="menu-usuario">
                   <p onClick={() => { navigate('/perfil'); setMostrarMenuUsuario(false); }}>

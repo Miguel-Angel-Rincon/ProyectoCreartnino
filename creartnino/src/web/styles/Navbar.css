@@ -266,3 +266,54 @@
     text-align: center;
   }
 }
+
+
+.icono-carrito {
+  position: relative;
+  color: #7d3cf0;
+  margin-right: 1rem;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.icono-carrito .cantidad {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #f26c8f;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
+
+
+.iconos-usuario {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.icono-nav {
+  position: relative;
+  color: #d14fa2;
+  font-size: 1.4rem;
+  transition: transform 0.2s ease;
+  text-decoration: none;
+}
+
+.icono-nav:hover {
+  transform: scale(1.1);
+}
+
+.icono-nav .cantidad {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background-color: #f26c8f;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: bold;
+}
