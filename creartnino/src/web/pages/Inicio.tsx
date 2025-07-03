@@ -79,7 +79,7 @@ export default function Inicio() {
           ))}
         </div>
         <div className="text-center mt-4">
-          <a href="#productos" className="btn pastel-btn">Ver más</a>
+          <a href="/productos/todos" className="btn pastel-btn">Ver más</a>
         </div>
       </section>
     </div>

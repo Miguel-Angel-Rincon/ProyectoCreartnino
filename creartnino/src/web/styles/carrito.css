@@ -1,0 +1,249 @@
+.carrito-container {
+  padding: 2rem;
+  background: #fff;
+}
+
+.titulo-carrito {
+  text-align: center;
+  font-size: 2rem;
+  color: #f072d1;
+  margin-bottom: 2rem;
+}
+
+.carrito-vacio {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #888;
+  margin-top: 2rem;
+}
+
+.tabla-carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.encabezado {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  font-weight: bold;
+  text-align: center;
+  color: #444;
+  padding: 0.5rem;
+  border-bottom: 2px solid #f072d1;
+}
+
+.fila-carrito {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  align-items: center;
+  background: #ffeef9;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 0 5px rgba(0,0,0,0.08);
+}
+
+.columna {
+  text-align: center;
+}
+
+.producto-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.producto-info img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 0.6rem;
+}
+
+.icono-basura {
+  color: #f53e3e;
+  cursor: pointer;
+}
+
+.cantidad-btn {
+  background: #f7b7e0;
+  border: none;
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50%;
+  margin: 0 0.3rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.precio, .subtotal {
+  color: #000;
+  font-weight: 500;
+}
+
+.predisenado {
+  background: #d4f9f4;
+  color: #007562;
+  padding: 0.3rem 1rem;
+  border-radius: 1rem;
+  font-weight: bold;
+}
+
+.personalizado {
+  background: #fcd6a0;
+  color: #8b5e00;
+  padding: 0.3rem 1rem;
+  border-radius: 1rem;
+  font-weight: bold;
+}
+
+.btn-personalizar {
+  background-color: #f072d1;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-personalizar:hover {
+  background-color: #e05fbf;
+}
+
+.total-carrito {
+  text-align: right;
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  font-weight: bold;
+  color: #f072d1;
+}
+
+.acciones-carrito {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-vaciar,
+.btn-finalizar {
+  padding: 0.6rem 1.2rem;
+  border-radius: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.btn-vaciar {
+  background-color: #ffd1dc;
+  color: #a10035;
+}
+
+.btn-vaciar:hover {
+  background-color: #ffb8c9;
+}
+
+.btn-finalizar {
+  background-color: #f072d1;
+  color: white;
+}
+
+.btn-finalizar:hover {
+  background-color: #e05fbf;
+}
+
+/* Acciones personalizadas */
+.acciones-personalizado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem; /* Espacio entre lápiz y ❌ */
+}
+
+.editar-mensaje {
+  color: #000;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.quitar-personalizado {
+  font-size: 1.2rem;
+  color: #f53e3e;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.quitar-personalizado:hover {
+  transform: scale(1.2);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-contenido {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.modal-contenido h3 {
+  margin-bottom: 1rem;
+  color: #f072d1;
+  text-align: center;
+}
+
+.modal-contenido textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+  font-size: 1rem;
+  resize: none;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-cancelar,
+.btn-guardar {
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-cancelar {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btn-guardar {
+  background-color: #f072d1;
+  color: white;
+}
+
+.btn-guardar:hover {
+  background-color: #e05fbf;
+}
