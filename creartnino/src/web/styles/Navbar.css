@@ -317,3 +317,13 @@
   border-radius: 999px;
   font-weight: bold;
 }
+.avatar-icono {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #7d3cf0;
+  cursor: pointer;
+  margin-left: 10px;
+}
+

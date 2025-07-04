@@ -5,18 +5,23 @@ import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
 import { useCompras } from '../../context/CompraContext';
 import '../styles/Navbar.css';
-import { FaUserCircle, FaShoppingCart, FaClipboardList } from 'react-icons/fa';
+import { FaShoppingCart, FaClipboardList, FaTachometerAlt } from 'react-icons/fa';
 import logorina from '../../assets/Imagenes/logorina.png';
+import avatarDefault from '../../assets/Imagenes/avatar-default.png';
 import Swal from 'sweetalert2';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
-  const { usuario, isAuthenticated, cerrarSesion } = useAuth();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const { usuario, isAuthenticated, cerrarSesion, avatar } = useAuth();
   const { carrito } = useCarrito();
   const { compras } = useCompras();
   const navigate = useNavigate();
-  const menuRef = useRef<HTMLDivElement>(null);
+
+  const esAdmin = usuario?.rol === 'admin';
+  const comprasActivas = compras.filter(c => c.estado !== 'anulado').length;
 
   const handleCerrarSesion = async () => {
     await Swal.fire({
@@ -39,8 +44,6 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const comprasActivas = compras.filter(c => c.estado !== 'anulado').length;
 
   return (
     <nav className="custom-navbar">
@@ -89,22 +92,34 @@ const Navbar = () => {
           ) : (
             <div className="usuario-logueado">
               <div className="iconos-usuario">
-                <Link to="/carrito" className="icono-nav">
-                  <FaShoppingCart />
-                  {carrito.length > 0 && (
-                    <span className="cantidad">{carrito.length}</span>
-                  )}
-                </Link>
-                <Link to="/miscompras" className="icono-nav">
-                  <FaClipboardList />
-                  {comprasActivas > 0 && (
-                    <span className="cantidad">{comprasActivas}</span>
-                  )}
-                </Link>
-                <FaUserCircle
-                  size={30}
+                {!esAdmin && (
+                  <>
+                    <Link to="/carrito" className="icono-nav">
+                      <FaShoppingCart />
+                      {carrito.length > 0 && <span className="cantidad">{carrito.length}</span>}
+                    </Link>
+                    <Link to="/miscompras" className="icono-nav">
+                      <FaClipboardList />
+                      {comprasActivas > 0 && <span className="cantidad">{comprasActivas}</span>}
+                    </Link>
+                  </>
+                )}
+
+                {esAdmin && (
+                  <FaTachometerAlt
+                    size={22}
+                    title="Ir al panel"
+                    className="icono-nav"
+                    style={{ cursor: 'pointer', marginRight: '8px' }}
+                    onClick={() => navigate('/dashboard')}
+                  />
+                )}
+
+                <img
+                  src={avatar || avatarDefault}
+                  alt="Avatar"
+                  className="avatar-icono"
                   onClick={() => setMostrarMenuUsuario(prev => !prev)}
-                  style={{ cursor: 'pointer' }}
                 />
               </div>
 
