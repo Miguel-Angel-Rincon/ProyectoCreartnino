@@ -108,7 +108,10 @@ const ListarProduccion: React.FC = () => {
   };
 
   const produccionesFiltradas = producciones.filter(p =>
-    p.Nombre.toLowerCase().includes(busqueda.toLowerCase())
+    p.Nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.TipoProduccion.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.FechaRegistro.includes(busqueda) ||
+    p.FechaFinal.includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * produccionesPorPagina;

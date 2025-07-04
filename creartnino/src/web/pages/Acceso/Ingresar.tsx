@@ -51,14 +51,22 @@ const Ingresar = () => {
         setMostrarNuevaContrasena(true);
       });
     } else {
-      showAlert('Bienvenido', 'Redirigiendo al inicio...', 'success').then(() => {
+      const esAdmin = usuario.trim().toLowerCase() === 'admin';
+
+      showAlert(
+        esAdmin ? 'Bienvenido administrador' : 'Bienvenido',
+        esAdmin ? 'Accediendo al panel de control...' : 'Redirigiendo a la tienda...',
+        'success'
+      ).then(() => {
         iniciarSesion({
           nombreCompleto: usuario,
-          correo: 'demo@correo.com',
-          celular: '3000000000',
+          correo: esAdmin ? 'admin@correo.com' : 'demo@correo.com',
+          celular: esAdmin ? '3001112222' : '3000000000',
           direccion: 'Sin dirección',
+          rol: esAdmin ? 'admin' : 'cliente',
         });
-        navigate('/');
+
+        navigate(esAdmin ? '/dashboard' : '/');
       });
     }
   };
@@ -69,14 +77,33 @@ const Ingresar = () => {
         <>
           <h3 className="titulo-form">Cambio de contraseña</h3>
           <label>Nueva contraseña</label>
-          <input type="password" className="input" placeholder="Nueva contraseña" value={nuevaPass} onChange={(e) => setNuevaPass(e.target.value)} />
+          <input
+            type="password"
+            className="input"
+            placeholder="Nueva contraseña"
+            value={nuevaPass}
+            onChange={(e) => setNuevaPass(e.target.value)}
+          />
           <label>Confirmar contraseña</label>
-          <input type="password" className="input" placeholder="Confirmar contraseña" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
-          <button className="boton-principal" onClick={() => {
-            if (!nuevaPass || !confirmPass) return showAlert('Campos requeridos', 'Por favor completa ambos campos.', 'warning');
-            if (nuevaPass !== confirmPass) return showAlert('Error', 'Las contraseñas no coinciden.', 'error');
-            setMostrarConfirmacion(true);
-          }}>Cambiar</button>
+          <input
+            type="password"
+            className="input"
+            placeholder="Confirmar contraseña"
+            value={confirmPass}
+            onChange={(e) => setConfirmPass(e.target.value)}
+          />
+          <button
+            className="boton-principal"
+            onClick={() => {
+              if (!nuevaPass || !confirmPass)
+                return showAlert('Campos requeridos', 'Por favor completa ambos campos.', 'warning');
+              if (nuevaPass !== confirmPass)
+                return showAlert('Error', 'Las contraseñas no coinciden.', 'error');
+              setMostrarConfirmacion(true);
+            }}
+          >
+            Cambiar
+          </button>
         </>
       );
     }
@@ -85,7 +112,13 @@ const Ingresar = () => {
       return (
         <>
           <h3 className="titulo-form">Ingresa tu código</h3>
-          <input type="text" className="input" placeholder="12345" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
+          <input
+            type="text"
+            className="input"
+            placeholder="12345"
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+          />
           <button className="boton-principal" onClick={handleValidarCodigo}>Enviar</button>
           <button className="boton-regresar" onClick={() => {
             setMostrarRecuperar(false);
@@ -103,7 +136,13 @@ const Ingresar = () => {
         <>
           <h3 className="titulo-form">Para cambio de contraseña</h3>
           <label>Correo electrónico</label>
-          <input type="email" className="input" placeholder="Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            type="email"
+            className="input"
+            placeholder="Correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
           <button className="boton-principal" onClick={() => {
             if (!email.includes('@')) return showAlert('Correo inválido', 'Ingresa un correo válido.', 'error');
             setCodigoEnviado(true);
@@ -127,9 +166,21 @@ const Ingresar = () => {
       <>
         <h2 className="titulo-form">Ingresar</h2>
         <label>Usuario</label>
-        <input type="text" className="input" placeholder="Usuario" value={usuario} onChange={(e) => setUsuario(e.target.value)} />
+        <input
+          type="text"
+          className="input"
+          placeholder="Usuario"
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
+        />
         <label>Contraseña</label>
-        <input type="password" className="input" placeholder="Contraseña" value={contrasena} onChange={(e) => setContrasena(e.target.value)} />
+        <input
+          type="password"
+          className="input"
+          placeholder="Contraseña"
+          value={contrasena}
+          onChange={(e) => setContrasena(e.target.value)}
+        />
         <button className="boton-principal" onClick={handleLogin}>Ingresar</button>
         <div className="acciones-form">
           <span className="link-recuperar" onClick={() => setMostrarRecuperar(true)}>¿Olvidaste tu contraseña?</span>

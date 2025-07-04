@@ -1,17 +1,17 @@
+// src/web/pages/Acceso/Perfil.tsx
 import { useAuth } from "../../../context/AuthContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
 import "../../styles/perfil.css";
 import avatarImg from "../../../assets/Imagenes/avatar-default.png";
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLock } from "react-icons/fa";
 
 const Perfil = () => {
-  const { usuario, iniciarSesion } = useAuth();
+  const { usuario, iniciarSesion, setAvatar } = useAuth();
   const [editando, setEditando] = useState(false);
   const [mostrarCambioPassword, setMostrarCambioPassword] = useState(false);
 
-  // Imagen desde localStorage o imagen por defecto
-  const imagenInicial = localStorage.getItem("avatarPerfil") || avatarImg;
+  const imagenInicial = localStorage.getItem("avatarPerfil") || usuario?.imagen || avatarImg;
   const [imagenPerfil, setImagenPerfil] = useState<string>(imagenInicial);
 
   const [datos, setDatos] = useState({
@@ -36,6 +36,7 @@ const Perfil = () => {
         const nuevaImagen = reader.result as string;
         setImagenPerfil(nuevaImagen);
         localStorage.setItem("avatarPerfil", nuevaImagen);
+        setAvatar(nuevaImagen); // 🔁 actualiza en el contexto
       };
       reader.readAsDataURL(file);
     } else {
@@ -43,56 +44,13 @@ const Perfil = () => {
     }
   };
 
-  const validarCampos = () => {
-    if (datos.nombreCompleto.trim().split(" ").length < 2) {
-      Swal.fire("Nombre inválido", "Debe tener al menos nombre y apellido.", "error");
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo)) {
-      Swal.fire("Correo inválido", "Introduce un correo válido.", "error");
-      return false;
-    }
-    if (!/^\d{10}$/.test(datos.celular)) {
-      Swal.fire("Celular inválido", "Debe tener exactamente 10 dígitos.", "error");
-      return false;
-    }
-    if (datos.direccion && datos.direccion.trim().length < 5) {
-      Swal.fire("Dirección inválida", "Dirección demasiado corta.", "error");
-      return false;
-    }
-    return true;
-  };
-
-  const validarContraseñaActual = () => {
-    if (datos.actual !== "1234") {
-      Swal.fire("Contraseña incorrecta", "La contraseña actual no es válida.", "error");
-      return false;
-    }
-    return true;
-  };
-
-  const validarNuevaContraseña = () => {
-    if (datos.nueva.length < 6) {
-      Swal.fire("Nueva contraseña inválida", "Debe tener mínimo 6 caracteres.", "error");
-      return false;
-    }
-    if (datos.nueva !== datos.confirmar) {
-      Swal.fire("No coinciden", "La nueva contraseña no coincide con la confirmación.", "error");
-      return false;
-    }
-    return true;
-  };
-
   const guardarCambios = () => {
-    if (!validarCampos()) return;
-
-    if (mostrarCambioPassword) {
-      if (!validarContraseñaActual()) return;
-      if (!validarNuevaContraseña()) return;
-    }
+    if (!usuario) return;
 
     iniciarSesion({
-      ...datos
+      ...usuario,
+      ...datos,
+      imagen: imagenPerfil,
     });
 
     setEditando(false);
@@ -100,7 +58,6 @@ const Perfil = () => {
 
     Swal.fire("Perfil actualizado", "", "success");
 
-    // Limpiar campos de contraseña
     setDatos((prev) => ({
       ...prev,
       actual: "",
@@ -142,23 +99,6 @@ const Perfil = () => {
           <input name="direccion" value={datos.direccion} onChange={handleCambiar} disabled={!editando} />
         </div>
       </div>
-
-      {editando && mostrarCambioPassword && (
-        <div className="perfil-form-grid">
-          <div className="perfil-dato">
-            <label><FaLock /> Contraseña actual</label>
-            <input type="password" name="actual" value={datos.actual} onChange={handleCambiar} />
-          </div>
-          <div className="perfil-dato">
-            <label><FaLock /> Nueva contraseña</label>
-            <input type="password" name="nueva" value={datos.nueva} onChange={handleCambiar} />
-          </div>
-          <div className="perfil-dato">
-            <label><FaLock /> Confirmar nueva</label>
-            <input type="password" name="confirmar" value={datos.confirmar} onChange={handleCambiar} />
-          </div>
-        </div>
-      )}
 
       <div className="perfil-boton-visual">
         {editando ? (

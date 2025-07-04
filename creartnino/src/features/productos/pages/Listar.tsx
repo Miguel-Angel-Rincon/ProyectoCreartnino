@@ -108,7 +108,10 @@ const ListarProductos: React.FC = () => {
   };
 
   const productosFiltrados = productos.filter(p =>
-    `${p.Nombre}`.toLowerCase().includes(busqueda.toLowerCase())
+    p.Nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.cantidad.toString().includes(busqueda) ||
+    p.IdCatProductos.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.precio.toString().includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * productosPorPagina;

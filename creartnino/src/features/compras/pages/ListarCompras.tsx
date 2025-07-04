@@ -159,7 +159,11 @@ const ListarCompras: React.FC = () => {
 
   // 🔍 Filtrar por primera letra del nombre del proveedor
   const comprasFiltradas = compras.filter(p =>
-    p.IdProveedor.toLowerCase().startsWith(busqueda.toLowerCase())
+    p.IdProveedor.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.MetodoPago.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.FechaCompra.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.TotalCompra.toString().toLowerCase().startsWith(busqueda.toLowerCase()) 
+
   );
 
   const indexInicio = (paginaActual - 1) * comprasPorPagina;

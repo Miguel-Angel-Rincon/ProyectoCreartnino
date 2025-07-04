@@ -7,7 +7,7 @@ let idProveedorActual = 9;
 interface Proveedores {
   IdProveedores: number;
   TipoPersona: string;
-  IdTipoDocumento: string;
+  TipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
   Ciudad: string;
@@ -25,7 +25,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [formData, setFormData] = useState<Proveedores>({
     IdProveedores: idProveedorActual,
     TipoPersona: 'Natural',
-    IdTipoDocumento: 'CC',
+    TipoDocumento: 'CC',
     NombreCompleto: '',
     NumDocumento: '',
     Ciudad: '',
@@ -51,7 +51,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       setFormData((prev) => ({
         ...prev,
         TipoPersona: nuevaPersona,
-        IdTipoDocumento: nuevaPersona === 'Jurídica' ? 'NIT' : 'CC',
+        TipoDocumento: nuevaPersona === 'Jurídica' ? 'NIT' : 'CC',
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -220,8 +220,8 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">🧾 Tipo de Documento</label>
                   <select
                     className="form-select"
-                    name="IdTipoDocumento"
-                    value={formData.IdTipoDocumento}
+                    name="TipoDocumento"
+                    value={formData.TipoDocumento}
                     onChange={handleChange}
                     required
                     disabled={esJuridica}
