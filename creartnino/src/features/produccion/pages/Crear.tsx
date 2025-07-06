@@ -171,21 +171,21 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
 
   return (
     <>
-     <div className="modal d-block pastel-overlay">
+      <div className="modal d-block pastel-overlay">
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content pastel-modal shadow">
             <div className="modal-header pastel-header">
-              <h5 className="modal-title">🛠️ Crear Producción</h5>
+              <h5 className="modal-title text-start">🛠️ Crear Producción</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre</label>
+                  <label className="form-label text-start">🏷️ Nombre <span className="text-danger">*</span></label>
                   <input type="text" className="form-control" value={nombre} onChange={e => setNombre(e.target.value)} />
                 </div>
-                <div className="col-md-6" aria-required="true">
-                  <label className="form-label">⚙️ Tipo de Producción</label>
+                <div className="col-md-6">
+                  <label className="form-label text-start">⚙️ Tipo de Producción <span className="text-danger">*</span></label>
                   <select className="form-select" value={tipoProduccion} onChange={e => setTipoProduccion(e.target.value)}>
                     <option value="">Seleccione</option>
                     <option value="Directa">Directa</option>
@@ -193,19 +193,20 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">📅 Fecha de Inicio</label>
+                  <label className="form-label text-start">📅 Fecha de Inicio <span className="text-danger">*</span></label>
                   <input type="date" className="form-control" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">📦 Fecha de Finalización</label>
+                  <label className="form-label text-start">📦 Fecha de Finalización <span className="text-danger">*</span></label>
                   <input type="date" className="form-control" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
                 </div>
+
+                {/* Detalle de productos */}
                 <div className="col-12 mt-4">
-                  <h6 className="text-muted">📦 Detalle de la producción</h6>
-                  <div className="row fw-bold mb-2">
-                    <div className="col-md-5">Nombre del Producto</div>
-                    <div className="col-md-4">Cantidad</div>
-                    <div className="col-md-3"></div>
+                  <h6 className="text-muted text-start">📦 Detalle de la producción</h6>
+                  <div className="row fw-bold mb-2 text-start">
+                    <div className="col-md-5">Nombre del Producto <span className="text-danger">*</span></div>
+                    <div className="col-md-4">Cantidad <span className="text-danger">*</span></div>
                   </div>
                   {detalle.map((item, index) => (
                     <div key={index} className="mb-3">
@@ -226,7 +227,14 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
                       </div>
                     </div>
                   ))}
-                  <button type="button" className="btn pastel-btn-secondary mt-2" onClick={agregarDetalle}>+ Agregar Producto</button>
+                  <button
+  type="button"
+  className="btn pastel-btn-secondary agregar-producto-btn"
+  onClick={agregarDetalle}
+>
+  + Agregar Producto
+</button>
+
                 </div>
               </div>
             </div>
@@ -237,18 +245,21 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
           </div>
         </div>
       </div>
+
+      {/* Submodal de Insumos */}
       {mostrarSubmodal !== null && (
         <div className="modal d-block pastel-overlay">
           <div className="modal-dialog modal-md modal-dialog-centered">
             <div className="modal-content pastel-modal shadow">
               <div className="modal-header pastel-header">
-                <h5 className="modal-title">🧪 Gasto de Insumos</h5>
+                <h5 className="modal-title text-start">🧪 Gasto de Insumos</h5>
                 <button type="button" className="btn-close" onClick={cerrarSubmodalValidado}></button>
               </div>
               <div className="modal-body">
                 {detalle[mostrarSubmodal].insumos?.map((insumo, i) => (
                   <div key={i} className="row mb-2 align-items-center">
                     <div className="col-md-6">
+                      <label className="form-label text-start">Insumo <span className="text-danger">*</span></label>
                       <select className="form-select" value={insumo.insumo} onChange={e => actualizarInsumo(mostrarSubmodal, i, 'insumo', e.target.value)}>
                         <option value="">Seleccione un insumo</option>
                         {insumosMock.map(ins => (
@@ -257,18 +268,19 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
                       </select>
                     </div>
                     <div className="col-md-4">
-                      <input type="number" className="form-control" placeholder="Cantidad usada" value={insumo.cantidadUsada} onChange={e => actualizarInsumo(mostrarSubmodal, i, 'cantidadUsada', e.target.value)} />
+                      <label className="form-label text-start">Cantidad usada <span className="text-danger">*</span></label>
+                      <input type="number" className="form-control" value={insumo.cantidadUsada} onChange={e => actualizarInsumo(mostrarSubmodal, i, 'cantidadUsada', e.target.value)} />
                     </div>
-                    <div className="col-md-2">
-                      <button className="btn btn-danger btn-sm" onClick={() => eliminarInsumo(mostrarSubmodal, i)}>✖</button>
+                    <div className="col-md-2 d-flex align-items-end">
+                      <button className="btn btn-danger btn-sm mt-3" onClick={() => eliminarInsumo(mostrarSubmodal, i)}>✖</button>
                     </div>
                   </div>
                 ))}
-                <div className="text-end">
+                <div className="text-end mt-3">
                   <button className="btn pastel-btn-secondary btn-sm" onClick={() => agregarInsumo(mostrarSubmodal)}>+ Agregar Insumo</button>
                 </div>
                 <hr />
-                <div>
+                <div className="text-start">
                   <strong>Total insumos usados:</strong>
                   <ul className="mt-2">
                     {detalle[mostrarSubmodal].insumos?.map((ins, i) => (

@@ -184,7 +184,7 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🧾 Tipo de Documento</label>
+                  <label className="form-label">🧾 Tipo de Documento <span className="text-danger">*</span></label>
                   <select name="Tipodocumento" className="form-select" value={formData.Tipodocumento} onChange={handleChange} required>
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="CE">Cédula de Extranjería</option>
@@ -192,23 +192,23 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Número de Documento</label>
+                  <label className="form-label">🔢 Número de Documento <span className="text-danger">*</span></label>
                   <input name="Numerodocumento" className="form-control" value={formData.Numerodocumento} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">🙍 Nombre Completo</label>
+                  <label className="form-label">🙍 Nombre Completo <span className="text-danger">*</span></label>
                   <input name="NombreCompleto" className="form-control" value={formData.NombreCompleto} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">📧 Correo Electrónico</label>
+                  <label className="form-label">📧 Correo Electrónico <span className="text-danger">*</span></label>
                   <input type="email" name="Correo" className="form-control" value={formData.Correo} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">📱 Celular</label>
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
                   <input name="Celular" className="form-control" value={formData.Celular} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">🏞️ Departamento</label>
+                  <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
                   <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange} required>
                     <option value="">Seleccione un departamento</option>
                     {departamentos.map(d => (
@@ -217,7 +217,7 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">🏙️ Ciudad</label>
+                  <label className="form-label">🏙️ Ciudad <span className="text-danger">*</span></label>
                   <select name="Ciudad" className="form-select" value={formData.Ciudad} onChange={handleChange} required>
                     <option value="">Seleccione una ciudad</option>
                     {ciudades.map(c => (

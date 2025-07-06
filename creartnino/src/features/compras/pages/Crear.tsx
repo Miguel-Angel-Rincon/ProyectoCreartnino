@@ -120,7 +120,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
 
               {/* Proveedor y Método de Pago */}
               <div className="col-md-6">
-                <label className="form-label">🏢 Proveedor</label>
+                <label className="form-label">🏢 Proveedor <span className="text-danger">*</span></label>
                 <select className="form-select" value={proveedorSeleccionado} onChange={e => setProveedorSeleccionado(e.target.value)} required>
                   <option value="">Seleccione</option>
                   {proveedoresMock.map(p => (
@@ -132,7 +132,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">💳 Método de Pago</label>
+                <label className="form-label">💳 Método de Pago <span className="text-danger">*</span></label>
                 <select className="form-select" value={metodoPago} onChange={e => setMetodoPago(e.target.value)} required>
                   <option value="">Seleccione</option>
                   <option value="Efectivo">Efectivo</option>
@@ -143,13 +143,13 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
 
               {/* Fecha de Compra */}
               <div className="col-md-6">
-                <label className="form-label">📅 Fecha de Compra</label>
+                <label className="form-label">📅 Fecha de Compra <span className="text-danger">*</span></label>
                 <input type="date" className="form-control" value={fechaCompra} onChange={e => setFechaCompra(e.target.value)} required />
               </div>
 
               {/* Detalle de Insumos */}
               <div className="col-12 mt-4">
-                <h6 className="text-muted">📦 Detalle de la compra</h6>
+                <h6 className="text-muted">📦 Detalle de la compra <span className="text-danger">*</span></h6>
                 <div className="row fw-bold mb-2 small">
                   <div className="col-md-4">Nombre del Insumo</div>
                   <div className="col-md-4">Cantidad</div>

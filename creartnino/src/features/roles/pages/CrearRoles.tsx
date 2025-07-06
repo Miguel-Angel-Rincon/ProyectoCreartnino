@@ -51,11 +51,21 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
+    if (permisosSeleccionados.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Permisos requeridos',
+        text: 'Debe seleccionar al menos un permiso.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     const nuevoRol: Rol = {
       idRol: idRolActual++,
       nombre,
       descripcion,
-      estado: true, // automáticamente activo
+      estado: true,
       permisos: permisosSeleccionados,
     };
 
@@ -87,7 +97,9 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <div className="row g-4">
 
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre del Rol</label>
+                  <label className="form-label">
+                    🏷️ Nombre del Rol <span className="text-danger">*</span>
+                  </label>
                   <input className="form-control" name="nombre" required />
                 </div>
 
@@ -97,7 +109,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 <div className="col-md-12">
-                  <label className="form-label">🔐 Permisos</label>
+                  <label className="form-label">🔐 Permisos <span className="text-danger">*</span></label>
                   <div className="row">
                     {MODULOS.map((modulo) => (
                       <div key={modulo} className="col-6 col-md-4">
@@ -118,6 +130,9 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </div>
                 </div>
 
+                <div className="col-12">
+                  <small className="text-muted">Los campos marcados con <span className="text-danger">*</span> son obligatorios.</small>
+                </div>
               </div>
             </div>
 

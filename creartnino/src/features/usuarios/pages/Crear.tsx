@@ -72,7 +72,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
   }, [formData.Departamento, departamentos]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const target = e.target;
     const { name, value, type } = target;
     const checked = (type === 'checkbox' && 'checked' in target) ? (target as HTMLInputElement).checked : undefined;
     setFormData(prev => ({
@@ -129,73 +129,77 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body px-4 py-3">
-  <div className="row g-4">
-    <div className="col-md-6">
-      <label className="form-label">🧾 Tipo Documento</label>
-      <select name="Tipodocumento" className="form-select" value={formData.Tipodocumento} onChange={handleChange} required>
-        <option value="CC">Cédula de Ciudadanía</option>
-        <option value="TI">Tarjeta de Identidad</option>
-        <option value="CE">Cédula de Extranjería</option>
-      </select>
-    </div>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <label className="form-label">🧾 Tipo Documento <span className="text-danger">*</span></label>
+                  <select name="Tipodocumento" className="form-select" value={formData.Tipodocumento} onChange={handleChange} required>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                  </select>
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">🔢 Número Documento</label>
-      <input name="Numerodocumento" className="form-control" value={formData.Numerodocumento} onChange={handleChange} required />
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
+                  <input name="Numerodocumento" className="form-control" value={formData.Numerodocumento} onChange={handleChange} required />
+                </div>
 
-    <div className="col-md-12">
-      <label className="form-label">🙍 Nombre Completo</label>
-      <input name="NombreCompleto" className="form-control" value={formData.NombreCompleto} onChange={handleChange} required />
-    </div>
+                <div className="col-md-12">
+                  <label className="form-label">🙍 Nombre Completo <span className="text-danger">*</span></label>
+                  <input name="NombreCompleto" className="form-control" value={formData.NombreCompleto} onChange={handleChange} required />
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">📱 Celular</label>
-      <input name="Celular" className="form-control" value={formData.Celular} onChange={handleChange} required />
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
+                  <input name="Celular" className="form-control" value={formData.Celular} onChange={handleChange} required />
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">📧 Correo</label>
-      <input type="email" name="Correo" className="form-control" value={formData.Correo} onChange={handleChange} required />
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">📧 Correo <span className="text-danger">*</span></label>
+                  <input type="email" name="Correo" className="form-control" value={formData.Correo} onChange={handleChange} required />
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">🏞️ Departamento</label>
-      <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange} required>
-        <option value="">Seleccione un departamento</option>
-        {departamentos.map(dep => (
-          <option key={dep.id} value={dep.name}>{dep.name}</option>
-        ))}
-      </select>
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
+                  <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange} required>
+                    <option value="">Seleccione un departamento</option>
+                    {departamentos.map(dep => (
+                      <option key={dep.id} value={dep.name}>{dep.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">🏙️ Ciudad</label>
-      <select name="Ciudad" className="form-select" value={formData.Ciudad} onChange={handleChange} required>
-        <option value="">Seleccione una ciudad</option>
-        {ciudades.map(c => (
-          <option key={c.id} value={c.name}>{c.name}</option>
-        ))}
-      </select>
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">🏙️ Ciudad <span className="text-danger">*</span></label>
+                  <select name="Ciudad" className="form-select" value={formData.Ciudad} onChange={handleChange} required>
+                    <option value="">Seleccione una ciudad</option>
+                    {ciudades.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">🏡 Dirección</label>
-      <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} required />
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">🏡 Dirección <span className="text-danger">*</span></label>
+                  <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} required />
+                </div>
 
-    <div className="col-md-6">
-      <label className="form-label">🛡️ Rol</label>
-      <select name="idRol" className="form-select" value={formData.idRol} onChange={handleChange} required>
-        <option value="">Seleccione...</option>
-        <option value="admin">Administrador</option>
-        <option value="user">Usuario</option>
-      </select>
-    </div>
+                <div className="col-md-6">
+                  <label className="form-label">🛡️ Rol <span className="text-danger">*</span></label>
+                  <select name="idRol" className="form-select" value={formData.idRol} onChange={handleChange} required>
+                    <option value="">Seleccione...</option>
+                    <option value="admin">Administrador</option>
+                    <option value="user">Usuario</option>
+                  </select>
+                </div>
 
-    
-  </div>
-</div>
+                <div className="col-12">
+                  <small className="text-muted">
+                    Los campos marcados con <span className="text-danger">*</span> son obligatorios.
+                  </small>
+                </div>
+              </div>
+            </div>
 
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
@@ -203,7 +207,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
             </div>
           </form>
 
-          {/* Submodal de Dirección */}
+          {/* Submodal Dirección */}
           {showDireccionModal && (
             <div className="modal d-block pastel-overlay" tabIndex={-1}>
               <div className="modal-dialog modal-dialog-centered">
@@ -213,9 +217,18 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3"><label>Barrio</label><input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} /></div>
-                    <div className="mb-3"><label>Calle / Carrera</label><input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} /></div>
-                    <div className="mb-3"><label>Código Postal</label><input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} /></div>
+                    <div className="mb-3">
+                      <label>Barrio</label>
+                      <input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} />
+                    </div>
+                    <div className="mb-3">
+                      <label>Calle / Carrera</label>
+                      <input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} />
+                    </div>
+                    <div className="mb-3">
+                      <label>Código Postal</label>
+                      <input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} />
+                    </div>
                   </div>
                   <div className="modal-footer pastel-footer">
                     <button className="btn pastel-btn-secondary" onClick={() => setShowDireccionModal(false)}>Cancelar</button>
