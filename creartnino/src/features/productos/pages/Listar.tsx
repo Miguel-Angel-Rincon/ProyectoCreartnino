@@ -5,7 +5,7 @@ import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
 import CrearProductoModal from "./NuevoProducto";
 import EditarProductoModal from "./Editar";
-import VerProductoModal from './Ver'; // 👈 Nuevo import
+import VerProductoModal from './Ver';
 
 interface Productos {
   IdProducto: number;
@@ -76,12 +76,27 @@ const ListarProductos: React.FC = () => {
 
   const handleEstadoChange = (id: number) => {
     setProductos(prev =>
-      prev.map(p => (p.IdProducto === id ? { ...p, estado: !p.estado } : p))
+      prev.map(p => {
+        if (p.IdProducto === id) {
+          if (p.estado && p.cantidad > 0) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'No se puede desactivar',
+              text: 'No puedes desactivar un producto que aún tiene existencias.',
+              confirmButtonColor: '#e83e8c',
+            });
+            return p;
+          }
+          return { ...p, estado: !p.estado };
+        }
+        return p;
+      })
     );
   };
 
   const handleCrear = (nuevoProducto: Productos) => {
-    setProductos(prev => [...prev, nuevoProducto]);
+    setProductos(prev => [nuevoProducto, ...prev]); // ✅ Insertar al principio
+    setPaginaActual(1); // ✅ Volver a la primera página
     setMostrarModal(false);
     Swal.fire({
       icon: 'success',
@@ -153,7 +168,6 @@ const ListarProductos: React.FC = () => {
                 <td>{p.IdCatProductos}</td>
                 <td>{p.cantidad}</td>
                 <td>${p.precio.toLocaleString('es-CO')}</td>
-
                 <td>
                   <label className="switch">
                     <input
