@@ -109,7 +109,10 @@ const ListarUsuarios: React.FC = () => {
   };
 
   const UsuariosFiltrados = Usuarios.filter(p =>
-    p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase())
+    p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.Numerodocumento.includes(busqueda) ||
+    p.idRol.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.Celular.includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * UsuariosPorPagina;
