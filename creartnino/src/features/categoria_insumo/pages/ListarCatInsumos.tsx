@@ -15,14 +15,14 @@ interface CategoriaInsumos {
 }
 
 const categoriasIniciales: CategoriaInsumos[] = [
-  { IdCategoriaInsumo: 601, Nombre: 'Categoria1', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
-  { IdCategoriaInsumo: 602, Nombre: 'Categoria2', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
-  { IdCategoriaInsumo: 603, Nombre: 'Categoria3', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
-  { IdCategoriaInsumo: 604, Nombre: 'Categoria4', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
-  { IdCategoriaInsumo: 605, Nombre: 'Categoria5', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
-  { IdCategoriaInsumo: 606, Nombre: 'Categoria6', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
-  { IdCategoriaInsumo: 607, Nombre: 'Categoria7', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
-  { IdCategoriaInsumo: 608, Nombre: 'Categoria8', Descripcion: 'Libros, música y material educativo', Estado: false },
+  { IdCategoriaInsumo: 601, Nombre: 'Cartulina', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
+  { IdCategoriaInsumo: 602, Nombre: 'Carton', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
+  { IdCategoriaInsumo: 603, Nombre: 'Lapices', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
+  { IdCategoriaInsumo: 604, Nombre: 'Papel', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
+  { IdCategoriaInsumo: 605, Nombre: 'Tijeras', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
+  { IdCategoriaInsumo: 606, Nombre: 'Resaltador', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
+  { IdCategoriaInsumo: 607, Nombre: 'Boligrafos', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
+  { IdCategoriaInsumo: 608, Nombre: 'Regla', Descripcion: 'Libros, música y material educativo', Estado: false },
 ];
 
 const ListarCatInsumos: React.FC = () => {
@@ -103,9 +103,10 @@ const ListarCatInsumos: React.FC = () => {
     setMostrarVerModal(true);
   };
 
-  const categoriasFiltradas = categorias.filter(c =>
-    c.Nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+const categoriasFiltradas = categorias.filter(c =>
+  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+  c.Descripcion.toLowerCase().includes(busqueda.toLowerCase())
+);
 
   const indexInicio = (paginaActual - 1) * categoriasPorPagina;
   const indexFin = indexInicio + categoriasPorPagina;
