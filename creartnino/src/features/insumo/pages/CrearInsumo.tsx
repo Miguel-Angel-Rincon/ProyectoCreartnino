@@ -44,8 +44,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       IdInsumos: idInsumoActual++,
       IdCatInsumo: form.categoria.value,
       Nombre: form.nombre.value,
-      Descripcion: form.descripcion.value,
-      marca: form.marca.value,
+      UnidadMedida: form.unidadMedida.value || '', // no obligatorio
       cantidad,
       precioUnitario,
       estado: form.estado?.checked ?? false,
@@ -73,45 +72,40 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <div className="row g-4">
                 {/* Nombre y Categoría */}
                 <div className="col-md-6">
-                  <label className="form-label">📝 Nombre</label>
+                  <label className="form-label">
+                    📝 Nombre <span className="text-danger">*</span>
+                  </label>
                   <input className="form-control" name="nombre" required />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
+                  <label className="form-label">
+                    📦 Categoría <span className="text-danger">*</span>
+                  </label>
                   <select className="form-select" name="categoria" required>
                     {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={Categoría ${i + 1}}>Categoría {i + 1}</option>
+                      <option key={i} value={`Categoría ${i + 1}`}>{`Categoría ${i + 1}`}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* Marca y Descripción */}
+                {/* Unidad de Medida (opcional) */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷 Marca</label>
-                  <input className="form-control" name="marca" required />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">🧾 Descripción</label>
-                  <textarea
+                  <label className="form-label">
+                    ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
+                  </label>
+                  <input
                     className="form-control"
-                    name="descripcion"
-                    onFocus={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = ${e.target.scrollHeight}px;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.height = 'auto';
-                    }}
-                    rows={1}
-                    style={{ resize: 'none', overflow: 'hidden' }}
+                    name="unidadMedida"
+                    placeholder="Ej: kg, mL, unidades..."
                   />
                 </div>
 
-                {/* Cantidad y Precio Unitario */}
+                {/* Cantidad */}
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
+                  <label className="form-label">
+                    🔢 Cantidad <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="number"
                     className="form-control"
@@ -125,8 +119,11 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   />
                 </div>
 
+                {/* Precio Unitario */}
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio Unitario (COP)</label>
+                  <label className="form-label">
+                    💲 Precio Unitario (COP) <span className="text-danger">*</span>
+                  </label>
                   <div className="input-group">
                     <span className="input-group-text">$</span>
                     <input
@@ -148,15 +145,15 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     />
                   </div>
                 </div>
-
               </div>
             </div>
+
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary">
-                Crear Insumo
+                Crear
               </button>
             </div>
           </form>

@@ -6,8 +6,7 @@ interface Insumos {
   IdInsumos: number;
   IdCatInsumo: string;
   Nombre: string;
-  Descripcion: string;
-  marca: string;
+  Descripcion: string; // ahora será Unidad de Medida
   cantidad: number;
   precioUnitario: number;
   estado: boolean;
@@ -115,7 +114,9 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
                 {/* Nombre y Categoría */}
                 <div className="col-md-6">
-                  <label className="form-label">📝 Nombre</label>
+                  <label className="form-label">
+                    📝 Nombre <span className="text-danger">*</span>
+                  </label>
                   <input
                     className="form-control"
                     name="Nombre"
@@ -126,7 +127,9 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
+                  <label className="form-label">
+                    📦 Categoría <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     name="IdCatInsumo"
@@ -136,7 +139,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   >
                     <option value={formData.IdCatInsumo}>{formData.IdCatInsumo}</option>
                     {Array.from({ length: 8 }, (_, i) => {
-                      const cat = Categoría ${i + 1};
+                      const cat = `Categoría ${i + 1}`;
                       return cat !== formData.IdCatInsumo ? (
                         <option key={i} value={cat}>{cat}</option>
                       ) : null;
@@ -144,40 +147,25 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   </select>
                 </div>
 
-                {/* Marca y Descripción */}
+                {/* Unidad de Medida (antes Descripción) */}
                 <div className="col-md-6">
-                  <label className="form-label">🏷 Marca</label>
+                  <label className="form-label">
+                    ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
+                  </label>
                   <input
-                    className="form-control"
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">🧾 Descripción</label>
-                  <textarea
                     className="form-control"
                     name="Descripcion"
                     value={formData.Descripcion}
                     onChange={handleChange}
-                    onFocus={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = ${e.target.scrollHeight}px;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.height = 'auto';
-                    }}
-                    rows={1}
-                    style={{ resize: 'none', overflow: 'hidden' }}
+                    placeholder="Ej: kg, mL, unidades..."
                   />
                 </div>
 
-                {/* Cantidad y Precio */}
+                {/* Cantidad */}
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
+                  <label className="form-label">
+                    🔢 Cantidad <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="number"
                     className="form-control"
@@ -193,8 +181,11 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   />
                 </div>
 
+                {/* Precio Unitario */}
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio Unitario (COP)</label>
+                  <label className="form-label">
+                    💲 Precio Unitario (COP) <span className="text-danger">*</span>
+                  </label>
                   <div className="input-group">
                     <span className="input-group-text">$</span>
                     <input

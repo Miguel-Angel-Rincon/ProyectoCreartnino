@@ -12,21 +12,20 @@ interface Insumos {
     IdCatInsumo: string;
     Nombre: string;
     Descripcion: string;
-    marca: string;
     cantidad: number;
     precioUnitario: number;
     estado: boolean;
 }
 
 const insumosiniciales: Insumos[] = [
-    { IdInsumos: 401, IdCatInsumo: 'Papel', Nombre: 'Cartulina Iris', Descripcion: 'Cartulina de colores surtidos, ideal para manualidades escolares.', marca: 'Artel', cantidad: 10, precioUnitario: 10000, estado: false },
-    { IdInsumos: 402, IdCatInsumo: 'Pintura', Nombre: 'Acrílicos Neon', Descripcion: 'Set de pinturas acrílicas neón de alta cobertura.', marca: 'Acuarel', cantidad: 20, precioUnitario: 20000, estado: true },
-    { IdInsumos: 403, IdCatInsumo: 'Pegantes', Nombre: 'Colbón Escolar', Descripcion: 'Pegante blanco no tóxico para uso escolar.', marca: 'Pritt', cantidad: 15, precioUnitario: 15000, estado: true },
-    { IdInsumos: 404, IdCatInsumo: 'Herramientas', Nombre: 'Tijeras Punta Roma', Descripcion: 'Tijeras de seguridad con punta redondeada para niños.', marca: 'Faber-Castell', cantidad: 5, precioUnitario: 12000, estado: false },
-    { IdInsumos: 405, IdCatInsumo: 'Papel', Nombre: 'Papel Crepé', Descripcion: 'Rollo de papel crepé para decoración y manualidades.', marca: 'Vinifan', cantidad: 8, precioUnitario: 18000, estado: true },
-    { IdInsumos: 406, IdCatInsumo: 'Decoración', Nombre: 'Foamy Brillante', Descripcion: 'Láminas de foamy con escarcha, fáciles de cortar.', marca: 'Artístico', cantidad: 12, precioUnitario: 16000, estado: false },
-    { IdInsumos: 407, IdCatInsumo: 'Pintura', Nombre: 'Temperas Surtidas', Descripcion: 'Set de témperas escolares colores básicos.', marca: 'Pelikan', cantidad: 18, precioUnitario: 21000, estado: true },
-    { IdInsumos: 408, IdCatInsumo: 'Pegantes', Nombre: 'Silicona Líquida', Descripcion: 'Silicona líquida transparente de secado rápido.', marca: 'UHU', cantidad: 7, precioUnitario: 13000, estado: false },
+    { IdInsumos: 401, IdCatInsumo: 'Papel', Nombre: 'Cartulina Iris', Descripcion: 'Cartulina de colores surtidos, ideal para manualidades escolares.', cantidad: 10, precioUnitario: 10000, estado: false },
+    { IdInsumos: 402, IdCatInsumo: 'Pintura', Nombre: 'Acrílicos Neon', Descripcion: 'Set de pinturas acrílicas neón de alta cobertura.',  cantidad: 20, precioUnitario: 20000, estado: true },
+    { IdInsumos: 403, IdCatInsumo: 'Pegantes', Nombre: 'Colbón Escolar', Descripcion: 'Pegante blanco no tóxico para uso escolar.',  cantidad: 15, precioUnitario: 15000, estado: true },
+    { IdInsumos: 404, IdCatInsumo: 'Herramientas', Nombre: 'Tijeras Punta Roma', Descripcion: 'Tijeras de seguridad con punta redondeada para niños.', cantidad: 5, precioUnitario: 12000, estado: false },
+    { IdInsumos: 405, IdCatInsumo: 'Papel', Nombre: 'Papel Crepé', Descripcion: 'Rollo de papel crepé para decoración y manualidades.',  cantidad: 8, precioUnitario: 18000, estado: true },
+    { IdInsumos: 406, IdCatInsumo: 'Decoración', Nombre: 'Foamy Brillante', Descripcion: 'Láminas de foamy con escarcha, fáciles de cortar.', cantidad: 12, precioUnitario: 16000, estado: false },
+    { IdInsumos: 407, IdCatInsumo: 'Pintura', Nombre: 'Temperas Surtidas', Descripcion: 'Set de témperas escolares colores básicos.', cantidad: 18, precioUnitario: 21000, estado: true },
+    { IdInsumos: 408, IdCatInsumo: 'Pegantes', Nombre: 'Silicona Líquida', Descripcion: 'Silicona líquida transparente de secado rápido.',  cantidad: 7, precioUnitario: 13000, estado: false },
 ];
 
 
@@ -143,7 +142,6 @@ const insumosiniciales: Insumos[] = [
                 <th>Nombre</th>
                 <th>Categoría</th>
                 
-                <th>Marca</th>
                 <th>Cantidad</th>
                 <th>Precio</th>
                 <th>Estado</th>
@@ -156,7 +154,7 @@ const insumosiniciales: Insumos[] = [
                     <td>{p.Nombre}</td>
                     <td>{p.IdCatInsumo}</td>
                     
-                    <td>{p.marca}</td>
+                    
                     <td>{p.cantidad}</td>
                     <td>{p.precioUnitario.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</td>
                     <td>
