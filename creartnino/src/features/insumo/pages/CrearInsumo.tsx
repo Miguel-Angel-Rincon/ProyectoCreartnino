@@ -156,7 +156,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary">
-                Crear Insumo
+                Crear
               </button>
             </div>
           </form>

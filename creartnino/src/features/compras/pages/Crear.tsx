@@ -237,7 +237,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
 
           <div className="modal-footer pastel-footer">
             <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Registrar Compra</button>
+            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Crear</button>
           </div>
         </div>
       </div>

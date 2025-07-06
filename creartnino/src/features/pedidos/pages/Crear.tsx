@@ -307,7 +307,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 
             <div className="modal-footer pastel-footer">
               <button className="btn pastel-btn-secondary" type="button" onClick={onClose}>Cancelar</button>
-              <button className="btn pastel-btn-primary" type="submit">Registrar Pedido</button>
+              <button className="btn pastel-btn-primary" type="submit">Crear</button>
             </div>
           </form>
         </div>

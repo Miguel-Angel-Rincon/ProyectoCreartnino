@@ -232,7 +232,7 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
             </div>
             <div className="modal-footer pastel-footer">
               <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button className="btn pastel-btn-primary" onClick={handleSubmit}>Registrar Producción</button>
+              <button className="btn pastel-btn-primary" onClick={handleSubmit}>Crear</button>
             </div>
           </div>
         </div>
