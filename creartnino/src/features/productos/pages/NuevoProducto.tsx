@@ -16,17 +16,10 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [precio, setPrecio] = useState('');
   const [precioValido, setPrecioValido] = useState(true);
   const [cantidadValida, setCantidadValida] = useState(true);
-  const [imagenSeleccionada, setImagenSeleccionada] = useState('');
   const [imagenPersonalURL, setImagenPersonalURL] = useState('');
   const [imagenLocal, setImagenLocal] = useState('');
   const [urlValida, setUrlValida] = useState<boolean | null>(null);
   const [validandoURL, setValidandoURL] = useState(false);
-
-  const imagenesDisponibles = [
-    'https://via.placeholder.com/300x200.png?text=Imagen+1',
-    'https://via.placeholder.com/300x200.png?text=Imagen+2',
-    'https://via.placeholder.com/300x200.png?text=Imagen+3',
-  ];
 
   useEffect(() => {
     const validar = async () => {
@@ -68,14 +61,12 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
         const result = reader.result as string;
         setImagenLocal(result);
         setImagenPersonalURL(result);
-        setImagenSeleccionada('');
       };
       reader.readAsDataURL(archivo);
     }
   };
 
   const limpiarImagen = () => {
-    setImagenSeleccionada('');
     setImagenPersonalURL('');
     setImagenLocal('');
     setUrlValida(null);
@@ -122,13 +113,13 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
-    const imagenFinal = imagenSeleccionada || imagenPersonalURL || imagenLocal;
+    const imagenFinal = imagenPersonalURL || imagenLocal;
 
     if (!imagenFinal) {
       Swal.fire({
         icon: 'warning',
         title: 'Imagen requerida',
-        text: 'Debe seleccionar o ingresar la URL de una imagen.',
+        text: 'Debe subir o ingresar la URL de una imagen.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -161,7 +152,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     onClose();
   };
 
-  const vistaPrevia = imagenLocal || imagenPersonalURL || imagenSeleccionada;
+  const vistaPrevia = imagenLocal || imagenPersonalURL;
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -175,22 +166,40 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre</label>
-                  <input className="form-control" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+                  <label className="form-label">
+                    🛍️ Nombre <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    className="form-control"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    required
+                  />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
-                  <select className="form-select" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
+                  <label className="form-label">
+                    📦 Categoría <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    className="form-select"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                    required
+                  >
                     <option value="">Seleccione una categoría</option>
                     {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={`Categoría ${i + 1}`}>Categoría {i + 1}</option>
+                      <option key={i} value={`Categoría ${i + 1}`}>
+                        Categoría {i + 1}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
+                  <label className="form-label">
+                    🔢 Cantidad <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="number"
                     className={`form-control ${!cantidadValida ? 'is-invalid' : ''}`}
@@ -202,7 +211,9 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio</label>
+                  <label className="form-label">
+                    💲 Precio <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     className={`form-control ${!precioValido ? 'is-invalid' : ''}`}
@@ -212,26 +223,10 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   />
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">🖼️ Imagen desde lista</label>
-                  <select
-                    className="form-select"
-                    value={imagenSeleccionada}
-                    onChange={(e) => {
-                      setImagenSeleccionada(e.target.value);
-                      setImagenPersonalURL('');
-                      setImagenLocal('');
-                    }}
-                  >
-                    <option value="">Seleccione una imagen</option>
-                    {imagenesDisponibles.map((img, i) => (
-                      <option key={i} value={img}>Imagen {i + 1}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">🔗 URL de imagen personalizada</label>
+                <div className="col-md-12">
+                  <label className="form-label">
+                    🖼️ Imagen personalizada <span className="text-danger">*</span>
+                  </label>
                   <div className="input-group">
                     <input
                       type="url"
@@ -240,10 +235,9 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       value={imagenPersonalURL.startsWith('data:image') ? '' : imagenPersonalURL}
                       onChange={(e) => {
                         setImagenPersonalURL(e.target.value);
-                        setImagenSeleccionada('');
                         setImagenLocal('');
                       }}
-                      disabled={!!imagenSeleccionada && !imagenLocal}
+                      disabled={!!imagenLocal}
                     />
                     <label className="btn btn-outline-secondary btn-sm mb-0">
                       📁
@@ -254,10 +248,16 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     <div className="form-text text-warning">Validando URL de la imagen...</div>
                   )}
                   {urlValida === false && !validandoURL && (
-                    <div className="invalid-feedback d-block">La URL proporcionada no es válida o no se pudo cargar la imagen.</div>
+                    <div className="invalid-feedback d-block">
+                      La URL proporcionada no es válida o no se pudo cargar la imagen.
+                    </div>
                   )}
-                  {(imagenSeleccionada || imagenPersonalURL || imagenLocal) && (
-                    <button type="button" className="btn btn-sm btn-danger mt-2" onClick={limpiarImagen}>
+                  {(imagenPersonalURL || imagenLocal) && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger mt-2"
+                      onClick={limpiarImagen}
+                    >
                       Quitar imagen seleccionada
                     </button>
                   )}
@@ -269,15 +269,24 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       src={vistaPrevia}
                       alt="Vista previa"
                       className="img-thumbnail"
-                      style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
+                      style={{
+                        maxWidth: '180px',
+                        maxHeight: '180px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                      }}
                     />
                   </div>
                 )}
               </div>
             </div>
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn pastel-btn-primary">Crear Producto</button>
+              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn pastel-btn-primary">
+                Crear 
+              </button>
             </div>
           </form>
         </div>

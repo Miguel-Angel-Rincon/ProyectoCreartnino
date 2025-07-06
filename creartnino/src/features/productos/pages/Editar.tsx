@@ -21,7 +21,6 @@ interface Props {
 
 const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) => {
   const [formData, setFormData] = useState<Producto>(producto);
-  const [imagenSeleccionada, setImagenSeleccionada] = useState<string>('');
   const [imagenPersonalURL, setImagenPersonalURL] = useState<string>('');
   const [imagenLocal, setImagenLocal] = useState<string>('');
   const [urlValida, setUrlValida] = useState<boolean | null>(null);
@@ -32,16 +31,9 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   const [nombreValido, setNombreValido] = useState(true);
   const [categoriaValida, setCategoriaValida] = useState(true);
 
-  const imagenesDisponibles = [
-    'https://via.placeholder.com/300x200.png?text=Imagen+1',
-    'https://via.placeholder.com/300x200.png?text=Imagen+2',
-    'https://via.placeholder.com/300x200.png?text=Imagen+3',
-  ];
-
   useEffect(() => {
     setFormData({ ...producto, marca: 'CreartNino' });
     setPrecioFormateado(producto.precio.toLocaleString('es-CO'));
-    setImagenSeleccionada(producto.Imagen);
     setImagenPersonalURL(producto.Imagen.startsWith('http') ? producto.Imagen : '');
   }, [producto]);
 
@@ -80,16 +72,15 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;
     const numero = parseInt(valor);
-    const esEntero = /^\d+$/.test(valor);
-    setCantidadValida(esEntero && numero > 0); // 🟢 Modificado: solo permite mayor a 0
-    setFormData((prev) => ({ ...prev, cantidad: numero }));
+    const esNumeroValido = /^\d+$/.test(valor) && numero >= 0;
+    setCantidadValida(esNumeroValido);
+    setFormData((prev) => ({ ...prev, cantidad: isNaN(numero) ? 0 : numero }));
   };
 
   const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value.replace(/[.,\s]/g, '');
     const numero = parseInt(valor);
-    const esNumeroValido = !isNaN(numero) && numero > 0; // 🟢 Modificado: solo permite mayor a 0
-
+    const esNumeroValido = !isNaN(numero) && numero > 0;
     setPrecioValido(esNumeroValido);
     setFormData((prev) => ({ ...prev, precio: numero }));
     setPrecioFormateado(esNumeroValido ? numero.toLocaleString('es-CO') : '');
@@ -116,13 +107,11 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       const base64 = reader.result as string;
       setImagenLocal(base64);
       setImagenPersonalURL(base64);
-      setImagenSeleccionada('');
     };
     reader.readAsDataURL(archivo);
   };
 
   const limpiarImagen = () => {
-    setImagenSeleccionada('');
     setImagenLocal('');
     setImagenPersonalURL('');
     setUrlValida(null);
@@ -146,7 +135,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       return;
     }
 
-    const imagenFinal = imagenLocal || imagenPersonalURL || imagenSeleccionada || producto.Imagen;
+    const imagenFinal = imagenLocal || imagenPersonalURL || producto.Imagen;
 
     if (!imagenFinal) {
       Swal.fire({
@@ -196,7 +185,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     }
   };
 
-  const vistaPrevia = imagenLocal || imagenPersonalURL || imagenSeleccionada || producto.Imagen;
+  const vistaPrevia = imagenLocal || imagenPersonalURL || producto.Imagen;
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -210,7 +199,9 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre</label>
+                  <label className="form-label">
+                    🛍️ Nombre <span className="text-danger">*</span>
+                  </label>
                   <input
                     className={`form-control ${!nombreValido ? 'is-invalid' : ''}`}
                     name="Nombre"
@@ -221,7 +212,9 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
+                  <label className="form-label">
+                    📦 Categoría <span className="text-danger">*</span>
+                  </label>
                   <select
                     className={`form-select ${!categoriaValida ? 'is-invalid' : ''}`}
                     name="IdCatProductos"
@@ -239,7 +232,9 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
+                  <label className="form-label">
+                    🔢 Cantidad <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="number"
                     className={`form-control ${!cantidadValida ? 'is-invalid' : ''}`}
@@ -250,7 +245,9 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio</label>
+                  <label className="form-label">
+                    💲 Precio <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     className={`form-control ${!precioValido ? 'is-invalid' : ''}`}
@@ -260,28 +257,10 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                   />
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">🖼️ Imagen desde lista</label>
-                  <select
-                    className="form-select"
-                    value={imagenSeleccionada}
-                    onChange={(e) => {
-                      setImagenSeleccionada(e.target.value);
-                      setImagenPersonalURL('');
-                      setImagenLocal('');
-                    }}
-                  >
-                    <option value="">Seleccione una imagen</option>
-                    {imagenesDisponibles.map((img, index) => (
-                      <option key={index} value={img}>
-                        Imagen {index + 1}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">🔗 URL de imagen personalizada</label>
+                <div className="col-md-12">
+                  <label className="form-label">
+                    🔗 URL o archivo de imagen <span className="text-danger">*</span>
+                  </label>
                   <div className="input-group">
                     <input
                       type="url"
@@ -290,32 +269,22 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                       value={imagenPersonalURL.startsWith('data:image') ? '' : imagenPersonalURL}
                       onChange={(e) => {
                         setImagenPersonalURL(e.target.value);
-                        setImagenSeleccionada('');
                         setImagenLocal('');
                       }}
-                      disabled={!!imagenSeleccionada && !imagenLocal}
+                      disabled={!!imagenLocal}
                     />
                     <label className="btn btn-outline-secondary btn-sm mb-0">
                       📁
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleArchivoLocal}
-                      />
+                      <input type="file" accept="image/*" hidden onChange={handleArchivoLocal} />
                     </label>
                   </div>
-                  {validandoURL && (
-                    <div className="form-text text-warning">
-                      Validando URL de la imagen...
-                    </div>
-                  )}
+                  {validandoURL && <div className="form-text text-warning">Validando URL de la imagen...</div>}
                   {urlValida === false && !validandoURL && (
                     <div className="invalid-feedback d-block">
                       La URL proporcionada no es válida o no se pudo cargar la imagen.
                     </div>
                   )}
-                  {(imagenSeleccionada || imagenPersonalURL || imagenLocal) && (
+                  {(imagenPersonalURL || imagenLocal) && (
                     <button type="button" className="btn btn-sm btn-danger mt-2" onClick={limpiarImagen}>
                       Quitar imagen seleccionada
                     </button>
@@ -328,13 +297,17 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
                       src={vistaPrevia}
                       alt="Vista previa"
                       className="img-thumbnail"
-                      style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
+                      style={{
+                        maxWidth: '180px',
+                        maxHeight: '180px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                      }}
                     />
                   </div>
                 )}
               </div>
             </div>
-
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
