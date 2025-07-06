@@ -91,7 +91,7 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
                       <input className="form-control" value={item.cantidad} disabled />
                     </div>
                     <div className="col-md-4">
-                      <input className="form-control" value={item.precio} disabled />
+                      <input className="form-control" value={`$${item.precio.toLocaleString('es-CO')}`} disabled />
                     </div>
                   </div>
                 ))}
@@ -120,7 +120,7 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
                           <div>{item.icon}</div>
                           <div>
                             <div className="fw-semibold fs-7">{item.label}</div>
-                            <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                            <div className="text-muted fw-bold fs-7">${Math.round(item.value).toLocaleString('es-CO')}</div>
                           </div>
                         </div>
                       </div>
@@ -143,7 +143,7 @@ const VerPedidoModal: React.FC<VerPedidoProps> = ({ onClose, pedido }) => {
                           <div>{item.icon}</div>
                           <div>
                             <div className="fw-semibold fs-7">{item.label}</div>
-                            <div className="text-muted fw-bold fs-7">${item.value.toLocaleString()}</div>
+                            <div className="text-muted fw-bold fs-7">${Math.round(item.value).toLocaleString('es-CO')}</div>
                           </div>
                         </div>
                       </div>

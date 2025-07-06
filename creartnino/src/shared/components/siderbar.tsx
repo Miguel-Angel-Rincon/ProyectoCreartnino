@@ -1,32 +1,50 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+// src/shared/components/Sidebar.tsx
+import { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  FaBars,
-  FaUser,
-  FaUsers,
-  FaUserShield,
-  FaTruck,
-  FaCogs,
-  FaBox,
-  FaChartBar,
-  FaBoxes,
-  FaShoppingCart,
-
-  FaTasks,
-  FaChartLine,
-  
+  FaBars, FaUser, FaUsers, FaUserShield, FaTruck, FaCogs,
+  FaBox, FaChartBar, FaBoxes, FaShoppingCart, FaTasks, FaChartLine,
+  FaUserCircle, FaSignOutAlt, FaGlobe
 } from "react-icons/fa";
-import logo from '../../assets/Imagenes/logo.jpg'; // Adjust the path as necessary
-import '../styles/siderbar.css'; // Adjust the path as necessary
+import logo from '../../assets/Imagenes/logo.jpg';
+import avatarImg from '../../assets/Imagenes/avatar-default.png';
+import { useAuth } from '../../context/AuthContext';
+import '../styles/siderbar.css';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [mostrarOpciones, setMostrarOpciones] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
+
   const location = useLocation();
+  const navigate = useNavigate();
+  const { cerrarSesion } = useAuth();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const storedAvatar = localStorage.getItem('avatarPerfil');
+    setAvatar(storedAvatar || avatarImg);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMostrarOpciones(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleSection = (section: string) =>
     setOpenSection(openSection === section ? null : section);
+
+  const handleCerrarSesion = () => {
+    cerrarSesion();
+    navigate('/ingresar');
+  };
 
   return (
     <>
@@ -45,32 +63,25 @@ export default function Sidebar() {
             <FaChartBar /> Dashboard
           </Link>
 
-          <div
-            className="sidebar-section"
-            onClick={() => toggleSection("config")}
-          >
+          <div className="sidebar-section" onClick={() => toggleSection("config")}>
             Configuración ▾
           </div>
           {openSection === "config" && (
             <>
-            <Link to="/roles" className={location.pathname === "/roles" ? "active" : ""}>
+              <Link to="/roles" className={location.pathname === "/roles" ? "active" : ""}>
                 <FaUserShield /> Roles
               </Link>
               <Link to="/usuario" className={location.pathname === "/usuario" ? "active" : ""}>
                 <FaUser /> Usuario
               </Link>
-              
               <Link to="/clientes" className={location.pathname === "/clientes" ? "active" : ""}>
                 <FaUsers /> Clientes
               </Link>
             </>
           )}
 
-          <div
-            className="sidebar-section"
-            onClick={() => toggleSection("material")}
-          >
-            Gestion de Materiales ▾
+          <div className="sidebar-section" onClick={() => toggleSection("material")}>
+            Gestión de Materiales ▾
           </div>
           {openSection === "material" && (
             <>
@@ -78,7 +89,7 @@ export default function Sidebar() {
                 <FaTruck /> Proveedores
               </Link>
               <Link to="/cate-insumo" className={location.pathname === "/cate-insumo" ? "active" : ""}>
-                <FaCogs /> Categoria Insumo
+                <FaCogs /> Categoría Insumo
               </Link>
               <Link to="/insumos" className={location.pathname === "/insumos" ? "active" : ""}>
                 <FaBox /> Insumos
@@ -89,11 +100,8 @@ export default function Sidebar() {
             </>
           )}
 
-          <div
-            className="sidebar-section"
-            onClick={() => toggleSection("produccion")}
-          >
-            Gestionar la producción ▾
+          <div className="sidebar-section" onClick={() => toggleSection("produccion")}>
+            Gestión de Producción ▾
           </div>
           {openSection === "produccion" && (
             <>
@@ -101,7 +109,7 @@ export default function Sidebar() {
                 <FaChartLine /> Producción
               </Link>
               <Link to="/cat-productos" className={location.pathname === "/cat-productos" ? "active" : ""}>
-                <FaBoxes /> Categoria Productos
+                <FaBoxes /> Categoría Productos
               </Link>
               <Link to="/productos" className={location.pathname === "/productos" ? "active" : ""}>
                 <FaBox /> Productos
@@ -109,10 +117,7 @@ export default function Sidebar() {
             </>
           )}
 
-          <div
-            className="sidebar-section"
-            onClick={() => toggleSection("procesos")}
-          >
+          <div className="sidebar-section" onClick={() => toggleSection("procesos")}>
             Procesos ▾
           </div>
           {openSection === "procesos" && (
@@ -121,6 +126,27 @@ export default function Sidebar() {
             </Link>
           )}
         </nav>
+
+        {/* Parte inferior */}
+        <div className="sidebar-user-container" ref={menuRef}>
+          <div className="sidebar-user" onClick={() => setMostrarOpciones(prev => !prev)}>
+            <img src={avatar!} alt="Avatar" className="sidebar-avatar" />
+            {mostrarOpciones && (
+              <div className="sidebar-user-menu">
+                <p onClick={() => navigate('/')}>
+                  <FaGlobe /> Volver a la web
+                </p>
+                <p onClick={() => navigate('/perfil')}>
+                  <FaUserCircle /> Mi perfil
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="sidebar-logout" onClick={handleCerrarSesion} title="Cerrar sesión">
+            <FaSignOutAlt size={22} />
+          </div>
+        </div>
       </aside>
     </>
   );

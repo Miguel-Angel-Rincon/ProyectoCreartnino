@@ -55,11 +55,20 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
       return;
     }
 
+    if (permisosSeleccionados.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Permisos requeridos',
+        text: 'Debe seleccionar al menos un permiso.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     const rolActualizado: Rol = {
       ...rol,
       nombre,
       descripcion,
-      
       permisos: permisosSeleccionados,
     };
 
@@ -70,6 +79,8 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
       title: 'Rol actualizado correctamente',
       confirmButtonColor: '#f78fb3',
     });
+
+    onClose();
   };
 
   return (
@@ -86,7 +97,9 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
               <div className="row g-4">
 
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre del Rol</label>
+                  <label className="form-label">
+                    🏷️ Nombre del Rol <span className="text-danger">*</span>
+                  </label>
                   <input
                     className="form-control"
                     value={nombre}
@@ -113,9 +126,10 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
                   />
                 </div>
 
-                
                 <div className="col-md-12">
-                  <label className="form-label">🔐 Permisos</label>
+                  <label className="form-label">
+                    🔐 Permisos <span className="text-danger">*</span>
+                  </label>
                   <div className="row">
                     {MODULOS.map((modulo) => (
                       <div key={modulo} className="col-6 col-md-4">
@@ -134,6 +148,12 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div className="col-12">
+                  <small className="text-muted">
+                    Los campos marcados con <span className="text-danger">*</span> son obligatorios.
+                  </small>
                 </div>
 
               </div>

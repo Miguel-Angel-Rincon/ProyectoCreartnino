@@ -104,7 +104,8 @@ const ListarCatProductos: React.FC = () => {
   };
 
   const categoriasFiltradas = categorias.filter(c =>
-  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase())
+  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase())||
+  c.Descripcion.toLowerCase().startsWith(busqueda.toLowerCase())
 );
 
   const indexInicio = (paginaActual - 1) * categoriasPorPagina;

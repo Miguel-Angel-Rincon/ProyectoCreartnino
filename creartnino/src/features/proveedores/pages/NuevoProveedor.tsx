@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/CrearProveedorModal.tsx
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../style/acciones.css';
 
@@ -10,6 +11,7 @@ interface Proveedores {
   IdTipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
+  Departamento: string;
   Ciudad: string;
   Direccion: string;
   Celular: string;
@@ -28,18 +30,45 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
     IdTipoDocumento: 'CC',
     NombreCompleto: '',
     NumDocumento: '',
+    Departamento: '',
     Ciudad: '',
     Direccion: '',
     Celular: '',
     estado: true,
   });
 
+  const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
+  const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
-  const [direccionData, setDireccionData] = useState({
-    barrio: '',
-    calle: '',
-    codigoPostal: '',
-  });
+  const [direccionData, setDireccionData] = useState({ barrio: '', calle: '', codigoPostal: '' });
+
+  useEffect(() => {
+    fetch('https://api-colombia.com/api/v1/Department')
+      .then(res => res.json())
+      .then((data: { id: number; name: string }[]) => {
+        setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name)));
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!formData.Departamento) {
+      setCiudades([]);
+      return;
+    }
+    const dep = departamentos.find(d => d.name === formData.Departamento);
+    if (!dep) return;
+    fetch(`https://api-colombia.com/api/v1/City/pagedList?page=1&pageSize=1000`)
+      .then(res => res.json())
+      .then((res: { data: { id: number; name: string; departmentId: number }[] }) => {
+        const cityList = res.data
+          .filter(c => c.departmentId === dep.id)
+          .map(c => ({ id: c.id, name: c.name }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCiudades(cityList);
+      })
+      .catch(console.error);
+  }, [formData.Departamento, departamentos]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -54,7 +83,11 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
         IdTipoDocumento: nuevaPersona === 'Jurídica' ? 'NIT' : 'CC',
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ...(name === 'Departamento' ? { Ciudad: '' } : {})
+      }));
     }
   };
 
@@ -106,41 +139,21 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       }
     }
 
-    if (!/^\d+$/.test(formData.Celular)) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Celular inválido',
-        text: 'El número de celular debe contener solo dígitos.',
-        confirmButtonColor: '#f78fb3',
-      });
-      return;
-    }
-
     if (!/^\d{10}$/.test(formData.Celular)) {
       Swal.fire({
         icon: 'error',
         title: 'Celular inválido',
-        text: 'El número de celular debe tener exactamente 10 dígitos.',
+        text: 'Debe contener exactamente 10 dígitos numéricos.',
         confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
-    if (!/^\d+$/.test(formData.NumDocumento)) {
+    if (!/^\d{6,15}$/.test(formData.NumDocumento)) {
       Swal.fire({
         icon: 'error',
         title: 'Documento inválido',
-        text: 'El número de documento debe contener solo dígitos.',
-        confirmButtonColor: '#f78fb3',
-      });
-      return;
-    }
-
-    if (formData.NumDocumento.length < 6 || formData.NumDocumento.length > 15) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Documento inválido',
-        text: 'El número de documento debe tener entre 6 y 15 dígitos.',
+        text: 'Debe tener entre 6 y 15 dígitos.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -150,7 +163,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       Swal.fire({
         icon: 'error',
         title: 'Nombre inválido',
-        text: 'El nombre solo debe contener letras y espacios.',
+        text: 'Solo letras y espacios.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -160,17 +173,17 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       Swal.fire({
         icon: 'error',
         title: 'Ciudad inválida',
-        text: 'El nombre de la ciudad solo debe contener letras.',
+        text: 'Solo letras.',
         confirmButtonColor: '#f78fb3',
       });
       return;
     }
 
-    if (!formData.Direccion.includes('CP') || formData.Direccion.length < 10) {
+    if (!formData.Direccion.includes('CP')) {
       Swal.fire({
         icon: 'error',
         title: 'Dirección inválida',
-        text: 'Debes ingresar una dirección válida desde el submodal.',
+        text: 'Debe ingresarse desde el submodal.',
         confirmButtonColor: '#f78fb3',
       });
       return;
@@ -201,31 +214,17 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-
                 <div className="col-md-6">
-                  <label className="form-label">👤 Tipo de Persona</label>
-                  <select
-                    className="form-select"
-                    name="TipoPersona"
-                    value={formData.TipoPersona}
-                    onChange={handleChange}
-                    required
-                  >
+                  <label className="form-label">👤 Tipo de Persona <span className="text-danger">*</span></label>
+                  <select className="form-select" name="TipoPersona" value={formData.TipoPersona} onChange={handleChange} required>
                     <option value="Natural">Natural</option>
                     <option value="Jurídica">Jurídica</option>
                   </select>
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🧾 Tipo de Documento</label>
-                  <select
-                    className="form-select"
-                    name="IdTipoDocumento"
-                    value={formData.IdTipoDocumento}
-                    onChange={handleChange}
-                    required
-                    disabled={esJuridica}
-                  >
+                  <label className="form-label">🧾 Tipo de Documento <span className="text-danger">*</span></label>
+                  <select className="form-select" name="IdTipoDocumento" value={formData.IdTipoDocumento} onChange={handleChange} required disabled={esJuridica}>
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="NIT">NIT</option>
                     <option value="CE">Cédula de Extranjería</option>
@@ -235,74 +234,52 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {esJuridica ? '🔢 Número NIT' : '🔢 Número de Documento'}
+                    {esJuridica ? '🔢 Número NIT' : '🔢 Número de Documento'} <span className="text-danger">*</span>
                   </label>
-                  <input
-                    className="form-control"
-                    name="NumDocumento"
-                    value={formData.NumDocumento}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="form-control" name="NumDocumento" value={formData.NumDocumento} onChange={handleChange} required />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    {esJuridica ? '🏢 Nombre de la Empresa' : '🙍 Nombre Completo'}
+                    {esJuridica ? '🏢 Nombre de la Empresa' : '🙍 Nombre Completo'} <span className="text-danger">*</span>
                   </label>
-                  <input
-                    className="form-control"
-                    name="NombreCompleto"
-                    placeholder={esJuridica ? '' : ''}
-                    value={formData.NombreCompleto}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="form-control" name="NombreCompleto" value={formData.NombreCompleto} onChange={handleChange} required />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📱 Celular</label>
-                  <input
-                    className="form-control"
-                    name="Celular"
-                    value={formData.Celular}
-                    onChange={handleChange}
-                    required
-                  />
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
+                  <input className="form-control" name="Celular" value={formData.Celular} onChange={handleChange} required />
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏙️ Ciudad</label>
-                  <input
-                    className="form-control"
-                    name="Ciudad"
-                    value={formData.Ciudad}
-                    onChange={handleChange}
-                    required
-                  />
+                  <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
+                  <select className="form-select" name="Departamento" value={formData.Departamento} onChange={handleChange} required>
+                    <option value="">Seleccione un departamento</option>
+                    {departamentos.map(d => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="col-md-12">
-                  <label className="form-label">🏡 Dirección</label>
-                  <input
-                    className="form-control"
-                    name="Direccion"
-                    value={formData.Direccion}
-                    onClick={() => setShowDireccionModal(true)}
-                    readOnly
-                    required
-                  />
+                <div className="col-md-6">
+                  <label className="form-label">🏙️ Ciudad <span className="text-danger">*</span></label>
+                  <select className="form-select" name="Ciudad" value={formData.Ciudad} onChange={handleChange} required>
+                    <option value="">Seleccione una ciudad</option>
+                    {ciudades.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
 
+                <div className="col-md-6">
+                  <label className="form-label">🏡 Dirección <span className="text-danger">*</span></label>
+                  <input className="form-control" name="Direccion" value={formData.Direccion} onClick={() => setShowDireccionModal(true)} readOnly required />
+                </div>
               </div>
             </div>
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Crear
-              </button>
+              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
+              <button type="submit" className="btn pastel-btn-primary">Crear</button>
             </div>
           </form>
 
@@ -312,59 +289,16 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 <div className="modal-content pastel-modal shadow">
                   <div className="modal-header pastel-header">
                     <h5 className="modal-title">🏠 Información de Dirección</h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={() => setShowDireccionModal(false)}
-                    ></button>
+                    <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label className="form-label">Barrio</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.barrio}
-                        onChange={(e) =>
-                          setDireccionData({ ...direccionData, barrio: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Calle / Carrera</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.calle}
-                        onChange={(e) =>
-                          setDireccionData({ ...direccionData, calle: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Código Postal</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.codigoPostal}
-                        onChange={(e) =>
-                          setDireccionData({ ...direccionData, codigoPostal: e.target.value })
-                        }
-                      />
-                    </div>
+                    <div className="mb-3"><label>Barrio</label><input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} /></div>
+                    <div className="mb-3"><label>Calle / Carrera</label><input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} /></div>
+                    <div className="mb-3"><label>Código Postal</label><input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} /></div>
                   </div>
                   <div className="modal-footer pastel-footer">
-                    <button
-                      type="button"
-                      className="btn pastel-btn-secondary"
-                      onClick={() => setShowDireccionModal(false)}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn pastel-btn-primary"
-                      onClick={handleDireccionModalSave}
-                    >
-                      Guardar Dirección
-                    </button>
+                    <button className="btn pastel-btn-secondary" onClick={() => setShowDireccionModal(false)}>Cancelar</button>
+                    <button className="btn pastel-btn-primary" onClick={handleDireccionModalSave}>Guardar Dirección</button>
                   </div>
                 </div>
               </div>

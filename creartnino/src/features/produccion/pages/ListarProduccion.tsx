@@ -28,11 +28,10 @@ const produccionesIniciales: Producciones[] = [
   { IdProduccion: 602, Nombre: 'Produccion 2', TipoProduccion: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
   { IdProduccion: 603, Nombre: 'Produccion 3', TipoProduccion: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
   { IdProduccion: 604, Nombre: 'Produccion 4', TipoProduccion: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
-   { IdProduccion: 605, Nombre: 'Produccion 1', TipoProduccion: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
-  { IdProduccion: 606, Nombre: 'Produccion 2', TipoProduccion: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
-  { IdProduccion: 607, Nombre: 'Produccion 3', TipoProduccion: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
-  { IdProduccion: 608, Nombre: 'Produccion 4', TipoProduccion: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
-  
+  { IdProduccion: 605, Nombre: 'Produccion 5', TipoProduccion: 'Directa', FechaRegistro: '2025-05-01', FechaFinal: '2025-05-05', EstadosPedido: 'primer pago', Estado: 'en proceso' },
+  { IdProduccion: 606, Nombre: 'Produccion 6', TipoProduccion: 'Directa', FechaRegistro: '2025-05-02', FechaFinal: '2025-05-06', EstadosPedido: 'en proceso', Estado: 'completado' },
+  { IdProduccion: 607, Nombre: 'Produccion 7', TipoProduccion: 'Pedido', FechaRegistro: '2025-05-03', FechaFinal: '2025-05-07', EstadosPedido: 'en producción', Estado: 'anulado' },
+  { IdProduccion: 608, Nombre: 'Produccion 8', TipoProduccion: 'Directa', FechaRegistro: '2025-05-04', FechaFinal: '2025-05-08', EstadosPedido: 'en proceso de entrega', Estado: 'completado' },
 ];
 
 const ListarProduccion: React.FC = () => {
@@ -109,7 +108,10 @@ const ListarProduccion: React.FC = () => {
   };
 
   const produccionesFiltradas = producciones.filter(p =>
-    `${p.IdProduccion}`.toLowerCase().includes(busqueda.toLowerCase())
+    p.Nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.TipoProduccion.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.FechaRegistro.includes(busqueda) ||
+    p.FechaFinal.includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * produccionesPorPagina;
@@ -126,7 +128,7 @@ const ListarProduccion: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar por ID de la Producción"
+        placeholder="Buscar por nombre de producción"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {

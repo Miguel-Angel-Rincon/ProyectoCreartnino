@@ -161,8 +161,11 @@ const ListarPedidos: React.FC = () => {
 
   // Filtro corregido
   const pedidosFiltrados = pedidos.filter(p =>
-    p.IdPedido.toString().toLowerCase().startsWith(busqueda.toLowerCase()) ||
-    p.IdCliente.toLowerCase().startsWith(busqueda.toLowerCase())
+    p.MetodoPago.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.IdCliente.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.FechaEntrega.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.ValorInicial.toString().toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.TotalPedido.toString().toLowerCase().startsWith(busqueda.toLowerCase())
   );
 
   const indexInicio = (paginaActual - 1) * pedidosPorPagina;
@@ -182,7 +185,7 @@ const ListarPedidos: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar por ID del Pedido"
+        placeholder="Buscar Por Nombre de Cliente"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {
