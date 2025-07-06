@@ -126,7 +126,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary">
-                Crear Rol
+                Crear
               </button>
             </div>
           </form>

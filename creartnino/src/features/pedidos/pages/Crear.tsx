@@ -12,6 +12,7 @@ interface PedidoDetalle {
   producto: string;
   cantidad: number;
   precio: number;
+  precioFormateado?: string;
 }
 
 const clientesMock = [
@@ -53,7 +54,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   }, []);
 
   const agregarDetalle = () => {
-    setDetallePedido([...detallePedido, { producto: '', cantidad: 0, precio: 0 }]);
+    setDetallePedido([...detallePedido, { producto: '', cantidad: 0, precio: 0, precioFormateado: '' }]);
   };
 
   const actualizarDetalle = (index: number, campo: keyof PedidoDetalle, valor: string | number) => {
@@ -62,8 +63,15 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
       const producto = productosMock.find(p => p.Nombre === valor);
       copia[index].producto = producto?.Nombre || '';
       copia[index].precio = producto?.precio || 0;
+      copia[index].precioFormateado = producto ? producto.precio.toLocaleString('es-CO') : '';
+    } else if (campo === 'precio') {
+      const valorNumerico = parseFloat(valor as string);
+      copia[index].precio = isNaN(valorNumerico) ? 0 : valorNumerico;
+      copia[index].precioFormateado = isNaN(valorNumerico) ? '' : valorNumerico.toLocaleString('es-CO');
     } else {
-      copia[index][campo] = parseFloat(valor as string);
+      if (campo === 'cantidad') {
+        copia[index].cantidad = parseFloat(valor as string);
+      }
     }
     setDetallePedido(copia);
   };
@@ -221,7 +229,17 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
                         <input type="number" className="form-control" value={item.cantidad} min={1} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} required />
                       </div>
                       <div className="col-md-3">
-                        <input type="number" className="form-control" value={item.precio} min={1} onChange={e => actualizarDetalle(index, 'precio', e.target.value)} required />
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={item.precioFormateado || ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+                            const numero = parseInt(raw, 10);
+                            actualizarDetalle(index, 'precio', isNaN(numero) ? 0 : numero);
+                          }}
+                          required
+                        />
                       </div>
                       <div className="col-md-1 text-center">
                         <button className="btn btn-danger btn-sm" type="button" onClick={() => eliminarDetalle(index)}>✖</button>
@@ -289,7 +307,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 
             <div className="modal-footer pastel-footer">
               <button className="btn pastel-btn-secondary" type="button" onClick={onClose}>Cancelar</button>
-              <button className="btn pastel-btn-primary" type="submit">Registrar Pedido</button>
+              <button className="btn pastel-btn-primary" type="submit">Crear</button>
             </div>
           </form>
         </div>

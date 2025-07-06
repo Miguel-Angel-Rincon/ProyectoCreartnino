@@ -110,7 +110,10 @@ const ListarClientes: React.FC = () => {
   };
 
   const clientesFiltrados = clientes.filter(c =>
-    c.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase())
+    c.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+    c.Numerodocumento.includes(busqueda) ||
+    c.Correo.toLowerCase().includes(busqueda.toLowerCase()) ||
+    c.Celular.includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * clientesPorPagina;
@@ -140,8 +143,8 @@ const ListarClientes: React.FC = () => {
         <table className="table tabla-proveedores">
           <thead>
             <tr>
-              <th>Nombre Completo</th>
               <th># Documento</th>
+              <th>Nombre Completo</th>
               <th>Correo</th>
               <th>Celular</th>
               <th>Estado</th>
@@ -151,8 +154,8 @@ const ListarClientes: React.FC = () => {
           <tbody>
             {clientesPagina.map((c, index) => (
               <tr key={c.IdClientes} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{c.NombreCompleto}</td>
                 <td>{c.Tipodocumento} {c.Numerodocumento}</td>
+                <td>{c.NombreCompleto}</td>
                 
                 <td>{c.Correo}</td>
                 <td>{c.Celular}</td>

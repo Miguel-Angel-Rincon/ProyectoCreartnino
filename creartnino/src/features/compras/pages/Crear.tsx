@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 import '../styles/acciones.css';
 import { FaMoneyBillWave, FaPercent, FaCalculator } from 'react-icons/fa';
 
@@ -60,6 +61,39 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const calcularTotal = () => calcularSubtotal() + calcularIVA();
 
   const handleSubmit = () => {
+    if (!proveedorSeleccionado || !metodoPago || !fechaCompra) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Debes completar todos los campos principales.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    if (detalleCompra.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Detalle vacío',
+        text: 'Debes agregar al menos un insumo.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
+    for (let i = 0; i < detalleCompra.length; i++) {
+      const item = detalleCompra[i];
+      if (!item.insumo || item.cantidad <= 0 || item.precio <= 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Error en insumo',
+          text: `Todos los campos del insumo #${i + 1} deben estar completos y tener valores válidos.`,
+          confirmButtonColor: '#f78fb3',
+        });
+        return;
+      }
+    }
+
     const nuevaCompra = {
       proveedorSeleccionado,
       metodoPago,
@@ -81,7 +115,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
 
-          <div className="modal-body px-4 py-3">
+          <div className="modal-body px-4 py-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <div className="row g-4">
 
               {/* Proveedor y Método de Pago */}
@@ -116,16 +150,16 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
               {/* Detalle de Insumos */}
               <div className="col-12 mt-4">
                 <h6 className="text-muted">📦 Detalle de la compra</h6>
-                <div className="row fw-bold mb-2">
+                <div className="row fw-bold mb-2 small">
                   <div className="col-md-4">Nombre del Insumo</div>
                   <div className="col-md-4">Cantidad</div>
                   <div className="col-md-3">Precio</div>
                   <div className="col-md-1"></div>
                 </div>
                 {detalleCompra.map((item, index) => (
-                  <div key={index} className="row mb-2 align-items-center">
+                  <div key={index} className="row mb-1 align-items-center small">
                     <div className="col-md-4">
-                      <select className="form-select" value={item.insumo} onChange={e => actualizarDetalle(index, 'insumo', e.target.value)}>
+                      <select className="form-select form-select-sm" value={item.insumo} onChange={e => actualizarDetalle(index, 'insumo', e.target.value)} required>
                         <option value="">Seleccione un insumo</option>
                         {insumosMock.map(i => (
                           <option key={i.IdInsumos} value={i.Nombre}>{i.Nombre}</option>
@@ -133,47 +167,65 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
                       </select>
                     </div>
                     <div className="col-md-4">
-                      <input type="number" className="form-control" value={item.cantidad} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} />
+                      <input
+                        type="number"
+                        className="form-control form-control-sm"
+                        min={1}
+                        value={item.cantidad}
+                        onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)}
+                        required
+                      />
                     </div>
                     <div className="col-md-3">
-                      <input type="number" className="form-control" value={item.precio} readOnly />
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        value={Math.round(item.precio).toLocaleString('es-CO')}
+                        onChange={e =>
+                          actualizarDetalle(
+                            index,
+                            'precio',
+                            parseInt(e.target.value.replace(/\./g, '').replace(',', '')) || 0
+                          )
+                        }
+                      />
                     </div>
                     <div className="col-md-1 text-center">
                       <button className="btn btn-danger btn-sm" onClick={() => eliminarDetalle(index)}>✖</button>
                     </div>
                   </div>
                 ))}
-                <button type="button" className="btn pastel-btn-secondary" onClick={agregarDetalle}>+ Agregar Insumo</button>
+                <button type="button" className="btn btn-sm pastel-btn-secondary mt-2" onClick={agregarDetalle}>+ Agregar Insumo</button>
               </div>
 
-              {/* RESUMEN DE LA COMPRA */}
+              {/* Resumen de la Compra reducido */}
               <div className="col-12 mt-4">
                 <h6 className="text-muted mb-3">📊 Resumen de la Compra</h6>
                 <div className="row g-3">
                   <div className="col-md-4">
                     <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaMoneyBillWave size={20} className="mb-2 text-success" />
-                        <h6>Subtotal</h6>
-                        <p className="m-0">${calcularSubtotal().toLocaleString()}</p>
+                      <div className="card-body py-2 px-1">
+                        <FaMoneyBillWave size={18} className="mb-1 text-success" />
+                        <small className="d-block">Subtotal</small>
+                        <small className="m-0">${Math.round(calcularSubtotal()).toLocaleString('es-CO')}</small>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
                     <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaPercent size={20} className="mb-2 text-warning" />
-                        <h6>IVA (19%)</h6>
-                        <p className="m-0">${calcularIVA().toLocaleString()}</p>
+                      <div className="card-body py-2 px-1">
+                        <FaPercent size={18} className="mb-1 text-warning" />
+                        <small className="d-block">IVA (19%)</small>
+                        <small className="m-0">${Math.round(calcularIVA()).toLocaleString('es-CO')}</small>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
                     <div className="card pastel-card text-center">
-                      <div className="card-body">
-                        <FaCalculator size={20} className="mb-2 text-primary" />
-                        <h6>Total</h6>
-                        <p className="m-0">${calcularTotal().toLocaleString()}</p>
+                      <div className="card-body py-2 px-1">
+                        <FaCalculator size={18} className="mb-1 text-primary" />
+                        <small className="d-block">Total</small>
+                        <small className="m-0">${Math.round(calcularTotal()).toLocaleString('es-CO')}</small>
                       </div>
                     </div>
                   </div>
@@ -185,7 +237,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
 
           <div className="modal-footer pastel-footer">
             <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Registrar Compra</button>
+            <button className="btn pastel-btn-primary" onClick={handleSubmit}>Crear</button>
           </div>
         </div>
       </div>

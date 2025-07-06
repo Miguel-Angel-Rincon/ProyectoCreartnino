@@ -71,14 +71,90 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!/^\d+$/.test(formData.Celular)) {
-      return Swal.fire({ icon: 'error', title: 'Celular inválido', text: 'Solo dígitos.', confirmButtonColor: '#e83e8c' });
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const nombreCompletoValido = formData.NombreCompleto.trim().split(' ').length >= 2;
+    const celularValido = /^\d{10}$/.test(formData.Celular);
+    const documentoValido = /^\d{8,13}$/.test(formData.Numerodocumento);
+
+    if (!documentoValido) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Documento inválido',
+        text: 'Debe contener solo dígitos y tener entre 8 y 13 caracteres.',
+        confirmButtonColor: '#e83e8c'
+      });
     }
-    if (!/^\d+$/.test(formData.Numerodocumento)) {
-      return Swal.fire({ icon: 'error', title: 'Documento inválido', text: 'Solo dígitos.', confirmButtonColor: '#e83e8c' });
+
+    if (!nombreCompletoValido) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Nombre inválido',
+        text: 'Ingrese al menos nombre y apellido.',
+        confirmButtonColor: '#e83e8c'
+      });
     }
+
+    if (!correoRegex.test(formData.Correo)) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Correo inválido',
+        text: 'Ingrese un correo electrónico válido.',
+        confirmButtonColor: '#e83e8c'
+      });
+    }
+
+    if (!celularValido) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Celular inválido',
+        text: 'Debe contener exactamente 10 dígitos.',
+        confirmButtonColor: '#e83e8c'
+      });
+    }
+
     if (formData.Departamento && ciudades.length && !formData.Ciudad) {
-      return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
+      return Swal.fire({
+        icon: 'error',
+        title: 'Ciudad no seleccionada',
+        text: 'Seleccione una ciudad.',
+        confirmButtonColor: '#e83e8c'
+      });
+    }
+
+    if (direccionData.barrio || direccionData.calle || direccionData.codigoPostal) {
+      const barrioValido = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{2,}$/.test(direccionData.barrio);
+      const calleValida = /^[A-Za-z0-9 #\-]{3,}$/.test(direccionData.calle);
+      const codigoPostalValido = /^\d{6}$/.test(direccionData.codigoPostal);
+
+      if (!barrioValido) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Barrio inválido',
+          text: 'Solo letras y espacios, mínimo 2 caracteres.',
+          confirmButtonColor: '#e83e8c'
+        });
+      }
+
+      if (!calleValida) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Calle inválida',
+          text: 'Debe contener letras, números o guiones (mínimo 3 caracteres).',
+          confirmButtonColor: '#e83e8c'
+        });
+      }
+
+      if (!codigoPostalValido) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Código postal inválido',
+          text: 'Debe contener exactamente 6 dígitos.',
+          confirmButtonColor: '#e83e8c'
+        });
+      }
+
+      const fullDireccion = `${direccionData.barrio}, ${direccionData.calle}, CP ${direccionData.codigoPostal}`;
+      setFormData(prev => ({ ...prev, Direccion: fullDireccion }));
     }
 
     onCrear({ ...formData, IdClientes: idClienteActual++ });
@@ -111,7 +187,6 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">🧾 Tipo de Documento</label>
                   <select name="Tipodocumento" className="form-select" value={formData.Tipodocumento} onChange={handleChange} required>
                     <option value="CC">Cédula de Ciudadanía</option>
-                    
                     <option value="CE">Cédula de Extranjería</option>
                     <option value="TI">Tarjeta de Identidad</option>
                   </select>
@@ -152,7 +227,7 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">🏡 Dirección</label>
-                  <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} required />
+                  <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} />
                 </div>
               </div>
             </div>

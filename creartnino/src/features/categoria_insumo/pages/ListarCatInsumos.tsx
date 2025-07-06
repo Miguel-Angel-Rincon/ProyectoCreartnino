@@ -103,8 +103,9 @@ const ListarCatInsumos: React.FC = () => {
     setMostrarVerModal(true);
   };
 
-  const categoriasFiltradas = categorias.filter(c =>
-  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase())
+const categoriasFiltradas = categorias.filter(c =>
+  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+  c.Descripcion.toLowerCase().includes(busqueda.toLowerCase())
 );
 
   const indexInicio = (paginaActual - 1) * categoriasPorPagina;

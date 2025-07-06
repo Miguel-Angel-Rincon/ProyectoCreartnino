@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -6,19 +6,12 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
   CartesianGrid,
+  AreaChart,
+  Area,
 } from "recharts";
-import {
-  FaUsers,
-  FaBoxes,
-  FaShoppingCart,
-  FaChartLine,
-} from "react-icons/fa";
 import "../styles/DashboardStats.css";
 
-// Interfaces
 export interface MonthlyData {
   name: string;
   ventas: number;
@@ -42,7 +35,6 @@ export interface DashboardStatsProps {
   topProducts: Product[];
 }
 
-// Datos de prueba
 const dummyMonthlySales: MonthlyData[] = [
   { name: "Enero", ventas: 12000 },
   { name: "Febrero", ventas: 15000 },
@@ -76,25 +68,41 @@ const dummyMonthlyOrders: OrderData[] = [
 const dummyTopProducts: Product[] = [
   {
     id: 1,
-    name: "Camiseta Básica Blanca",
-    price: "$15.000",
-    img: "https://via.placeholder.com/150?text=Camiseta",
+    name: "Basos Tematica Amor",
+    price: "$30.000",
+    img: "https://i.pinimg.com/736x/bb/91/2c/bb912cdc1f75b2b2ea26c8cf899dd0f0.jpg",
   },
   {
     id: 2,
-    name: "Jeans Azul Oscuro",
+    name: "Cuaderno Personalizado",
     price: "$45.000",
-    img: "https://via.placeholder.com/150?text=Jeans",
+    img: "https://www.grupobillingham.com/images/63/91/35d2028311b20bdc4efe57ddad9d/610-460-3/libreta-para-ninos-personalizada.jpg",
   },
   {
     id: 3,
-    name: "Chaqueta Impermeable",
+    name: "Pesebre Navideño",
     price: "$85.000",
-    img: "https://via.placeholder.com/150?text=Chaqueta",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBtsn4z1r5LIlal0BWuIxqjaMEzgMq_taq6w&s",
   },
 ];
 
-// Componente principal
+const dummyMonthlyUsers: MonthlyData[] = [
+  { name: "Enero", ventas: 50 },
+  { name: "Febrero", ventas: 80 },
+  { name: "Marzo", ventas: 110 },
+  { name: "Abril", ventas: 140 },
+  { name: "Mayo", ventas: 170 },
+  { name: "Junio", ventas: 200 },
+  { name: "Julio", ventas: 230 },
+  { name: "Agosto", ventas: 260 },
+  { name: "Septiembre", ventas: 290 },
+  { name: "Octubre", ventas: 320 },
+  { name: "Noviembre", ventas: 360 },
+  { name: "Diciembre", ventas: 400 },
+];
+
+const TOTAL_USUARIOS = dummyMonthlyUsers[dummyMonthlyUsers.length - 1].ventas;
+
 export default function DashboardStatsDemo() {
   return (
     <DashboardStats
@@ -105,117 +113,188 @@ export default function DashboardStatsDemo() {
   );
 }
 
-// Componente DashboardStats
 function DashboardStats({
   monthlySales,
   monthlyOrders,
   topProducts,
 }: DashboardStatsProps) {
+  const [chartTypeUsuarios, setChartTypeUsuarios] = useState<"area" | "bar">("area");
+  const [chartTypeVentas, setChartTypeVentas] = useState<"area" | "bar">("bar");
+  const [chartTypePedidos, setChartTypePedidos] = useState<"area" | "bar">("bar");
+
   return (
     <div className="dashboard-container">
       <h2 className="dashboard-title">Dashboard</h2>
 
-      {/* Resumen de Datos */}
-      <div className="summary-grid">
-        <div className="summary-card purple">
-          <FaUsers className="summary-icon" />
-          <p className="summary-label">Usuarios Registrados</p>
-          <p className="summary-value">175</p>
-          <p className="summary-subtext">En total 700 usuarios</p>
-        </div>
-        <div className="summary-card pink">
-          <FaBoxes className="summary-icon" />
-          <p className="summary-label">Compras Insumos</p>
-          <p className="summary-value">$100,000 esta semana</p>
-          <p className="summary-subtext">Van $200,000 en el mes</p>
-        </div>
-        <div className="summary-card yellow">
-          <FaShoppingCart className="summary-icon" />
-          <p className="summary-label">Pedidos</p>
-          <p className="summary-value">14 pedidos esta semana</p>
-          <p className="summary-subtext">22 pedidos este mes</p>
-        </div>
-        <div className="summary-card cyan">
-          <FaChartLine className="summary-icon" />
-          <p className="summary-label">Venta de productos</p>
-          <p className="summary-value">2 productos entregados esta semana</p>
-          <p className="summary-subtext">7 productos entregados este mes</p>
-        </div>
-      </div>
-
-      {/* Gráfico de Ventas */}
+      {/* Usuarios */}
       <div className="chart-section">
-        <h3 className="chart-title">Ventas en el año anterior (2024)</h3>
-        {monthlySales.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlySales}>
+        <div className="chart-header">
+          <h3 className="chart-title">
+            Usuarios Registrados <span className="chart-subtitle">({TOTAL_USUARIOS} en total)</span>
+          </h3>
+          <button
+            onClick={() =>
+              setChartTypeUsuarios(chartTypeUsuarios === "area" ? "bar" : "area")
+            }
+            className="button-usuarios"
+          >
+            Cambiar a {chartTypeUsuarios === "area" ? "barra" : "área"}
+          </button>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          {chartTypeUsuarios === "area" ? (
+            <AreaChart
+              data={dummyMonthlyUsers}
+              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
+              margin={{ bottom: 50 }}
+            >
+              <defs>
+                <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f783ac" stopOpacity={0.7} />
+                  <stop offset="95%" stopColor="#fccde2" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
+              <YAxis />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#fff", borderColor: "#f783ac", color: "#000" }}
+                labelStyle={{ color: "#000" }}
+                itemStyle={{ color: "#f783ac" }}
+              />
+              <Area type="monotone" dataKey="ventas" stroke="#f783ac" fill="url(#pinkGradient)" />
+            </AreaChart>
+          ) : (
+            <BarChart
+              data={dummyMonthlyUsers}
+              style={{ background: "#ffffff", borderRadius: "8px" }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="ventas" fill="#4dabf7" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="ventas" fill="#f783ac" radius={[4, 4, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <p>No hay datos de ventas para mostrar</p>
-        )}
+          )}
+        </ResponsiveContainer>
+      </div>
+
+      {/* Ventas */}
+      <div className="chart-section">
+        <div className="chart-header">
+          <h3 className="chart-title">Ventas</h3>
+          <button
+            onClick={() =>
+              setChartTypeVentas(chartTypeVentas === "area" ? "bar" : "area")
+            }
+            className="button-ventas"
+          >
+            Cambiar a {chartTypeVentas === "area" ? "barra" : "área"}
+          </button>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          {chartTypeVentas === "bar" ? (
+            <BarChart
+              data={monthlySales}
+              style={{ background: "#ffffff", borderRadius: "8px" }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="ventas" fill="#b197fc" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          ) : (
+            <AreaChart
+              data={monthlySales}
+              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
+              margin={{ bottom: 50 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
+              <YAxis />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#fff", borderColor: "#b197fc", color: "#000" }}
+                labelStyle={{ color: "#000" }}
+                itemStyle={{ color: "#b197fc" }}
+              />
+              <Area type="monotone" dataKey="ventas" stroke="#b197fc" fill="#e5d5ff" />
+            </AreaChart>
+          )}
+        </ResponsiveContainer>
       </div>
 
       {/* Ganancias */}
       <div className="earnings-grid">
-        <div className="earning-card purple-light">
+        <div className="earning-card pastel-purple">
           <p className="summary-label">Ganancias mes anterior</p>
           <p className="earning-value">$600.000</p>
         </div>
-        <div className="earning-card green-light">
+        <div className="earning-card pastel-green">
           <p className="summary-label">Ganancias este mes</p>
           <p className="earning-value">$780.000</p>
           <p className="earning-subtext">+30% respecto al mes anterior</p>
         </div>
       </div>
 
-      {/* Pedidos últimos meses */}
+      {/* Pedidos */}
       <div className="chart-section">
-        <h3 className="chart-title">Pedidos últimos meses</h3>
-        {monthlyOrders.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyOrders}>
+        <div className="chart-header">
+          <h3 className="chart-title">Pedidos de los últimos meses</h3>
+          <button
+            onClick={() =>
+              setChartTypePedidos(chartTypePedidos === "area" ? "bar" : "area")
+            }
+            className="button-pedidos"
+          >
+            Cambiar a {chartTypePedidos === "area" ? "barra" : "área"}
+          </button>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          {chartTypePedidos === "area" ? (
+            <AreaChart
+              data={monthlyOrders}
+              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
+              margin={{ bottom: 50 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
+              <YAxis />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#ffffff", borderColor: "#f6c000", color: "#000" }}
+                labelStyle={{ color: "#000" }}
+                itemStyle={{ color: "#f6c000" }}
+              />
+              <Area type="monotone" dataKey="pedidos" stroke="#f6c000" fill="#fff3bf" />
+            </AreaChart>
+          ) : (
+            <BarChart
+              data={monthlyOrders}
+              style={{ background: "#ffffff", borderRadius: "8px" }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="pedidos"
-                stroke="#b197fc"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p>No hay datos de pedidos para mostrar</p>
-        )}
+              <Bar dataKey="pedidos" fill="#fff3bf" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
       </div>
 
-      {/* Productos más relevantes */}
+      {/* Productos */}
       <div>
         <h3 className="chart-title">Productos más relevantes del mes</h3>
         <div className="products-grid">
-          {topProducts.length > 0 ? (
-            topProducts.map((product) => (
-              <div key={product.id} className="product-card">
-                <img
-                  src={product.img}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <p className="product-name">{product.name}</p>
-                <p className="product-price">{product.price}</p>
+          {topProducts.map((product) => (
+            <div key={product.id} className="product-card">
+              <div className="product-image-wrapper">
+                <img src={product.img} alt={product.name} className="product-image-full" />
               </div>
-            ))
-          ) : (
-            <p>No hay productos relevantes este mes</p>
-          )}
+              <p className="product-name">{product.name}</p>
+              <p className="product-price">{product.price}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

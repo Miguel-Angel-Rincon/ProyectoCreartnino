@@ -4,9 +4,10 @@ import '../style/acciones.css';
 interface Proveedores {
   IdProveedores: number;
   TipoPersona: string;
-  IdTipoDocumento: string;
+  TipoDocumento: string;
   NombreCompleto: string;
   NumDocumento: string;
+  Departamento?: string;
   Ciudad: string;
   Direccion: string;
   Celular: string;
@@ -57,7 +58,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">🧾 Tipo de Documento</label>
-                <select className="form-select" disabled value={proveedor.IdTipoDocumento}>
+                <select className="form-select" disabled value={proveedor.TipoDocumento}>
                   <option value="CC">Cédula de Ciudadanía</option>
                   <option value="NIT">NIT</option>
                   <option value="CE">Cédula de Extranjería</option>
@@ -101,6 +102,15 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
               </div>
 
               <div className="col-md-6">
+                <label className="form-label">🏞️ Departamento</label>
+                <input
+                  className="form-control"
+                  value={proveedor.Departamento || ''}
+                  disabled
+                />
+              </div>
+
+              <div className="col-md-6">
                 <label className="form-label">🏙️ Ciudad</label>
                 <input
                   className="form-control"
@@ -109,7 +119,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
                 />
               </div>
 
-              <div className="col-md-12">
+              <div className="col-md-6">
                 <label className="form-label">🏡 Dirección</label>
                 <input
                   className="form-control"

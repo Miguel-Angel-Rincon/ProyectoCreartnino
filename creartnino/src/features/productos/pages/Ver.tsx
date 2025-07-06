@@ -48,7 +48,11 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
               </div>
               <div className="col-md-6">
                 <label className="form-label">💲 Precio</label>
-                <input className="form-control" value={`$${producto.precio.toFixed(0)}`} disabled />
+                <input
+                  className="form-control"
+                  value={`$${producto.precio.toLocaleString('es-CO')}`}
+                  disabled
+                />
               </div>
 
               {/* Marca */}
@@ -57,8 +61,9 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
                 <input className="form-control" value={producto.marca} disabled />
               </div>
 
-              {/* Vista previa de Imagen */}
+              {/* Imagen */}
               <div className="col-md-12">
+                <label className="form-label">🖼️ Imagen</label>
                 <div className="border rounded pastel-img-container p-2 text-center">
                   <img
                     src={producto.Imagen}
