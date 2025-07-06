@@ -1,10 +1,10 @@
 import { useState } from "react";
 import Swal from 'sweetalert2';
-import { FaEye, FaFilePdf, FaBan, FaPlus } from 'react-icons/fa';
+import { FaEye, FaFilePdf, FaBan, FaPlus, FaShoppingCart } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import CrearPedido from './Crear';
-import VerPedidoModal from './Ver';
+import VerPedido from './Ver';
 import '../styles/style.css';
 
 interface PedidoDetalle {
@@ -16,6 +16,7 @@ interface PedidoDetalle {
 interface Pedidos {
   IdPedido: number;
   IdCliente: string;
+  Direccion: string;
   MetodoPago: string;
   FechaPedido: string;
   FechaEntrega: string;
@@ -29,21 +30,49 @@ interface Pedidos {
 }
 
 const pedidosIniciales: Pedidos[] = [
- { IdPedido: 601, IdCliente: 'Lucas', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido de productos categoría 1', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante201.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
-  { IdPedido: 602, IdCliente: 'Marta', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido de productos categoría 2', ValorInicial: 10000, ValorRestante: 200000, ComprobantePago: 'comprobante202.jpg', TotalPedido: 200000, Estado: 'Pagado' },
-  { IdPedido: 603, IdCliente: 'Mario', MetodoPago: 'Transferencia', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido de productos categoría 3', ValorInicial: 5000, ValorRestante: 145000, ComprobantePago: 'comprobante203.jpg', TotalPedido: 150000, Estado: 'Parcial' },
-  { IdPedido: 604, IdCliente: 'Laura', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido de productos categoría 4', ValorInicial: 12000, ValorRestante: 108000, ComprobantePago: 'comprobante204.jpg', TotalPedido: 120000, Estado: 'Pendiente' },
-  { IdPedido: 605, IdCliente: 'Andres', MetodoPago: 'Efectivo', FechaPedido: '2025-05-05', FechaEntrega: '2025-05-09', Descripcion: 'Pedido de productos categoría 5', ValorInicial: 50000, ValorRestante: 180000, ComprobantePago: 'comprobante205.jpg', TotalPedido: 180000, Estado: 'Pagado' },
-  { IdPedido: 606, IdCliente: 'Penelope', MetodoPago: 'Transferencia', FechaPedido: '2025-05-06', FechaEntrega: '2025-05-10', Descripcion: 'Pedido de productos categoría 6', ValorInicial: 4000, ValorRestante: 156000, ComprobantePago: 'comprobante206.jpg', TotalPedido: 160000, Estado: 'Parcial' },
-  { IdPedido: 607, IdCliente: 'Juan', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-07', FechaEntrega: '2025-05-11', Descripcion: 'Pedido de productos categoría 7', ValorInicial: 30000, ValorRestante: 210000, ComprobantePago: 'comprobante207.jpg', TotalPedido: 210000, Estado: 'Pagado' },
-  { IdPedido: 608, IdCliente: 'Angel', MetodoPago: 'Efectivo', FechaPedido: '2025-05-08', FechaEntrega: '2025-05-12', Descripcion: 'Pedido de productos categoría 8', ValorInicial: 13000, ValorRestante: 117000, ComprobantePago: 'comprobante208.jpg', TotalPedido: 130000, Estado: 'Pendiente' }
+  {
+    IdPedido: 601,
+    IdCliente: 'Lucas',
+    Direccion: 'Cra 1 #45-67',
+    MetodoPago: 'Tarjeta',
+    FechaPedido: '2025-05-01',
+    FechaEntrega: '2025-05-05',
+    Descripcion: 'Pedido de productos categoría 1',
+    ValorInicial: 20000,
+    ValorRestante: 100000,
+    ComprobantePago: 'comprobante201.jpg',
+    TotalPedido: 120000,
+    Estado: 'Pendiente',
+    detallePedido: [
+      { producto: 'Camiseta', cantidad: 2, precio: 30000 },
+      { producto: 'Pantalón', cantidad: 1, precio: 40000 }
+    ]
+  },
+  {
+    IdPedido: 602,
+    IdCliente: 'Marta',
+    Direccion: 'Calle 89 #23-10',
+    MetodoPago: 'Efectivo',
+    FechaPedido: '2025-05-02',
+    FechaEntrega: '2025-05-06',
+    Descripcion: 'Pedido de productos categoría 2',
+    ValorInicial: 10000,
+    ValorRestante: 200000,
+    ComprobantePago: 'comprobante202.jpg',
+    TotalPedido: 200000,
+    Estado: 'Pagado',
+    detallePedido: [
+      { producto: 'Blusa', cantidad: 3, precio: 25000 }
+    ]
+  },
+  // Agrega más pedidos según necesites...
 ];
 
 const ListarPedidos: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedidos[]>(pedidosIniciales);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
-  const [mostrarModal, setMostrarModal] = useState(false);
+  const [modoCrear, setModoCrear] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedidos | null>(null);
 
   const pedidosPorPagina = 6;
@@ -74,7 +103,7 @@ const ListarPedidos: React.FC = () => {
   const handleCrearPedido = (nuevoPedido: Omit<Pedidos, 'IdPedido'>) => {
     const nuevoId = Math.max(...pedidos.map(p => p.IdPedido)) + 1;
     setPedidos(prev => [...prev, { ...nuevoPedido, IdPedido: nuevoId }]);
-    setMostrarModal(false);
+    setModoCrear(false);
     Swal.fire({
       icon: 'success',
       title: 'Pedido creado',
@@ -85,21 +114,15 @@ const ListarPedidos: React.FC = () => {
 
   const generarPDF = (pedido: Pedidos) => {
     const doc = new jsPDF();
-
     doc.setFontSize(20);
-    doc.setTextColor(40, 40, 40);
     doc.text(`Resumen de Pedido #${pedido.IdPedido}`, 105, 20, { align: 'center' });
-
-    doc.setLineWidth(0.5);
     doc.line(14, 25, 196, 25);
-
-    doc.setFontSize(12);
-    doc.setTextColor(60, 60, 60);
 
     const infoY = 32;
     const lineSpacing = 7;
     const labels = [
       ['Cliente', pedido.IdCliente],
+      ['Dirección', pedido.Direccion],
       ['Método de Pago', pedido.MetodoPago],
       ['Fecha del Pedido', pedido.FechaPedido],
       ['Fecha de Entrega', pedido.FechaEntrega],
@@ -112,15 +135,11 @@ const ListarPedidos: React.FC = () => {
 
     labels.forEach(([label, value], index) => {
       const y = infoY + index * lineSpacing;
-      
       doc.text(`${label}:`, 14, y);
-      
       doc.text(String(value), 60, y);
     });
 
     const tablaStartY = infoY + labels.length * lineSpacing + 5;
-    doc.line(14, tablaStartY - 3, 196, tablaStartY - 3);
-
     autoTable(doc, {
       startY: tablaStartY,
       head: [['Producto', 'Cantidad', 'Precio']],
@@ -135,18 +154,13 @@ const ListarPedidos: React.FC = () => {
         textColor: 255,
         fontStyle: 'bold',
       },
-      styles: {
-        fontSize: 11,
-        cellPadding: 3,
-      },
+      styles: { fontSize: 11, cellPadding: 3 },
     });
 
-    // Use doc.lastAutoTable.finalY if available, otherwise fallback to 140
     const finalY = (doc as any).lastAutoTable?.finalY || 140;
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`, 14, finalY + 10);
-
     doc.save(`Pedido-${pedido.IdPedido}.pdf`);
   };
 
@@ -159,11 +173,31 @@ const ListarPedidos: React.FC = () => {
   const pedidosPagina = pedidosFiltrados.slice(indexInicio, indexFin);
   const totalPaginas = Math.ceil(pedidosFiltrados.length / pedidosPorPagina);
 
+  if (pedidoSeleccionado) {
+    return (
+      <VerPedido
+        pedido={{ ...pedidoSeleccionado, detallePedido: pedidoSeleccionado.detallePedido ?? [] }}
+        onVolver={() => setPedidoSeleccionado(null)}
+      />
+    );
+  }
+
+  if (modoCrear) {
+    return (
+      <div className="container-fluid main-content">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="titulo"><FaShoppingCart className="text-primary" /> Crear Pedido</h2>
+        </div>
+        <CrearPedido onClose={() => setModoCrear(false)} onCrear={handleCrearPedido} />
+      </div>
+    );
+  }
+
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Pedidos</h2>
-        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
+        <button className="btn btn-pink" onClick={() => setModoCrear(true)}>
           <FaPlus className="me-2" />
           Crear Pedido
         </button>
@@ -203,21 +237,9 @@ const ListarPedidos: React.FC = () => {
                 <td>${p.TotalPedido.toLocaleString()}</td>
                 <td>{p.Estado}</td>
                 <td>
-                  <FaEye
-                    className="icono text-info me-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setPedidoSeleccionado(p)}
-                  />
-                  <FaBan
-                    className="icono text-warning me-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarPedido(p.IdPedido)}
-                  />
-                  <FaFilePdf
-                    className="icono text-danger"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => generarPDF(p)}
-                  />
+                  <FaEye className="icono text-info me-2" style={{ cursor: 'pointer' }} onClick={() => setPedidoSeleccionado(p)} />
+                  <FaBan className="icono text-warning me-2" style={{ cursor: 'pointer' }} onClick={() => handleEliminarPedido(p.IdPedido)} />
+                  <FaFilePdf className="icono text-danger" style={{ cursor: 'pointer' }} onClick={() => generarPDF(p)} />
                 </td>
               </tr>
             ))}
@@ -236,38 +258,6 @@ const ListarPedidos: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {mostrarModal && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal d-block" tabIndex={-1}>
-            <div className="modal-dialog modal-lg modal-dialog-scrollable">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Nuevo Pedido</h5>
-                  <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
-                </div>
-                <div className="modal-body">
-                  <CrearPedido
-                    onClose={() => setMostrarModal(false)}
-                    onCrear={handleCrearPedido}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {pedidoSeleccionado && (
-        <VerPedidoModal
-          pedido={{
-            ...pedidoSeleccionado,
-            detallePedido: pedidoSeleccionado.detallePedido ?? []
-          }}
-          onClose={() => setPedidoSeleccionado(null)}
-        />
-      )}
     </div>
   );
 };
