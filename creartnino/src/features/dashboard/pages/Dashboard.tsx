@@ -1,26 +1,20 @@
 import { useState } from "react";
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from "recharts";
 import "../styles/DashboardStats.css";
-
-export interface MonthlyData {
-  name: string;
-  ventas: number;
-}
-
-export interface OrderData {
-  name: string;
-  pedidos: number;
-}
 
 export interface Product {
   id: number;
@@ -29,43 +23,71 @@ export interface Product {
   img: string;
 }
 
-export interface DashboardStatsProps {
-  monthlySales: MonthlyData[];
-  monthlyOrders: OrderData[];
-  topProducts: Product[];
-}
+const ventasData = {
+  dia: [
+    { name: "Lunes", ventas: 3000 },
+    { name: "Martes", ventas: 5000 },
+    { name: "Miércoles", ventas: 4000 },
+    { name: "Jueves", ventas: 4500 },
+    { name: "Viernes", ventas: 6000 },
+    { name: "Sábado", ventas: 7000 },
+    { name: "Domingo", ventas: 5500 },
+  ],
+  semana: [
+    { name: "Semana 1", ventas: 12000 },
+    { name: "Semana 2", ventas: 15000 },
+    { name: "Semana 3", ventas: 17000 },
+    { name: "Semana 4", ventas: 20000 },
+  ],
+  mes: [
+    { name: "Enero", ventas: 12000 },
+    { name: "Febrero", ventas: 15000 },
+    { name: "Marzo", ventas: 18000 },
+    { name: "Abril", ventas: 20000 },
+    { name: "Mayo", ventas: 24000 },
+    { name: "Junio", ventas: 22000 },
+    { name: "Julio", ventas: 25000 },
+    { name: "Agosto", ventas: 27000 },
+    { name: "Septiembre", ventas: 30000 },
+    { name: "Octubre", ventas: 32000 },
+    { name: "Noviembre", ventas: 35000 },
+    { name: "Diciembre", ventas: 40000 },
+  ],
+};
 
-const dummyMonthlySales: MonthlyData[] = [
-  { name: "Enero", ventas: 12000 },
-  { name: "Febrero", ventas: 15000 },
-  { name: "Marzo", ventas: 18000 },
-  { name: "Abril", ventas: 20000 },
-  { name: "Mayo", ventas: 24000 },
-  { name: "Junio", ventas: 22000 },
-  { name: "Julio", ventas: 25000 },
-  { name: "Agosto", ventas: 27000 },
-  { name: "Septiembre", ventas: 30000 },
-  { name: "Octubre", ventas: 32000 },
-  { name: "Noviembre", ventas: 35000 },
-  { name: "Diciembre", ventas: 40000 },
-];
+const pedidosData = {
+  dia: [
+    { name: "Lunes", pedidos: 5 },
+    { name: "Martes", pedidos: 7 },
+    { name: "Miércoles", pedidos: 6 },
+    { name: "Jueves", pedidos: 8 },
+    { name: "Viernes", pedidos: 9 },
+    { name: "Sábado", pedidos: 10 },
+    { name: "Domingo", pedidos: 4 },
+  ],
+  semana: [
+    { name: "Semana 1", pedidos: 20 },
+    { name: "Semana 2", pedidos: 25 },
+    { name: "Semana 3", pedidos: 30 },
+    { name: "Semana 4", pedidos: 35 },
+  ],
+  mes: [
+    { name: "Enero", pedidos: 35 },
+    { name: "Febrero", pedidos: 42 },
+    { name: "Marzo", pedidos: 50 },
+    { name: "Abril", pedidos: 48 },
+    { name: "Mayo", pedidos: 60 },
+    { name: "Junio", pedidos: 55 },
+    { name: "Julio", pedidos: 65 },
+    { name: "Agosto", pedidos: 70 },
+    { name: "Septiembre", pedidos: 75 },
+    { name: "Octubre", pedidos: 80 },
+    { name: "Noviembre", pedidos: 90 },
+    { name: "Diciembre", pedidos: 95 },
+  ],
+};
 
-const dummyMonthlyOrders: OrderData[] = [
-  { name: "Enero", pedidos: 35 },
-  { name: "Febrero", pedidos: 42 },
-  { name: "Marzo", pedidos: 50 },
-  { name: "Abril", pedidos: 48 },
-  { name: "Mayo", pedidos: 60 },
-  { name: "Junio", pedidos: 55 },
-  { name: "Julio", pedidos: 65 },
-  { name: "Agosto", pedidos: 70 },
-  { name: "Septiembre", pedidos: 75 },
-  { name: "Octubre", pedidos: 80 },
-  { name: "Noviembre", pedidos: 90 },
-  { name: "Diciembre", pedidos: 95 },
-];
-
-const dummyTopProducts: Product[] = [
+const topProducts: Product[] = [
   {
     id: 1,
     name: "Basos Tematica Amor",
@@ -86,211 +108,152 @@ const dummyTopProducts: Product[] = [
   },
 ];
 
-const dummyMonthlyUsers: MonthlyData[] = [
-  { name: "Enero", ventas: 50 },
-  { name: "Febrero", ventas: 80 },
-  { name: "Marzo", ventas: 110 },
-  { name: "Abril", ventas: 140 },
-  { name: "Mayo", ventas: 170 },
-  { name: "Junio", ventas: 200 },
-  { name: "Julio", ventas: 230 },
-  { name: "Agosto", ventas: 260 },
-  { name: "Septiembre", ventas: 290 },
-  { name: "Octubre", ventas: 320 },
-  { name: "Noviembre", ventas: 360 },
-  { name: "Diciembre", ventas: 400 },
-];
-
-const TOTAL_USUARIOS = dummyMonthlyUsers[dummyMonthlyUsers.length - 1].ventas;
-
 export default function DashboardStatsDemo() {
   return (
-    <DashboardStats
-      monthlySales={dummyMonthlySales}
-      monthlyOrders={dummyMonthlyOrders}
-      topProducts={dummyTopProducts}
-    />
+    <DashboardStatsDemoComponent />
   );
 }
 
-function DashboardStats({
-  monthlySales,
-  monthlyOrders,
-  topProducts,
-}: DashboardStatsProps) {
-  const [chartTypeUsuarios, setChartTypeUsuarios] = useState<"area" | "bar">("area");
-  const [chartTypeVentas, setChartTypeVentas] = useState<"area" | "bar">("bar");
-  const [chartTypePedidos, setChartTypePedidos] = useState<"area" | "bar">("bar");
+function DashboardStatsDemoComponent() {
+  const [filtroVentas, setFiltroVentas] = useState<'dia' | 'semana' | 'mes'>('mes');
+  const [filtroPedidos, setFiltroPedidos] = useState<'dia' | 'semana' | 'mes'>('mes');
+  const [tipoGraficoVentas, setTipoGraficoVentas] = useState<'bar' | 'pie'>('bar');
+  const [tipoGraficoPedidos, setTipoGraficoPedidos] = useState<'area' | 'pie'>('area');
+
+  const dataVentas = ventasData[filtroVentas];
+  const dataPedidos = pedidosData[filtroPedidos];
+  const totalGanancias = dataVentas.reduce((acc, curr) => acc + curr.ventas, 0);
+
+  const COLORS = ['#8e44ad', '#f783ac', '#3498db', '#f6c000', '#2ecc71', '#ff9ff3', '#54a0ff'];
 
   return (
     <div className="dashboard-container">
-      <h2 className="dashboard-title">Dashboard</h2>
+      <h2 className="chart-title" style={{ color: '#000', textAlign: 'left' }}>Dashboard</h2>
 
-      {/* Usuarios */}
-      <div className="chart-section">
-        <div className="chart-header">
-          <h3 className="chart-title">
-            Usuarios Registrados <span className="chart-subtitle">({TOTAL_USUARIOS} en total)</span>
-          </h3>
-          <button
-            onClick={() =>
-              setChartTypeUsuarios(chartTypeUsuarios === "area" ? "bar" : "area")
-            }
-            className="button-usuarios"
-          >
-            Cambiar a {chartTypeUsuarios === "area" ? "barra" : "área"}
-          </button>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          {chartTypeUsuarios === "area" ? (
-            <AreaChart
-              data={dummyMonthlyUsers}
-              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
-              margin={{ bottom: 50 }}
-            >
-              <defs>
-                <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f783ac" stopOpacity={0.7} />
-                  <stop offset="95%" stopColor="#fccde2" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
-              <YAxis />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#fff", borderColor: "#f783ac", color: "#000" }}
-                labelStyle={{ color: "#000" }}
-                itemStyle={{ color: "#f783ac" }}
-              />
-              <Area type="monotone" dataKey="ventas" stroke="#f783ac" fill="url(#pinkGradient)" />
-            </AreaChart>
-          ) : (
-            <BarChart
-              data={dummyMonthlyUsers}
-              style={{ background: "#ffffff", borderRadius: "8px" }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="ventas" fill="#f783ac" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-      </div>
+      
 
-      {/* Ventas */}
       <div className="chart-section">
         <div className="chart-header">
           <h3 className="chart-title">Ventas</h3>
-          <button
-            onClick={() =>
-              setChartTypeVentas(chartTypeVentas === "area" ? "bar" : "area")
-            }
-            className="button-ventas"
-          >
-            Cambiar a {chartTypeVentas === "area" ? "barra" : "área"}
-          </button>
+          <div className="chart-controls">
+            <button
+              className="chart-toggle"
+              onClick={() => setTipoGraficoVentas(tipoGraficoVentas === 'bar' ? 'pie' : 'bar')}
+            >
+              Cambiar a {tipoGraficoVentas === 'bar' ? 'Torta' : 'Barra'}
+            </button>
+          </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {chartTypeVentas === "bar" ? (
-            <BarChart
-              data={monthlySales}
-              style={{ background: "#ffffff", borderRadius: "8px" }}
-            >
+          {tipoGraficoVentas === 'bar' ? (
+            <BarChart data={dataVentas}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
-              <Bar dataKey="ventas" fill="#b197fc" radius={[4, 4, 0, 0]} />
+              <Tooltip contentStyle={{ background: '#fff', borderColor: '#8884d8' }} />
+              <Bar dataKey="ventas" fill="#b197fc" radius={[6, 6, 0, 0]} />
             </BarChart>
           ) : (
-            <AreaChart
-              data={monthlySales}
-              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
-              margin={{ bottom: 50 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
-              <YAxis />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#fff", borderColor: "#b197fc", color: "#000" }}
-                labelStyle={{ color: "#000" }}
-                itemStyle={{ color: "#b197fc" }}
-              />
-              <Area type="monotone" dataKey="ventas" stroke="#b197fc" fill="#e5d5ff" />
-            </AreaChart>
+            <PieChart>
+              <Pie
+                data={dataVentas}
+                dataKey="ventas"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
+              >
+                {dataVentas.map((_entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
           )}
         </ResponsiveContainer>
       </div>
 
-      {/* Ganancias */}
-      <div className="earnings-grid">
-        <div className="earning-card pastel-purple">
-          <p className="summary-label">Ganancias mes anterior</p>
-          <p className="earning-value">$600.000</p>
-        </div>
-        <div className="earning-card pastel-green">
-          <p className="summary-label">Ganancias este mes</p>
-          <p className="earning-value">$780.000</p>
-          <p className="earning-subtext">+30% respecto al mes anterior</p>
-        </div>
+      <div className="ganancias-card">
+        <h3 className="chart-title">Total de ganancias ({filtroVentas})</h3>
+        <select
+          className="filtro-select"
+          value={filtroVentas}
+          onChange={(e) => setFiltroVentas(e.target.value as 'dia' | 'semana' | 'mes')}
+        >
+          <option value="dia">Día</option>
+          <option value="semana">Semana</option>
+          <option value="mes">Mes</option>
+        </select>
+        <p className="ganancia-monto">${totalGanancias.toLocaleString()}</p>
       </div>
 
-      {/* Pedidos */}
       <div className="chart-section">
         <div className="chart-header">
-          <h3 className="chart-title">Pedidos de los últimos meses</h3>
-          <button
-            onClick={() =>
-              setChartTypePedidos(chartTypePedidos === "area" ? "bar" : "area")
-            }
-            className="button-pedidos"
-          >
-            Cambiar a {chartTypePedidos === "area" ? "barra" : "área"}
-          </button>
+          <h3 className="chart-title">Pedidos</h3>
+          <div className="chart-controls">
+            <select
+              className="filtro-select"
+              value={filtroPedidos}
+              onChange={(e) => setFiltroPedidos(e.target.value as 'dia' | 'semana' | 'mes')}
+            >
+              <option value="dia">Día</option>
+              <option value="semana">Semana</option>
+              <option value="mes">Mes</option>
+            </select>
+                <button
+      onClick={() => setTipoGraficoPedidos(tipoGraficoPedidos === 'area' ? 'pie' : 'area')}
+      className="chart-toggle pink"
+    >
+      Cambiar a {tipoGraficoPedidos === 'area' ? 'Torta' : 'Área'}
+    </button>
+
+          </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          {chartTypePedidos === "area" ? (
-            <AreaChart
-              data={monthlyOrders}
-              style={{ background: "#ffffff", borderRadius: "8px", paddingBottom: "20px" }}
-              margin={{ bottom: 50 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" />
-              <YAxis />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#ffffff", borderColor: "#f6c000", color: "#000" }}
-                labelStyle={{ color: "#000" }}
-                itemStyle={{ color: "#f6c000" }}
-              />
-              <Area type="monotone" dataKey="pedidos" stroke="#f6c000" fill="#fff3bf" />
-            </AreaChart>
-          ) : (
-            <BarChart
-              data={monthlyOrders}
-              style={{ background: "#ffffff", borderRadius: "8px" }}
-            >
+          {tipoGraficoPedidos === 'area' ? (
+            <AreaChart data={dataPedidos}>
+              <defs>
+                <linearGradient id="colorPedidos" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f783ac" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#fde3f0" stopOpacity={0.2} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
+              <Tooltip contentStyle={{ background: '#fff', borderColor: '#f783ac' }} />
+              <Area type="monotone" dataKey="pedidos" stroke="#f783ac" fill="url(#colorPedidos)" />
+            </AreaChart>
+          ) : (
+            <PieChart>
+              <Pie
+                data={dataPedidos}
+                dataKey="pedidos"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
+              >
+                {dataPedidos.map((_entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
               <Tooltip />
-              <Bar dataKey="pedidos" fill="#fff3bf" radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <Legend />
+            </PieChart>
           )}
         </ResponsiveContainer>
       </div>
 
-      {/* Productos */}
-      <div>
+      <div className="products-grid">
         <h3 className="chart-title">Productos más relevantes del mes</h3>
-        <div className="products-grid">
+        <div className="products-container">
           {topProducts.map((product) => (
             <div key={product.id} className="product-card">
-              <div className="product-image-wrapper">
-                <img src={product.img} alt={product.name} className="product-image-full" />
-              </div>
+              <img src={product.img} alt={product.name} className="product-image-full" />
               <p className="product-name">{product.name}</p>
               <p className="product-price">{product.price}</p>
             </div>
