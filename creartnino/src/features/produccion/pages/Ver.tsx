@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import '../styles/acciones.css';
+// components/VerProduccionVista.tsx
+import React, { useState, useEffect } from 'react';
+import { Modal } from 'react-bootstrap';
+import Swal from 'sweetalert2';
+import '../styles/style.css';
 
 interface InsumoGasto {
   insumo: string;
@@ -30,107 +33,139 @@ interface Props {
   onClose: () => void;
 }
 
-const VerProduccionModal: React.FC<Props> = ({ produccion, onClose }) => {
+const VerProduccionVista: React.FC<Props> = ({ produccion, onClose }) => {
   const [mostrarSubmodal, setMostrarSubmodal] = useState<number | null>(null);
 
+  useEffect(() => {
+    const fechaFinal = new Date(produccion.FechaFinal);
+    const hoy = new Date();
+    const diferenciaTiempo = fechaFinal.getTime() - hoy.getTime();
+    const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+    if (diasRestantes >= 0) {
+      Swal.fire({
+        icon: 'info',
+        title: '⏳ Tiempo restante',
+        text: `Faltan ${diasRestantes} día(s) para finalizar esta producción.`,
+        confirmButtonColor: '#a58cf0',
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: '⚠️ Producción finalizada',
+        text: 'La fecha de finalización ya pasó.',
+        confirmButtonColor: '#f08c8c',
+      });
+    }
+  }, []);
+
+  const resumenInsumos = (insumos?: InsumoGasto[]) => {
+    if (!insumos || insumos.length === 0) return null;
+    const totales: Record<string, { usado: number; disponible: number }> = {};
+    insumos.forEach(ins => {
+      if (!totales[ins.insumo]) {
+        totales[ins.insumo] = { usado: 0, disponible: ins.disponible };
+      }
+      totales[ins.insumo].usado += ins.cantidadUsada;
+    });
+
+    return (
+      <div className="mt-3">
+        <h6 className="text-secondary">Resumen de Insumos:</h6>
+        <ul className="mb-0 ps-3">
+          {Object.entries(totales).map(([nombre, datos], i) => (
+            <li key={i}>
+              {nombre}: Usado {datos.usado} / Disponible {datos.disponible}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   return (
-    <>
-      <div className="modal d-block pastel-overlay">
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content pastel-modal shadow">
-            <div className="modal-header pastel-header">
-              <h5 className="modal-title">🔍 Detalle de Producción</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
-            </div>
+    <div className="container-fluid pastel-contenido">
+      <h2 className="titulo mb-4">🔍 Detalle de Producción</h2>
 
-            <div className="modal-body px-4 py-3">
-              <div className="row g-4">
-                {/* Datos generales */}
-                <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre de la Producción</label>
-                  <input className="form-control" value={produccion.Nombre} disabled />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">⚙️ Tipo de Producción</label>
-                  <input className="form-control" value={produccion.TipoProduccion} disabled />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">📅 Fecha de Inicio</label>
-                  <input type="date" className="form-control" value={produccion.FechaRegistro} disabled />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">📦 Fecha de Finalización</label>
-                  <input type="date" className="form-control" value={produccion.FechaFinal} disabled />
-                </div>
-
-                {/* Detalle productos */}
-                <div className="col-12 mt-4">
-                  <h6 className="text-muted">🧾 Detalle de la Producción</h6>
-                  <div className="row fw-bold mb-2">
-                    <div className="col-md-6">Nombre del Producto</div>
-                    <div className="col-md-3">Cantidad</div>
-                    <div className="col-md-3"></div>
-                  </div>
-
-                  {produccion.Productos.map((item, index) => (
-                    <div key={index} className="row mb-3 align-items-center">
-                      <div className="col-md-6">
-                        <input className="form-control" value={item.producto} disabled />
-                      </div>
-                      <div className="col-md-3">
-                        <input type="number" className="form-control" value={item.cantidad} disabled />
-                      </div>
-                      <div className="col-md-3">
-                        <button className="btn pastel-btn-secondary btn-sm" onClick={() => setMostrarSubmodal(index)}>
-                          Ver Insumos
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-footer pastel-footer">
-              <button className="btn pastel-btn-secondary" onClick={onClose}>Cerrar</button>
-            </div>
-          </div>
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label">🏷️ Nombre </label>
+          <input type="text" className="form-control" value={produccion.Nombre} disabled />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">⚙️ Tipo de Producción </label>
+          <input type="text" className="form-control" value={produccion.TipoProduccion} disabled />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">📅 Fecha de Inicio </label>
+          <input type="date" className="form-control" value={produccion.FechaRegistro} disabled />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">📦 Fecha de Finalización </label>
+          <input type="date" className="form-control" value={produccion.FechaFinal} disabled />
         </div>
       </div>
 
-      {mostrarSubmodal !== null && (
-        <div className="modal d-block pastel-overlay">
-          <div className="modal-dialog modal-md modal-dialog-centered">
-            <div className="modal-content pastel-modal shadow">
-              <div className="modal-header pastel-header">
-                <h5 className="modal-title">🧪 Insumos Usados</h5>
-                <button type="button" className="btn-close" onClick={() => setMostrarSubmodal(null)}></button>
-              </div>
-              <div className="modal-body">
-                {produccion.Productos[mostrarSubmodal].insumos && produccion.Productos[mostrarSubmodal].insumos!.length > 0 ? (
-                  <ul className="list-group">
-                    {produccion.Productos[mostrarSubmodal].insumos!.map((ins, i) => (
-                      <li key={i} className="list-group-item">
-                        <strong>{ins.insumo}</strong>: {ins.cantidadUsada} / {ins.disponible}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted">Sin insumos registrados para este producto.</p>
-                )}
-              </div>
-              <div className="modal-footer pastel-footer">
-                <button className="btn pastel-btn-primary" onClick={() => setMostrarSubmodal(null)}>Cerrar</button>
-              </div>
+      <div className="mt-4">
+        <h5 className="mb-2">📦 Detalle de la Producción</h5>
+        <div className="row fw-bold text-secondary mb-2">
+          <div className="col-md-5">Producto</div>
+          <div className="col-md-4">Cantidad</div>
+          <div className="col-md-3">Insumos</div>
+        </div>
+
+        {produccion.Productos.map((item, index) => (
+          <div key={index} className="row align-items-center mb-2">
+            <div className="col-md-5">
+              <input type="text" className="form-control" value={item.producto} disabled />
+            </div>
+            <div className="col-md-4">
+              <input type="number" className="form-control" value={item.cantidad} disabled />
+            </div>
+            <div className="col-md-3">
+              <button className="btn btn-outline-secondary btn-sm" onClick={() => setMostrarSubmodal(index)}>🧪</button>
+
+              <Modal show={mostrarSubmodal === index} onHide={() => setMostrarSubmodal(null)} centered className="pastel-modal">
+                <Modal.Header closeButton className="pastel-header">
+                  <Modal.Title>🧪 Insumos Usados</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  {item.insumos && item.insumos.length > 0 ? (
+                    <>
+                      {item.insumos.map((insumo, i) => (
+                        <div key={i} className="row align-items-center mb-2">
+                          <div className="col-md-6">
+                            <input type="text" className="form-control" value={insumo.insumo} disabled />
+                          </div>
+                          <div className="col-md-6">
+                            <input type="number" className="form-control" value={insumo.cantidadUsada} disabled />
+                          </div>
+                        </div>
+                      ))}
+                      {resumenInsumos(item.insumos)}
+                    </>
+                  ) : (
+                    <p className="text-muted">Sin insumos registrados para este producto.</p>
+                  )}
+                  <div className="text-end mt-3">
+                    <button className="btn pastel-btn-primary btn-sm" onClick={() => setMostrarSubmodal(null)}>
+                      ✔ Cerrar
+                    </button>
+                  </div>
+                </Modal.Body>
+              </Modal>
             </div>
           </div>
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+
+      <div className="text-end mt-4">
+        <button className="btn pastel-btn-secondary" onClick={onClose}>
+          Volver
+        </button>
+      </div>
+    </div>
   );
 };
 
-export default VerProduccionModal;
+export default VerProduccionVista;
