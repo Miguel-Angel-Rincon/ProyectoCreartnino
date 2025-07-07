@@ -1,0 +1,133 @@
+/* Registrar.css */
+
+.contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: white;
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: row;
+  background-color: #ffffff;
+  border-radius: 25px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.formulario {
+  background-color: #ffffff;
+  border-radius: 25px 0 0 25px;
+  padding: 40px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.titulo {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.input {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-weight: normal;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+}
+
+.campo-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icono-ojo {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #555;
+}
+
+.boton-principal {
+  background-color: #a2ded0;
+  padding: 10px;
+  border-radius: 25px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.boton-principal:hover {
+  background-color: #88d2c3;
+}
+
+.boton-secundario {
+  background-color: #b4e5e3;
+  padding: 10px;
+  border-radius: 25px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: black;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.boton-secundario:hover {
+  background-color: #a3d8d6;
+}
+
+.volver {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.volver a {
+  color: black;
+  text-decoration: none;
+}
+
+.imagen {
+  background-color: #f5cfd3;
+  border-radius: 0 25px 25px 0;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  text-align: center;
+}
+
+.imagen img {
+  width: 230px;
+  height: auto;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.asterisco {
+  color: red;
+  font-weight: bold;
+}

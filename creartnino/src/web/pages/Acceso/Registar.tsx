@@ -1,167 +1,138 @@
-import React, { useState } from 'react';
+// Registrar.tsx
+import  { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import registroImage from '/src/assets/Imagenes/RegistrerCreartnino.PNG';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import registroImage from '../../../assets/Imagenes/RegistrerCreartnino.jpg'
+import '../../styles/Registrar.css';
 
 const Registrar = () => {
-  const [usuario, setUsuario] = useState('');
-  const [contrasena, setContrasena] = useState('');
   const navigate = useNavigate();
+
+  const [tipoDocumento, setTipoDocumento] = useState('');
+  const [documento, setDocumento] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [confirmar, setConfirmar] = useState('');
+  const [codigo, setCodigo] = useState('');
+  const [verContrasena, setVerContrasena] = useState(false);
+  const [verConfirmar, setVerConfirmar] = useState(false);
+  const [mostrarCodigoInput, setMostrarCodigoInput] = useState(false);
 
   const showAlert = (title: string, text: string, icon: 'success' | 'warning' | 'error') => {
     return Swal.fire({ title, text, icon });
   };
 
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundColor: 'white',
-      fontFamily: 'sans-serif',
-      padding: '20px',
-    }}>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        backgroundColor: '#ffffff',
-        borderRadius: '25px',
-        boxShadow: '0 0 15px rgba(0,0,0,0.15)',
-        overflow: 'hidden',
-        width: 'fit-content'
-      }}>
+  const esCorreoValido = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
-        {/* Formulario de Registro */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '25px 0 0 25px',
-          padding: '40px',
-          width: '350px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          fontWeight: 'bold'
-        }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Registro</h2>
+  const esContrasenaSegura = (pass: string): boolean => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return regex.test(pass);
+  };
 
-          <label htmlFor="tipoDocumento">Tipo de documento</label>
-          <select id="tipoDocumento" style={{ ...inputStyle, padding: '10px' }}>
-            <option value="">Seleccione...</option>
-            <option value="cedula">Cédula</option>
-            <option value="pasaporte">Pasaporte</option>
-            <option value="otro">Otro</option>
-          </select>
-
-          <label htmlFor="documento">Documento</label>
-          <input id="documento" type="text" placeholder="Número de documento" style={inputStyle} />
-
-          <label htmlFor="nombre">Nombre</label>
-          <input id="nombre" type="text" placeholder="Nombre completo" style={inputStyle} />
-
-          <label htmlFor="correo">Correo electrónico</label>
-          <input id="correo" type="email" placeholder="Correo" style={inputStyle} />
-
-          <label htmlFor="contrasena">Contraseña</label>
-          <input
-            id="contrasena"
-            type="password"
-            placeholder="Contraseña"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            style={inputStyle}
-          />
-
-          <label htmlFor="confirmar">Confirmar contraseña</label>
-          <input
-            id="confirmar"
-            type="password"
-            placeholder="Confirmar contraseña"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
-            style={inputStyle}
-          />
-
-          {/* Botón con validación y navegación */}
-          <button
-  onClick={() => {
-    if (!usuario.trim() || !contrasena.trim()) {
+  const enviarRegistro = () => {
+    if (!tipoDocumento || !documento || !nombre || !correo || !contrasena || !confirmar) {
       return showAlert('Campos vacíos', 'Completa todos los campos.', 'warning');
     }
 
-    showAlert('Verificación exitosa', 'Ahora ingresa el código enviado.', 'success')
-      .then(() => {
-        navigate('/ingresar?recuperar=1');
-      });
-  }}
-  style={botonPrincipal}
->
-  Registrarse
-</button>
+    if (!esCorreoValido(correo)) {
+      return showAlert('Correo inválido', 'Ingresa un correo electrónico válido.', 'error');
+    }
 
+    if (contrasena !== confirmar) {
+      return showAlert('Error', 'Las contraseñas no coinciden.', 'error');
+    }
 
-          <Link to="/ingresar" style={{ ...buttonStyle, textAlign: 'center', textDecoration: 'none', color: 'black' }}>
-            Iniciar sesión
-          </Link>
+    if (!esContrasenaSegura(contrasena)) {
+      return showAlert(
+        'Contraseña insegura',
+        'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.',
+        'error'
+      );
+    }
 
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <Link to="/" style={{ color: 'black', textDecoration: 'none' }}>← Regresar</Link>
-          </div>
+    showAlert('Código enviado', 'Ingresa el código para confirmar tu registro.', 'success')
+      .then(() => setMostrarCodigoInput(true));
+  };
+
+  const validarCodigo = () => {
+    if (codigo !== '12345') {
+      return showAlert('Código inválido', 'El código ingresado no es correcto.', 'error');
+    }
+
+    showAlert('Registro exitoso', '¡Bienvenido a CreartNino!', 'success').then(() => {
+      navigate('/ingresar');
+    });
+  };
+
+  return (
+    <div className="contenedor">
+      <div className="tarjeta">
+        <div className="formulario">
+          {!mostrarCodigoInput ? (
+            <>
+              <h2 className="titulo">Registro</h2>
+
+              <label>Tipo de documento <span className="asterisco">*</span></label>
+              <select value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)} className="input">
+                <option value="">Seleccione...</option>
+                <option value="cedula">Cédula</option>
+                <option value="pasaporte">Pasaporte</option>
+                <option value="otro">Otro</option>
+              </select>
+
+              <label>Documento <span className="asterisco">*</span></label>
+              <input type="text" placeholder="Número de documento" value={documento} onChange={(e) => setDocumento(e.target.value)} className="input" />
+
+              <label>Nombre <span className="asterisco">*</span></label>
+              <input type="text" placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} className="input" />
+
+              <label>Correo electrónico <span className="asterisco">*</span></label>
+              <input type="email" placeholder="Correo" value={correo} onChange={(e) => setCorreo(e.target.value)} className="input" />
+
+              <label>Contraseña <span className="asterisco">*</span></label>
+              <div className="campo-password">
+                <input type={verContrasena ? 'text' : 'password'} placeholder="Contraseña" value={contrasena} onChange={(e) => setContrasena(e.target.value)} className="input" />
+                <span onClick={() => setVerContrasena(!verContrasena)} className="icono-ojo">
+                  {verContrasena ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              <label>Confirmar contraseña <span className="asterisco">*</span></label>
+              <div className="campo-password">
+                <input type={verConfirmar ? 'text' : 'password'} placeholder="Confirmar contraseña" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} className="input" />
+                <span onClick={() => setVerConfirmar(!verConfirmar)} className="icono-ojo">
+                  {verConfirmar ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              <button onClick={enviarRegistro} className="boton-principal">Registrarse</button>
+              <Link to="/ingresar" className="boton-secundario">Iniciar sesión</Link>
+              <div className="volver">
+                <Link to="/">&larr; Regresar</Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="titulo">Verificación</h2>
+              <label>Ingresa el código</label>
+              <input type="text" value={codigo} onChange={(e) => setCodigo(e.target.value)} className="input" placeholder="12345" />
+              <button onClick={validarCodigo} className="boton-principal">Validar código</button>
+              <button onClick={() => setMostrarCodigoInput(false)} className="boton-secundario">&larr; Volver</button>
+            </>
+          )}
         </div>
 
-        {/* Imagen lateral decorativa */}
-        <div style={{
-          backgroundColor: '#f5cfd3',
-          borderRadius: '0 25px 25px 0',
-          padding: '30px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '300px',
-          textAlign: 'center',
-        }}>
-          <img
-            src={registroImage}
-            alt="Registro CreartNino"
-            style={{
-              width: '230px',
-              height: 'auto',
-              borderRadius: '15px',
-              marginBottom: '20px',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-            }}
-          />
+        <div className="imagen">
+          <img src={registroImage} alt="Registro CreartNino" />
         </div>
       </div>
     </div>
   );
-};
-
-const inputStyle = {
-  padding: '10px',
-  marginBottom: '15px',
-  borderRadius: '10px',
-  border: '1px solid #ccc',
-  transition: 'all 0.3s ease-in-out',
-  outline: 'none',
-  fontWeight: 'normal',
-};
-
-const buttonStyle = {
-  backgroundColor: '#b4e5e3',
-  padding: '10px',
-  borderRadius: '25px',
-  border: 'none',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  marginBottom: '10px',
-  transition: 'transform 0.2s ease-in-out',
-};
-
-const botonPrincipal = {
-  ...buttonStyle,
-  backgroundColor: '#a2ded0',
 };
 
 export default Registrar;

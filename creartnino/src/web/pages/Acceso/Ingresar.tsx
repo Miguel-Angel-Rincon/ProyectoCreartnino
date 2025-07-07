@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../../styles/acceso.css';
 import ImagenIngresar from '../../../assets/Imagenes/imagen-ingresar.png';
 import { useAuth } from '../../../context/AuthContext';
@@ -13,7 +14,6 @@ const Ingresar = () => {
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [mostrarCodigoInput, setMostrarCodigoInput] = useState(false);
   const [mostrarNuevaContrasena, setMostrarNuevaContrasena] = useState(false);
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -33,6 +33,11 @@ const Ingresar = () => {
       confirmButtonText: 'OK',
       confirmButtonColor: '#7d3cf0',
     });
+  };
+
+  const esContrasenaSegura = (pass: string): boolean => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return regex.test(pass);
   };
 
   const handleLogin = () => {
@@ -79,6 +84,7 @@ const Ingresar = () => {
       return (
         <>
           <h3 className="titulo-form">Cambio de contraseña</h3>
+
           <label>Nueva contraseña</label>
           <div className="campo-password">
             <input
@@ -89,21 +95,7 @@ const Ingresar = () => {
               onChange={(e) => setNuevaPass(e.target.value)}
             />
             <span className="toggle-password" onClick={() => setVerNuevaPass(!verNuevaPass)}>
-              {verNuevaPass ? (
-                // Ojo tachado
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.97 10.97 0 0 1 12 20c-7 0-11-8-11-8a21.41 21.41 0 0 1 5.06-6.08" />
-                  <path d="M1 1l22 22" />
-                  <path d="M9.53 9.53a3 3 0 0 0 4.24 4.24" />
-                  <path d="M14.47 14.47L9.53 9.53" />
-                </svg>
-              ) : (
-                // Ojo abierto
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
+              {verNuevaPass ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
@@ -117,19 +109,7 @@ const Ingresar = () => {
               onChange={(e) => setConfirmPass(e.target.value)}
             />
             <span className="toggle-password" onClick={() => setVerConfirmPass(!verConfirmPass)}>
-              {verConfirmPass ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.97 10.97 0 0 1 12 20c-7 0-11-8-11-8a21.41 21.41 0 0 1 5.06-6.08" />
-                  <path d="M1 1l22 22" />
-                  <path d="M9.53 9.53a3 3 0 0 0 4.24 4.24" />
-                  <path d="M14.47 14.47L9.53 9.53" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
+              {verConfirmPass ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
@@ -140,7 +120,23 @@ const Ingresar = () => {
                 return showAlert('Campos requeridos', 'Por favor completa ambos campos.', 'warning');
               if (nuevaPass !== confirmPass)
                 return showAlert('Error', 'Las contraseñas no coinciden.', 'error');
-              setMostrarConfirmacion(true);
+              if (!esContrasenaSegura(nuevaPass))
+                return showAlert(
+                  'Contraseña insegura',
+                  'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.',
+                  'error'
+                );
+
+              showAlert('¡Contraseña actualizada!', 'Tu contraseña fue cambiada exitosamente.', 'success').then(() => {
+                setMostrarNuevaContrasena(false);
+                setMostrarRecuperar(false);
+                setCodigoEnviado(false);
+                setMostrarCodigoInput(false);
+                setNuevaPass('');
+                setConfirmPass('');
+                setCodigo('');
+                setEmail('');
+              });
             }}
           >
             Cambiar
@@ -166,7 +162,6 @@ const Ingresar = () => {
             setCodigoEnviado(false);
             setMostrarCodigoInput(false);
             setMostrarNuevaContrasena(false);
-            setMostrarConfirmacion(false);
           }}>Regresar</button>
         </>
       );
@@ -245,21 +240,6 @@ const Ingresar = () => {
           {renderContenido()}
         </div>
       </div>
-
-      {mostrarConfirmacion && (
-        <div className="modal-fondo">
-          <div className="modal-contenido">
-            <p><strong>El cambio de contraseña fue exitoso</strong></p>
-            <button className="boton-modal" onClick={() => {
-              setMostrarConfirmacion(false);
-              setMostrarNuevaContrasena(false);
-              setMostrarRecuperar(false);
-              setCodigoEnviado(false);
-              setMostrarCodigoInput(false);
-            }}>Iniciar Sesión</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
