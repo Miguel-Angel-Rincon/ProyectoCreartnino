@@ -1,3 +1,4 @@
+/* === Tarjetas pastel === */
 .pastel-card {
   background-color: #f9f4ff;
   border: 1px solid #e5d1ff;
@@ -9,7 +10,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Asegura el centrado vertical */
+  justify-content: center;
   text-align: center;
 }
 
@@ -31,36 +32,28 @@
   color: #9c6ade;
 }
 
-/* Fondo de overlay suave */
-.pastel-overlay {
-  background-color: rgba(249, 239, 245, 0.9);
+/* === Estilo general === */
+.main-content {
+  padding: 2rem;
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
-/* Modal visualmente limpio */
-.pastel-modal {
-  background-color: #fffdfd;
-  border-radius: 16px;
-  font-family: 'Segoe UI', sans-serif;
-  border: none;
+/* Título */
+.titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
 }
 
-/* Header en tono pastel */
-.pastel-header {
-  background: linear-gradient(to right, #fbc2eb, #d8578f);
-  color: #4a4a4a;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding: 1rem 1.5rem;
+/* Etiquetas con asterisco para campos obligatorios */
+.form-label::after {
+  content: '*';
+  color: #e83e8c;
+  margin-left: 4px;
 }
 
-/* Footer con diseño limpio */
-.pastel-footer {
-  background-color: #fdf3f6;
-  border-bottom-left-radius: 16px;
-  border-bottom-right-radius: 16px;
-}
-
-/* Botón pastel principal */
+/* Estilos botones pastel */
 .pastel-btn-primary {
   background-color: #cdeedd;
   border: none;
@@ -74,7 +67,6 @@
   background-color: #78ffae;
 }
 
-/* Botón secundario suave */
 .pastel-btn-secondary {
   background-color: #f78fb3;
   color: #3a3a3a;
@@ -88,7 +80,7 @@
   background-color: #f8d5f5;
 }
 
-/* Inputs y selects */
+/* Inputs y selects suaves */
 .form-control,
 .form-select {
   border-radius: 10px;
@@ -110,33 +102,64 @@
   margin-bottom: 0.4rem;
 }
 
-/* Switch elegante */
-.form-check-input {
-  background-color: #f4d7e8;
-  border: none;
+/* === Detalle de Producción: alineación de botones === */
+.detalle-acciones {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.3rem;
 }
 
-.form-check-input:checked {
-  background-color: #f78fb3;
-}
-
-/* Imagen contenedor suave */
-.pastel-img-container {
-  background-color: #fff0f5;
-  border: 1px dashed #f78fb3;
-}
-
-
+/* === Submodal (React-Bootstrap) === */
 .pastel-modal {
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* Sombra sutil y profesional */
+  background-color: #fffdfd;
+  border-radius: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.pastel-img-container img {
-  max-height: 250px;
-  object-fit: contain;
+.pastel-header {
+  background: linear-gradient(to right, #fbc2eb, #d8578f);
+  color: #4a4a4a;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 1rem 1.5rem;
 }
 
+.pastel-footer {
+  background-color: #fdf3f6;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Botones dentro del submodal */
+.btn-insumo {
+  background-color: #f06292;
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+}
+
+.btn-insumo:hover {
+  background-color: #ec407a;
+}
+
+/* Estilos dentro del submodal */
+.modal-body {
+  background-color: #fafafa;
+  border-radius: 0.5rem;
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+/* Inputs de calendario */
 .calendar-input {
   background-color: #f9f5ff;
   border: 1px solid #dab4ff;
@@ -146,39 +169,25 @@
   color: #4a3f61;
 }
 
-
+/* Select de estado */
 .estado-select {
   font-size: 0.75rem;
-  padding: 4px 10px;
-  width: auto;
+  padding: 6px 12px;
   min-width: 140px;
-  appearance: none;
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 6px 12px;
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  background-size: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: inherit;
-  outline: none;
   text-align: center;
-  cursor: default;
+  background-color: inherit;
   color: #333;
+  appearance: none;
+  outline: none;
+  cursor: default;
 }
 
-/* Ocultar flechas en navegadores */
-.estado-select::-ms-expand {
-  display: none;
-}
+.estado-select::-ms-expand,
 .estado-select::-webkit-inner-spin-button,
-.estado-select::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+.estado-select::-webkit-outer-spin-button,
 .estado-select::-webkit-dropdown-arrow {
   display: none;
 }
@@ -221,5 +230,13 @@
   background-color: #f8cccc !important;
 }
 
-/* Ocultar flecha en navegadores antiguos */
-.estado-select::-ms-expand { display: none; }
+/* Imagen contenedor */
+.pastel-img-container {
+  background-color: #fff0f5;
+  border: 1px dashed #f78fb3;
+}
+
+.pastel-img-container img {
+  max-height: 250px;
+  object-fit: contain;
+}

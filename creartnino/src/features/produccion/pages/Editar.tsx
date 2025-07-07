@@ -1,6 +1,7 @@
+// EditarProduccionModal.tsx
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import '../styles/acciones.css';
+import '../styles/style.css';
 
 interface InsumoGasto {
   insumo: string;
@@ -132,119 +133,125 @@ const EditarProduccionModal: React.FC<Props> = ({ produccion, onClose, onGuardar
     Swal.fire({ icon: 'success', title: 'Producción actualizada', confirmButtonColor: '#e83e8c' });
   };
 
+  const resumenInsumos = (insumos?: InsumoGasto[]) => {
+    if (!insumos || insumos.length === 0) return null;
+    const totales: Record<string, { usado: number; disponible: number }> = {};
+    insumos.forEach(ins => {
+      if (!totales[ins.insumo]) {
+        totales[ins.insumo] = { usado: 0, disponible: ins.disponible };
+      }
+      totales[ins.insumo].usado += ins.cantidadUsada;
+    });
+
+    return (
+      <div className="mt-3">
+        <h6 className="text-secondary">Resumen de Insumos:</h6>
+        <ul className="mb-0 ps-3">
+          {Object.entries(totales).map(([nombre, datos], i) => (
+            <li key={i}>
+              {nombre}: Usado {datos.usado} / Disponible {datos.disponible}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   return (
-    <>
-      <div className="modal d-block pastel-overlay">
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content pastel-modal shadow">
-            <div className="modal-header pastel-header">
-              <h5 className="modal-title">✏️ Editar Producción</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
-            </div>
+    <div className="container-fluid pastel-contenido">
+      <h2 className="titulo mb-4">✏️ Editar Producción</h2>
 
-            <div className="modal-body px-4 py-3">
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre de la Producción</label>
-                  <input className="form-control" value={form.Nombre} onChange={e => handleChange('Nombre', e.target.value)} />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">⚙️ Tipo de Producción</label>
-                  <select className="form-select" value={form.TipoProduccion} onChange={e => handleChange('TipoProduccion', e.target.value)}>
-                    <option value="">Seleccione</option>
-                    <option value="Directa">Directa</option>
-                    <option value="Pedido">Pedido</option>
-                  </select>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">📅 Fecha de Inicio</label>
-                  <input type="date" className="form-control" value={form.FechaRegistro} onChange={e => handleChange('FechaRegistro', e.target.value)} />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">📦 Fecha de Finalización</label>
-                  <input type="date" className="form-control" value={form.FechaFinal} onChange={e => handleChange('FechaFinal', e.target.value)} />
-                </div>
-
-                <div className="col-12 mt-4">
-                  <h6 className="text-muted">🧾 Detalle de la Producción</h6>
-                  <div className="row fw-bold mb-2">
-                    <div className="col-md-5">Nombre del Producto</div>
-                    <div className="col-md-3">Cantidad</div>
-                  </div>
-
-                  {form.Productos.map((item, index) => (
-                    <div key={index} className="row mb-2 align-items-center">
-                      <div className="col-md-5">
-                        <input className="form-control" value={item.producto} disabled />
-                      </div>
-                      <div className="col-md-3">
-                        <input type="number" className="form-control" value={item.cantidad} disabled />
-                      </div>
-                      <div className="col-md-2">
-                        <button className="btn btn-outline-secondary btn-sm" onClick={() => setMostrarSubmodal(index)}>🧪</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-footer pastel-footer">
-              <button className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button className="btn pastel-btn-primary" onClick={handleGuardar}>Guardar Cambios</button>
-            </div>
-          </div>
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label">🏷️ Nombre <span className="text-danger">*</span></label>
+          <input type="text" className="form-control" value={form.Nombre} onChange={e => handleChange('Nombre', e.target.value)} />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">⚙️ Tipo de Producción <span className="text-danger">*</span></label>
+          <select className="form-select" value={form.TipoProduccion} onChange={e => handleChange('TipoProduccion', e.target.value)}>
+            <option value="">Seleccione</option>
+            <option value="Directa">Directa</option>
+            <option value="Pedido">Pedido</option>
+          </select>
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">📅 Fecha de Inicio <span className="text-danger">*</span></label>
+          <input type="date" className="form-control" value={form.FechaRegistro} onChange={e => handleChange('FechaRegistro', e.target.value)} />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">📦 Fecha de Finalización <span className="text-danger">*</span></label>
+          <input type="date" className="form-control" value={form.FechaFinal} onChange={e => handleChange('FechaFinal', e.target.value)} />
         </div>
       </div>
 
-      {mostrarSubmodal !== null && (
-        <div className="modal d-block pastel-overlay">
-          <div className="modal-dialog modal-md modal-dialog-centered">
-            <div className="modal-content pastel-modal shadow">
-              <div className="modal-header pastel-header">
-                <h5 className="modal-title">🧪 Gasto de Insumos</h5>
-                <button type="button" className="btn-close" onClick={cerrarSubmodalValidado}></button>
-              </div>
-              <div className="modal-body">
-                {form.Productos[mostrarSubmodal].insumos?.map((insumo, i) => (
-                  <div key={i} className="row mb-2 align-items-center">
-                    <div className="col-md-6">
-                      <select className="form-select" value={insumo.insumo} onChange={e => handleInsumoChange(mostrarSubmodal, i, 'insumo', e.target.value)}>
-                        <option value="">Seleccione un insumo</option>
-                        {insumosMock.map(ins => (
-                          <option key={ins.IdInsumo} value={ins.Nombre}>{ins.Nombre}</option>
-                        ))}
-                      </select>
+      <div className="mt-4">
+        <h5 className="mb-2">📦 Detalle de la Producción</h5>
+        <div className="row fw-bold text-secondary mb-2">
+          <div className="col-md-5">Producto</div>
+          <div className="col-md-4">Cantidad</div>
+          <div className="col-md-3">Acciones <span className="text-danger">*</span></div>
+        </div>
+
+        {form.Productos.map((item, index) => (
+          <div key={index} className="row align-items-center mb-2">
+            <div className="col-md-5">
+              <input className="form-control" value={item.producto} disabled />
+            </div>
+            <div className="col-md-4">
+              <input className="form-control" value={item.cantidad} disabled />
+            </div>
+            <div className="col-md-3 d-flex gap-2">
+              <button className="btn btn-outline-secondary btn-sm" onClick={() => setMostrarSubmodal(index)}>
+                🧪 <span className="text-danger">*</span>
+              </button>
+            </div>
+
+            {mostrarSubmodal === index && (
+              <div className="modal d-block pastel-overlay">
+                <div className="modal-dialog modal-md modal-dialog-centered">
+                  <div className="modal-content pastel-modal shadow">
+                    <div className="modal-header pastel-header">
+                      <h5 className="modal-title">🧪 Gasto de Insumos</h5>
+                      <button type="button" className="btn-close" onClick={cerrarSubmodalValidado}></button>
                     </div>
-                    <div className="col-md-4">
-                      <input type="number" className="form-control" placeholder="Cantidad usada" value={insumo.cantidadUsada} onChange={e => handleInsumoChange(mostrarSubmodal, i, 'cantidadUsada', e.target.value)} />
-                    </div>
-                    <div className="col-md-2">
-                      <button className="btn btn-danger btn-sm" onClick={() => eliminarInsumo(mostrarSubmodal, i)}>✖</button>
+                    <div className="modal-body">
+                      {item.insumos?.map((insumo, i) => (
+                        <div key={i} className="row align-items-center mb-2">
+                          <div className="col-md-5">
+                            <select className="form-select" value={insumo.insumo} onChange={e => handleInsumoChange(index, i, 'insumo', e.target.value)}>
+                              <option value="">Seleccione</option>
+                              {insumosMock.map(ins => (
+                                <option key={ins.IdInsumo} value={ins.Nombre}>{ins.Nombre}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-md-5">
+                            <input type="number" className="form-control" value={insumo.cantidadUsada} onChange={e => handleInsumoChange(index, i, 'cantidadUsada', e.target.value)} />
+                          </div>
+                          <div className="col-md-2 text-end">
+                            <button className="btn btn-danger btn-sm" onClick={() => eliminarInsumo(index, i)}>✖</button>
+                          </div>
+                        </div>
+                      ))}
+                      {resumenInsumos(item.insumos)}
+                      <div className="text-end mt-3">
+                        <button className="btn btn-sm pastel-btn-secondary me-2" onClick={() => agregarInsumo(index)}>+ Agregar Insumo</button>
+                        <button className="btn btn-sm pastel-btn-primary" onClick={cerrarSubmodalValidado}>✔ Listo</button>
+                      </div>
                     </div>
                   </div>
-                ))}
-                <div className="text-end">
-                  <button className="btn pastel-btn-secondary btn-sm" onClick={() => agregarInsumo(mostrarSubmodal)}>+ Agregar Insumo</button>
-                </div>
-                <hr />
-                <div>
-                  <strong>Total insumos usados:</strong>
-                  <ul className="mt-2">
-                    {form.Productos[mostrarSubmodal].insumos?.map((ins, i) => (
-                      <li key={i}>{ins.insumo}: {ins.cantidadUsada} / {ins.disponible}</li>
-                    ))}
-                  </ul>
                 </div>
               </div>
-              <div className="modal-footer pastel-footer">
-                <button className="btn pastel-btn-primary" onClick={cerrarSubmodalValidado}>Listo</button>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+
+      <div className="text-end mt-4">
+        <button className="btn pastel-btn-secondary me-2" onClick={onClose}>Cancelar</button>
+        <button className="btn pastel-btn-primary" onClick={handleGuardar}>Guardar Cambios</button>
+      </div>
+    </div>
   );
 };
 
