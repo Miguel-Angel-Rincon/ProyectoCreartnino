@@ -59,7 +59,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-12">
-                  <label className="form-label">📛 Nombre</label>
+                  <label className="form-label">📛 Nombre <span className="text-danger">*</span></label>
                   <input
                     className="form-control"
                     name="Nombre"

@@ -9,10 +9,11 @@ import VerProveedoresModal from './Ver'; // 👈 Nuevo import
 
 interface Proveedores {
   IdProveedores: number;
-  IdTipoPersona: string;
-  IdTipoDocumento: string;
-  NombreCompleto: string;
+  TipoPersona: string;
+  TipoDocumento: string;
   NumDocumento: string;
+  NombreCompleto: string;
+  
   Ciudad: string;
   Direccion: string;
   Celular: string;
@@ -20,14 +21,14 @@ interface Proveedores {
 }
 
 const proveedoresiniciales: Proveedores[] = [
-  { IdProveedores: 1, IdTipoPersona: 'Natural', IdTipoDocumento: 'CC', NombreCompleto: 'Juan Pérez', NumDocumento: '123456789',  Ciudad: 'Medellín', Direccion: 'Cra 50 #45-20', Celular: '3001234567', estado: true },
-  { IdProveedores: 2, IdTipoPersona: 'Jurídica', IdTipoDocumento: 'NIT', NombreCompleto: 'Comercializadora XYZ S.A.S.', NumDocumento: '900123456', Ciudad: 'Bogotá', Direccion: 'Av 68 #24-30', Celular: '3109876543', estado: false },
-  { IdProveedores: 3, IdTipoPersona: 'Natural', IdTipoDocumento: 'CC', NombreCompleto: 'Ana Gómez', NumDocumento: '456789123',  Ciudad: 'Barranquilla', Direccion: 'Cll 72 #35-15', Celular: '3112233445', estado: true },
-  { IdProveedores: 4, IdTipoPersona: 'Jurídica', IdTipoDocumento: 'NIT', NombreCompleto: 'Distribuciones ABC Ltda.', NumDocumento: '901234567',  Ciudad: 'Cartagena', Direccion: 'Cra 17 #27-80', Celular: '3201122334', estado: true },
-  { IdProveedores: 5, IdTipoPersona: 'Natural', IdTipoDocumento: 'CC', NombreCompleto: 'Luis Martínez', NumDocumento: '321654987',  Ciudad: 'Cali', Direccion: 'Cll 5 #60-45', Celular: '3025566778', estado: false },
-  { IdProveedores: 6, IdTipoPersona: 'Jurídica', IdTipoDocumento: 'NIT', NombreCompleto: 'Importadora Nacional S.A.', NumDocumento: '902345678',  Ciudad: 'Medellín', Direccion: 'Cll 30 #80-70', Celular: '3134455667', estado: true },
-  { IdProveedores: 7, IdTipoPersona: 'Natural', IdTipoDocumento: 'CC', NombreCompleto: 'Carlos Ruiz', NumDocumento: '654987321',  Ciudad: 'Valledupar', Direccion: 'Cra 40 #18-90', Celular: '3049988776', estado: true },
-  { IdProveedores: 8, IdTipoPersona: 'Jurídica', IdTipoDocumento: 'NIT', NombreCompleto: 'Servicios Integrales SAS', NumDocumento: '903456789',  Ciudad: 'Villavicencio', Direccion: 'Cll 15 #33-55', Celular: '3011122334', estado: false }
+  { IdProveedores: 1, TipoPersona: 'Natural', TipoDocumento: 'CC', NombreCompleto: 'Juan Pérez', NumDocumento: '123456789',  Ciudad: 'Medellín', Direccion: 'Cra 50 #45-20', Celular: '3001234567', estado: true },
+  { IdProveedores: 2, TipoPersona: 'Jurídica', TipoDocumento: 'NIT', NombreCompleto: 'Comercializadora XYZ S.A.S.', NumDocumento: '900123456', Ciudad: 'Bogotá', Direccion: 'Av 68 #24-30', Celular: '3109876543', estado: false },
+  { IdProveedores: 3, TipoPersona: 'Natural', TipoDocumento: 'CC', NombreCompleto: 'Ana Gómez', NumDocumento: '456789123',  Ciudad: 'Barranquilla', Direccion: 'Cll 72 #35-15', Celular: '3112233445', estado: true },
+  { IdProveedores: 4, TipoPersona: 'Jurídica', TipoDocumento: 'NIT', NombreCompleto: 'Distribuciones ABC Ltda.', NumDocumento: '901234567',  Ciudad: 'Cartagena', Direccion: 'Cra 17 #27-80', Celular: '3201122334', estado: true },
+  { IdProveedores: 5, TipoPersona: 'Natural', TipoDocumento: 'CC', NombreCompleto: 'Luis Martínez', NumDocumento: '321654987',  Ciudad: 'Cali', Direccion: 'Cll 5 #60-45', Celular: '3025566778', estado: false },
+  { IdProveedores: 6, TipoPersona: 'Jurídica', TipoDocumento: 'NIT', NombreCompleto: 'Importadora Nacional S.A.', NumDocumento: '902345678',  Ciudad: 'Medellín', Direccion: 'Cll 30 #80-70', Celular: '3134455667', estado: true },
+  { IdProveedores: 7, TipoPersona: 'Natural', TipoDocumento: 'CC', NombreCompleto: 'Carlos Ruiz', NumDocumento: '654987321',  Ciudad: 'Valledupar', Direccion: 'Cra 40 #18-90', Celular: '3049988776', estado: true },
+  { IdProveedores: 8, TipoPersona: 'Jurídica', TipoDocumento: 'NIT', NombreCompleto: 'Servicios Integrales SAS', NumDocumento: '903456789',  Ciudad: 'Villavicencio', Direccion: 'Cll 15 #33-55', Celular: '3011122334', estado: false }
 ];
 
 
@@ -111,7 +112,10 @@ const ListarProveedores: React.FC = () => {
   };
 
   const proveedoresFiltrados = proveedores.filter(p =>
-    `${p.NombreCompleto}`.toLowerCase().includes(busqueda.toLowerCase())
+    p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.NumDocumento.includes(busqueda) ||
+    p.Ciudad.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.Celular.includes(busqueda)
   );
 
   const indexInicio = (paginaActual - 1) * productosPorPagina;
@@ -152,7 +156,7 @@ const ListarProveedores: React.FC = () => {
           <tbody>
             {proveedoresPagina.map((p, index) => (
               <tr key={p.IdProveedores} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{p.IdTipoDocumento}  - {p.NumDocumento}</td>
+                <td>{p.TipoDocumento} {p.NumDocumento}</td>
                 <td>{p.NombreCompleto}</td>
                 <td>{p.Celular}</td>
                 <td>{p.Ciudad}</td>

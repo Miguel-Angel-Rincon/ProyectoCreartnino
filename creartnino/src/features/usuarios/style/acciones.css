@@ -1,0 +1,106 @@
+/* Fondo de overlay suave */
+.pastel-overlay {
+  background-color: rgba(249, 239, 245, 0.9);
+}
+
+/* Modal visualmente limpio */
+.pastel-modal {
+  background-color: #fffdfd;
+  border-radius: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  border: none;
+}
+
+/* Header en tono pastel */
+.pastel-header {
+  background: linear-gradient(to right, #fbc2eb, #d8578f);
+  color: #4a4a4a;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 1rem 1.5rem;
+}
+
+/* Footer con diseño limpio */
+.pastel-footer {
+  background-color: #fdf3f6;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Botón pastel principal */
+.pastel-btn-primary {
+  background-color: #cdeedd;
+  border: none;
+  color: black;
+  border-radius: 8px;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.pastel-btn-primary:hover {
+  background-color: #78ffae;
+}
+
+/* Botón secundario suave */
+.pastel-btn-secondary {
+  background-color: #f78fb3;
+  color: #3a3a3a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.pastel-btn-secondary:hover {
+  background-color: #f8d5f5;
+}
+
+/* Inputs y selects */
+.form-control,
+.form-select {
+  border-radius: 10px;
+  border: 1px solid #e6cce2;
+  background-color: #fffafc;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #f78fb3;
+  box-shadow: 0 0 5px rgba(247, 143, 179, 0.3);
+}
+
+/* Etiquetas suaves */
+.form-label {
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+/* Switch elegante */
+.form-check-input {
+  background-color: #f4d7e8;
+  border: none;
+}
+
+.form-check-input:checked {
+  background-color: #f78fb3;
+}
+
+/* Imagen contenedor suave */
+.pastel-img-container {
+  background-color: #fff0f5;
+  border: 1px dashed #f78fb3;
+}
+
+
+.pastel-modal {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* Sombra sutil y profesional */
+}
+
+.pastel-img-container img {
+  max-height: 250px;
+  object-fit: contain;
+}
+

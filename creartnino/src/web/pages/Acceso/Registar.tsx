@@ -1,7 +1,17 @@
-import React from 'react';
-import registroImage from '/src/assets/Imagenes/RegistrerCreartnino.PNG'; // Ajusta si es necesario
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import registroImage from '/src/assets/Imagenes/RegistrerCreartnino.PNG';
 
 const Registrar = () => {
+  const [usuario, setUsuario] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const navigate = useNavigate();
+
+  const showAlert = (title: string, text: string, icon: 'success' | 'warning' | 'error') => {
+    return Swal.fire({ title, text, icon });
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -33,13 +43,8 @@ const Registrar = () => {
           justifyContent: 'center',
           fontWeight: 'bold'
         }}>
-          <h2 style={{
-            textAlign: 'center',
-            marginBottom: '20px',
-            color: '#333'
-          }}>Registro</h2>
+          <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Registro</h2>
 
-          {/* Tipo de documento */}
           <label htmlFor="tipoDocumento">Tipo de documento</label>
           <select id="tipoDocumento" style={{ ...inputStyle, padding: '10px' }}>
             <option value="">Seleccione...</option>
@@ -48,36 +53,22 @@ const Registrar = () => {
             <option value="otro">Otro</option>
           </select>
 
-          {/* Documento */}
           <label htmlFor="documento">Documento</label>
-          <input
-            id="documento"
-            type="text"
-            placeholder="Número de documento"
-            style={inputStyle}
-          />
+          <input id="documento" type="text" placeholder="Número de documento" style={inputStyle} />
 
           <label htmlFor="nombre">Nombre</label>
-          <input
-            id="nombre"
-            type="text"
-            placeholder="Nombre completo"
-            style={inputStyle}
-          />
+          <input id="nombre" type="text" placeholder="Nombre completo" style={inputStyle} />
 
           <label htmlFor="correo">Correo electrónico</label>
-          <input
-            id="correo"
-            type="email"
-            placeholder="Correo"
-            style={inputStyle}
-          />
+          <input id="correo" type="email" placeholder="Correo" style={inputStyle} />
 
           <label htmlFor="contrasena">Contraseña</label>
           <input
             id="contrasena"
             type="password"
             placeholder="Contraseña"
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
             style={inputStyle}
           />
 
@@ -86,29 +77,35 @@ const Registrar = () => {
             id="confirmar"
             type="password"
             placeholder="Confirmar contraseña"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
             style={inputStyle}
           />
 
-          <button style={buttonStyle}>
-            Registrarse
-          </button>
+          {/* Botón con validación y navegación */}
+          <button
+  onClick={() => {
+    if (!usuario.trim() || !contrasena.trim()) {
+      return showAlert('Campos vacíos', 'Completa todos los campos.', 'warning');
+    }
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginTop: '10px',
-            fontSize: '14px'
-          }}>
-            <a href="/recuperar-contrasena" style={{ color: '#7d3cf0', textDecoration: 'underline' }}>
-              ¿Olvidaste tu contraseña?
-            </a>
-            <a href="/login" style={{ color: '#000' }}>
-              Iniciar sesión
-            </a>
-          </div>
+    showAlert('Verificación exitosa', 'Ahora ingresa el código enviado.', 'success')
+      .then(() => {
+        navigate('/ingresar?recuperar=1');
+      });
+  }}
+  style={botonPrincipal}
+>
+  Registrarse
+</button>
+
+
+          <Link to="/ingresar" style={{ ...buttonStyle, textAlign: 'center', textDecoration: 'none', color: 'black' }}>
+            Iniciar sesión
+          </Link>
 
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <a href="/" style={{ color: 'black', textDecoration: 'none' }}>← Regresar</a>
+            <Link to="/" style={{ color: 'black', textDecoration: 'none' }}>← Regresar</Link>
           </div>
         </div>
 
@@ -126,7 +123,7 @@ const Registrar = () => {
         }}>
           <img
             src={registroImage}
-            alt="Registro CreatNino"
+            alt="Registro CreartNino"
             style={{
               width: '230px',
               height: 'auto',
@@ -160,6 +157,11 @@ const buttonStyle = {
   cursor: 'pointer',
   marginBottom: '10px',
   transition: 'transform 0.2s ease-in-out',
+};
+
+const botonPrincipal = {
+  ...buttonStyle,
+  backgroundColor: '#a2ded0',
 };
 
 export default Registrar;

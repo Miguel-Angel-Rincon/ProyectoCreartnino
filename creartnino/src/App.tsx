@@ -7,9 +7,9 @@ function App() {
   return (
     <Router>
       <Routesweb />
-      <div style={{ marginLeft: 250, padding: "2rem" }}>
+      
         <AppRoutes />
-      </div>
+      
     </Router>
   );
 }

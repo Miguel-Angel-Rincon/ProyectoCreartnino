@@ -1,0 +1,114 @@
+/* src/styles/CategoriasProductos.css */
+
+.categorias-container {
+  padding: 2rem;
+  background: #ffffff;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.titulo {
+  text-align: center;
+  font-size: 2rem;
+  color: #d46dbb;
+  margin-bottom: 2.5rem;
+  font-weight: 700;
+}
+
+.categorias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.8rem;
+}
+
+/* Tarjeta de producto */
+.categoria-card {
+  background: #ffeaf5;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 1.3rem 1rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.categoria-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+
+.categoria-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+}
+
+.categoria-card h3 {
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.precio {
+  color: #d46dbb;
+  font-weight: bold;
+  margin: 0.4rem 0;
+  font-size: 1.05rem;
+}
+
+/* Cantidad */
+.cantidad-container {
+  margin: 0.7rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cantidad-container input {
+  width: 60px;
+  padding: 0.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* Botón */
+.btn-agregar {
+  background: linear-gradient(135deg, #fca3cc, #e492c5);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  color: white;
+  border-radius: 2rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-agregar:hover {
+  background: linear-gradient(135deg, #ec7fb9, #d676ad);
+  transform: scale(1.05);
+}
+
+/* RESPONSIVE ajustes adicionales */
+@media (min-width: 1200px) {
+  .categorias-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .categorias-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .categorias-grid {
+    grid-template-columns: 1fr;
+  }
+}

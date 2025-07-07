@@ -1,0 +1,113 @@
+/* src/styles/PersonalizarProductoModal.css */
+
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeInBackground 0.3s ease-in-out;
+}
+
+.modal-personalizar {
+  background: #fff0fa;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+.modal-personalizar h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  color: #f072d1;
+}
+
+.modal-personalizar textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 1rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  font-size: 1rem;
+  resize: vertical;
+  font-family: inherit;
+  background: #fff;
+  transition: border 0.3s ease;
+}
+
+.modal-personalizar textarea:focus {
+  outline: none;
+  border-color: #f072d1;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modal-botones button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 1rem;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancelar {
+  background-color: #e0e0e0;
+  color: #444;
+}
+
+.btn-cancelar:hover {
+  background-color: #c6c6c6;
+}
+
+.btn-guardar {
+  background-color: #f072d1;
+  color: white;
+}
+
+.btn-guardar:hover {
+  background-color: #e05fbf;
+}
+
+.btn-guardar:disabled {
+  background-color: #f5b7dd;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Animaciones */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInBackground {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+}
