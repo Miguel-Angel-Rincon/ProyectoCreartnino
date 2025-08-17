@@ -44,7 +44,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       IdInsumos: idInsumoActual++,
       IdCatInsumo: form.categoria.value,
       Nombre: form.nombre.value,
-      // UnidadMedida: form.unidadMedida.value || '', // no obligatorio
+      UnidadesMedidas: form.unidadMedida.value || '', // no obligatorio
       cantidad,
       precioUnitario,
       estado: form.estado?.checked ?? false,
@@ -89,7 +89,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </select>
                 </div>
 
-                {/* Unidad de Medida (opcional)
+                
                 <div className="col-md-6">
                   <label className="form-label">
                     ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
@@ -99,7 +99,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     name="unidadMedida"
                     placeholder="Ej: kg, mL, unidades..."
                   />
-                </div> */}
+                </div>
 
                 {/* Cantidad */}
                 <div className="col-md-6">

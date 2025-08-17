@@ -6,7 +6,7 @@ interface Insumos {
   IdInsumos: number;
   IdCatInsumo: string;
   Nombre: string;
-  Descripcion: string; // ahora será Unidad de Medida
+  UnidadesMedidas: string; // ahora será Unidad de Medida
   cantidad: number;
   precioUnitario: number;
   estado: boolean;
@@ -147,7 +147,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   </select>
                 </div>
 
-                {/* Unidad de Medida (antes Descripción)
+                {/* Unidad de Medida */}
                 <div className="col-md-6">
                   <label className="form-label">
                     ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
@@ -155,11 +155,11 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   <input
                     className="form-control"
                     name="Descripcion"
-                    value={formData.Descripcion}
+                    value={formData.UnidadesMedidas}
                     onChange={handleChange}
                     placeholder="Ej: kg, mL, unidades..."
                   />
-                </div> */}
+                </div> 
 
                 {/* Cantidad */}
                 <div className="col-md-6">

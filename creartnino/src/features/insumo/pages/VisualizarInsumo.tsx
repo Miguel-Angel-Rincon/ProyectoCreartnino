@@ -6,7 +6,7 @@ interface Insumos {
   IdInsumos: number;
   IdCatInsumo: string;
   Nombre: string;
-  Descripcion: string; // ahora representa Unidad de Medida
+  UnidadesMedidas: string; // ahora representa Unidad de Medida
   cantidad: number;
   precioUnitario: number;
   estado: boolean;
@@ -56,16 +56,16 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
                 <input className="form-control" value={insumo.IdCatInsumo} disabled />
               </div>
 
-              {/* Unidad de Medida (antes descripción)
+              
               <div className="col-md-6">
                 <label className="form-label">⚖ Unidad de Medida</label>
                 <input
                   className="form-control"
-                  value={insumo.Descripcion}
+                  value={insumo.UnidadesMedidas}
                   disabled
-                  title={insumo.Descripcion}
+                  title={insumo.UnidadesMedidas || 'No especificada'}
                 />
-              </div> */}
+              </div> 
 
               {/* Cantidad y Precio */}
               <div className="col-md-6">
