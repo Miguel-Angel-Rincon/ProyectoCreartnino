@@ -56,7 +56,7 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
                 <input className="form-control" value={insumo.IdCatInsumo} disabled />
               </div>
 
-              {/* Unidad de Medida (antes descripción) */}
+              {/* Unidad de Medida (antes descripción)
               <div className="col-md-6">
                 <label className="form-label">⚖ Unidad de Medida</label>
                 <input
@@ -65,7 +65,7 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
                   disabled
                   title={insumo.Descripcion}
                 />
-              </div>
+              </div> */}
 
               {/* Cantidad y Precio */}
               <div className="col-md-6">

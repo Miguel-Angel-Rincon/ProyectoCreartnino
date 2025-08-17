@@ -12,6 +12,7 @@ export interface Usuario {
   Ciudad: string;
   Direccion: string;
   Correo: string;
+  contrasena?: string;
   idRol: string;
   estado: boolean;
 }
@@ -33,9 +34,12 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
     Ciudad: '',
     Direccion: '',
     Correo: '',
+    contrasena: '',
     idRol: '',
     estado: true,
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
@@ -160,6 +164,29 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 <div className="col-md-6">
+                  <label className="form-label">🔐 Contraseña <span className="text-danger">*</span></label>
+                  <div className="input-group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="contrasena"
+                    className="form-control"
+                    value={formData.contrasena}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(prev => !prev)}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
                   <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
                   <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange} required>
                     <option value="">Seleccione un departamento</option>
@@ -218,15 +245,15 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Barrio</label>
+                      <label>Municipio</label>
                       <input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera</label>
+                      <label>Barrio</label>
                       <input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} />
                     </div>
                     <div className="mb-3">
-                      <label>Código Postal</label>
+                      <label>Calle / Carrera</label>
                       <input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} />
                     </div>
                   </div>

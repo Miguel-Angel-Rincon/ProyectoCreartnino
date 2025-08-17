@@ -11,6 +11,7 @@ interface Usuario {
   Departamento: string;
   Ciudad: string;
   Correo: string;
+  contrasena: string;
   idRol: string;
   estado: boolean;
 }
@@ -27,6 +28,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({ barrio: '', calle: '', codigoPostal: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setFormData(usuario);
@@ -177,6 +179,29 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   <label className="form-label">📧 Correo Electrónico <span className="text-danger">*</span></label>
                   <input type="email" name="Correo" className="form-control" value={formData.Correo} onChange={handleChange} required />
                 </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">🔐 Contraseña <span className="text-danger">*</span></label>
+                  <div className="input-group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="contrasena"
+                    className="form-control"
+                    value={formData.contrasena}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                  </div>
+                </div>
+
                 <div className="col-md-6">
                   <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
                   <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange} required>
@@ -227,9 +252,9 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3"><label>Barrio</label><input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} /></div>
-                    <div className="mb-3"><label>Calle / Carrera</label><input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} /></div>
-                    <div className="mb-3"><label>Código Postal</label><input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} /></div>
+                    <div className="mb-3"><label>Municipio</label><input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} /></div>
+                    <div className="mb-3"><label>Barrio</label><input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} /></div>
+                    <div className="mb-3"><label>Calle / Carrera</label><input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} /></div>
                   </div>
                   <div className="modal-footer pastel-footer">
                     <button className="btn pastel-btn-secondary" onClick={() => setShowDireccionModal(false)}>Cancelar</button>

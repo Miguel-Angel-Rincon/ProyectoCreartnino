@@ -26,11 +26,19 @@ const insumosMock = [
   { IdInsumos: 307, Nombre: 'Palos Paleta', precioUnitario: 40000 }
 ];
 
+// Helper para obtener la fecha actual en formato yyyy-mm-dd
+const getToday = () => {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
 const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState('');
   const [metodoPago, setMetodoPago] = useState('');
-  const [fechaCompra, setFechaCompra] = useState('');
   const [detalleCompra, setDetalleCompra] = useState<CompraDetalle[]>([]);
+  const fechaCompra = getToday(); // Siempre la fecha actual
 
   const agregarDetalle = () => {
     setDetalleCompra([...detalleCompra, { insumo: '', cantidad: 0, precio: 0 }]);
@@ -61,7 +69,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const calcularTotal = () => calcularSubtotal() + calcularIVA();
 
   const handleSubmit = () => {
-    if (!proveedorSeleccionado || !metodoPago || !fechaCompra) {
+    if (!proveedorSeleccionado || !metodoPago) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
@@ -153,7 +161,8 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             type="date"
             className="form-control"
             value={fechaCompra}
-            onChange={e => setFechaCompra(e.target.value)}
+            disabled // No se puede modificar
+            readOnly
           />
         </div>
       </div>

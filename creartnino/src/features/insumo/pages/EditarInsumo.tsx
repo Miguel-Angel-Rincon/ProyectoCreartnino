@@ -147,7 +147,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   </select>
                 </div>
 
-                {/* Unidad de Medida (antes Descripción) */}
+                {/* Unidad de Medida (antes Descripción)
                 <div className="col-md-6">
                   <label className="form-label">
                     ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
@@ -159,7 +159,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     onChange={handleChange}
                     placeholder="Ej: kg, mL, unidades..."
                   />
-                </div>
+                </div> */}
 
                 {/* Cantidad */}
                 <div className="col-md-6">

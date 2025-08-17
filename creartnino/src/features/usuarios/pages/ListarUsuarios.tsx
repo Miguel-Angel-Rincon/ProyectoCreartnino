@@ -16,19 +16,20 @@ interface Usuarios {
   Departamento: string;
   Ciudad: string;
   Correo: string;
+  contrasena?: string;
   idRol: string;
   estado: boolean;
 }
 
 const usuariosiniciales: Usuarios[] = [
-  { IdUsuarios: 1, NombreCompleto: 'Juan Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'juan.perez@example.com', idRol: 'admin', estado: true },
-  { IdUsuarios: 2, NombreCompleto: 'María Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'maria.gomez@example.com', idRol: 'cliente', estado: true },
-  { IdUsuarios: 3, NombreCompleto: 'Carlos Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'carlos.ramirez@example.com', idRol: 'vendedor', estado: false },
-  { IdUsuarios: 4, NombreCompleto: 'Laura Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'laura.martinez@example.com', idRol: 'admin', estado: true },
-  { IdUsuarios: 5, NombreCompleto: 'Andrés López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'andres.lopez@example.com', idRol: 'cliente', estado: false },
-  { IdUsuarios: 6, NombreCompleto: 'Sofía Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'sofia.torres@example.com', idRol: 'cliente', estado: true },
-  { IdUsuarios: 7, NombreCompleto: 'Miguel Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Celular: '3056789012', Direccion: 'Calle 70 #30-31', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'miguel.salazar@example.com', idRol: 'vendedor', estado: true },
-  { IdUsuarios: 8, NombreCompleto: 'Valentina Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Celular: '3067890123', Direccion: 'Carrera 25 #15-16', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'valentina.rios@example.com', idRol: 'admin', estado: false }
+  { IdUsuarios: 1, NombreCompleto: 'Juan Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'juan.perez@example.com',contrasena: '236666', idRol: 'admin', estado: true },
+  { IdUsuarios: 2, NombreCompleto: 'María Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'maria.gomez@example.com',contrasena: '123456', idRol: 'cliente', estado: true },
+  { IdUsuarios: 3, NombreCompleto: 'Carlos Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'carlos.ramirez@example.com',contrasena: '789456', idRol: 'vendedor', estado: false },
+  { IdUsuarios: 4, NombreCompleto: 'Laura Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'laura.martinez@example.com',contrasena: '34568', idRol: 'admin', estado: true },
+  { IdUsuarios: 5, NombreCompleto: 'Andrés López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'andres.lopez@example.com',contrasena: '484848',idRol: 'cliente', estado: false },
+  { IdUsuarios: 6, NombreCompleto: 'Sofía Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'sofia.torres@example.com',contrasena: '121212', idRol: 'cliente', estado: true },
+  { IdUsuarios: 7, NombreCompleto: 'Miguel Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Celular: '3056789012', Direccion: 'Calle 70 #30-31', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'miguel.salazar@example.com',contrasena: '1011394', idRol: 'vendedor', estado: true },
+  { IdUsuarios: 8, NombreCompleto: 'Valentina Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Celular: '3067890123', Direccion: 'Carrera 25 #15-16', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'valentina.rios@example.com',contrasena: '1111111', idRol: 'admin', estado: false }
 ];
 
 const ListarUsuarios: React.FC = () => {
@@ -209,11 +210,15 @@ const ListarUsuarios: React.FC = () => {
       )}
 
       {mostrarEditarModal && UsuarioEditar && (
-        <EditarUsuarioModal usuario={UsuarioEditar} onClose={() => setMostrarEditarModal(false)} onEditar={handleActualizarProducto} />
+        <EditarUsuarioModal
+          usuario={{ ...UsuarioEditar, contrasena: UsuarioEditar.contrasena ?? "" }}
+          onClose={() => setMostrarEditarModal(false)}
+          onEditar={handleActualizarProducto}
+        />
       )}
 
       {mostrarVerModal && usuarioVer && (
-        <VerUsuarioModal usuario={usuarioVer} onClose={() => setMostrarVerModal(false)} />
+        <VerUsuarioModal usuario={{ ...usuarioVer, contrasena: usuarioVer.contrasena ?? "" }} onClose={() => setMostrarVerModal(false)} />
       )}
     </div>
   );

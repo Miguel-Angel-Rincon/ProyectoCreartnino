@@ -10,6 +10,7 @@ interface Usuario {
   Departamento: string;
   Ciudad: string;
   Correo: string;
+  contrasena: string;
   idRol: string;
   estado: boolean;
 }
@@ -50,6 +51,12 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
                 <label className="form-label">📧 Correo Electrónico</label>
                 <input className="form-control" type="email" value={usuario.Correo} disabled />
               </div>
+
+            <div className="col-md-6">
+                <label className="form-label">🔐 Contraseña</label>
+                <input className="form-control" type="email" value={usuario.contrasena} disabled />
+              </div>
+
               <div className="col-md-6">
                 <label className="form-label">🏞️ Departamento</label>
                 <input className="form-control" value={usuario.Departamento} disabled />

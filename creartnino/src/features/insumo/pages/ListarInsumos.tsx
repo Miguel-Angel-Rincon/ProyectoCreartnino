@@ -111,7 +111,7 @@ const insumosiniciales: Insumos[] = [
     const insumosFiltrados = insumos.filter(p =>
 p.Nombre.toLowerCase().startsWith(busqueda.toLowerCase()) ||
 p.IdCatInsumo.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-p.marca.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+
 p.cantidad.toString().includes(busqueda) ||
 p.precioUnitario.toString().includes(busqueda)
 );

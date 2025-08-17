@@ -297,15 +297,15 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Barrio <span className="text-danger">*</span></label>
+                      <label>Municipio<span className="text-danger">*</span></label>
                       <input className="form-control" value={direccionData.barrio} onChange={e => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))} />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera <span className="text-danger">*</span></label>
+                      <label>Barrio<span className="text-danger">*</span></label>
                       <input className="form-control" value={direccionData.calle} onChange={e => setDireccionData(prev => ({ ...prev, calle: e.target.value }))} />
                     </div>
                     <div className="mb-3">
-                      <label>Código Postal <span className="text-danger">*</span></label>
+                      <label>Calle / Carrera<span className="text-danger">*</span></label>
                       <input className="form-control" value={direccionData.codigoPostal} onChange={e => setDireccionData(prev => ({ ...prev, codigoPostal: e.target.value }))} />
                     </div>
                   </div>
