@@ -4,7 +4,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import "../../styles/perfil.css";
 import avatarImg from "../../../assets/Imagenes/avatar-default.png";
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLock } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 
 const Perfil = () => {
   const { usuario, iniciarSesion, setAvatar } = useAuth();

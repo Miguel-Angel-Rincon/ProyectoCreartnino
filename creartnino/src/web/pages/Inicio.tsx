@@ -1,7 +1,7 @@
-import React from "react";
+// import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import "../styles/Inicio.css";
+import "../styles/inicio.css";
 
 import slider1 from "../../assets/Imagenes/slider1.jpg";
 import slider2 from "../../assets/Imagenes/slider2.jpg";

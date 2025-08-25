@@ -84,26 +84,10 @@ const ListarProveedores: React.FC = () => {
     );
   };
 
-  const handleCrear = (nuevoProveedor: Proveedores) => {
-    setProveedores(prev => [...prev, nuevoProveedor]);
-    setMostrarModal(false);
-    Swal.fire({
-      icon: 'success',
-      title: 'Proveedor creado correctamente',
-      confirmButtonColor: '#e83e8c',
-    });
-  };
 
   const handleEditarProveedor = (proveedor: Proveedores) => {
     setProveedoresEditar(proveedor);
     setMostrarEditarModal(true);
-  };
-
-  const handleActualizarProveedor = (proveedoresActualizado: Proveedores) => {
-    setProveedores(prev =>
-      prev.map(p => (p.IdProveedores === proveedoresActualizado.IdProveedores ? proveedoresActualizado : p))
-    );
-    setMostrarEditarModal(false);
   };
 
   const handleVerProveedor = (Proveedor: Proveedores) => {
@@ -207,19 +191,61 @@ const ListarProveedores: React.FC = () => {
       </div>
 
       {mostrarModal && (
-        <CrearProveedorModal
-          onClose={() => setMostrarModal(false)}
-          onCrear={handleCrear}
-        />
-      )}
+  <CrearProveedorModal
+    onClose={() => setMostrarModal(false)}
+    onCrear={(nuevoProveedor: any) => {
+      const proveedorMapeado: Proveedores = {
+        IdProveedores: Math.max(...proveedores.map(p => p.IdProveedores)) + 1,
+        TipoPersona: nuevoProveedor.TipoPersona,
+        TipoDocumento: nuevoProveedor.IdTipoDocumento,
+        NumDocumento: nuevoProveedor.NumDocumento,
+        NombreCompleto: nuevoProveedor.NombreCompleto,
+        Ciudad: nuevoProveedor.Ciudad,
+        Direccion: nuevoProveedor.Direccion,
+        Celular: nuevoProveedor.Celular,
+        estado: nuevoProveedor.estado
+      };
+      
+      setProveedores(prev => [...prev, proveedorMapeado]);
+      setMostrarModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Proveedor creado correctamente',
+        confirmButtonColor: '#e83e8c',
+      });
+    }}
+  />
+)}
 
-      {mostrarEditarModal && proveedorEditar && (
-        <EditarProveedorModal
-          proveedor={proveedorEditar}
-          onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleActualizarProveedor}
-        />
-      )}
+{mostrarEditarModal && proveedorEditar && (
+  <EditarProveedorModal
+    proveedor={{
+      ...proveedorEditar,
+      IdTipoPersona: proveedorEditar.TipoPersona,
+      IdTipoDocumento: proveedorEditar.TipoDocumento,
+      Departamento: '' // Agregar si no existe
+    }}
+    onClose={() => setMostrarEditarModal(false)}
+    onEditar={(proveedorActualizado: any) => {
+      const proveedorMapeado: Proveedores = {
+        IdProveedores: proveedorActualizado.IdProveedores,
+        TipoPersona: proveedorActualizado.IdTipoPersona,
+        TipoDocumento: proveedorActualizado.IdTipoDocumento,
+        NumDocumento: proveedorActualizado.NumDocumento,
+        NombreCompleto: proveedorActualizado.NombreCompleto,
+        Ciudad: proveedorActualizado.Ciudad,
+        Direccion: proveedorActualizado.Direccion,
+        Celular: proveedorActualizado.Celular,
+        estado: proveedorActualizado.estado
+      };
+
+      setProveedores(prev =>
+        prev.map(p => (p.IdProveedores === proveedorMapeado.IdProveedores ? proveedorMapeado : p))
+      );
+      setMostrarEditarModal(false);
+    }}
+  />
+)}
 
       {mostrarVerModal && proveedorVer && (
         <VerProveedoresModal

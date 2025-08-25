@@ -11,7 +11,7 @@ import {
   FaBoxOpen,
   FaEye
 } from 'react-icons/fa';
-import '../../styles/MisCompras.css';
+import '../../styles/miscompras.css';
 
 const MySwal = withReactContent(Swal);
 const ITEMS_POR_PAGINA = 6;
