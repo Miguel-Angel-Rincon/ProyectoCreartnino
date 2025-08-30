@@ -15,7 +15,7 @@ interface PedidoDetalle {
 
 interface Pedidos {
   IdPedido: number;
-  IdCliente: string;
+  Cliente: string;
   Direccion: string;
   MetodoPago: string;
   FechaPedido: string;
@@ -30,12 +30,12 @@ interface Pedidos {
 }
 
 const pedidosIniciales: Pedidos[] = [
-  { IdPedido: 601, IdCliente: 'Ana ', Direccion: 'Calle 1 #23-45', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante601.jpg', TotalPedido: 120000, Estado: 'primer pago' },
-  { IdPedido: 602, IdCliente: 'Lucas', Direccion: 'Carrera 2 #34-56', MetodoPago: 'Transferencia', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante602.jpg', TotalPedido: 120000, Estado: 'en proceso' },
-  { IdPedido: 603, IdCliente: 'Maribel', Direccion: 'Avenida 3 #45-67', MetodoPago: 'Efectivo', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido por producción', ValorInicial: 50000, ValorRestante: 70000, ComprobantePago: 'comprobante603.jpg', TotalPedido: 120000, Estado: 'en producción' },
-  { IdPedido: 604, IdCliente: 'Sergio', Direccion: 'Calle 4 #56-78', MetodoPago: 'Efectivo', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido por producción', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante604.jpg', TotalPedido: 120000, Estado: 'en proceso de entrega' },
-  { IdPedido: 605, IdCliente: 'Lupita', Direccion: 'Carrera 5 #67-89', MetodoPago: 'Tarjeta ', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante605.jpg', TotalPedido: 120000, Estado: 'entregado' },
-  { IdPedido: 606, IdCliente: 'Enrique', Direccion: 'Avenida 6 #78-90', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante606.jpg', TotalPedido: 120000, Estado: 'anulado' },
+  { IdPedido: 601, Cliente: 'Ana', Direccion: 'Calle 1 #23-45', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante601.jpg', TotalPedido: 120000, Estado: 'primer pago' },
+  { IdPedido: 602, Cliente: 'Lucas', Direccion: 'Carrera 2 #34-56', MetodoPago: 'Transferencia', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante602.jpg', TotalPedido: 120000, Estado: 'en proceso' },
+  { IdPedido: 603, Cliente: 'Maribel', Direccion: 'Avenida 3 #45-67', MetodoPago: 'Efectivo', FechaPedido: '2025-05-03', FechaEntrega: '2025-05-07', Descripcion: 'Pedido por producción', ValorInicial: 50000, ValorRestante: 70000, ComprobantePago: 'comprobante603.jpg', TotalPedido: 120000, Estado: 'en producción' },
+  { IdPedido: 604, Cliente: 'Sergio', Direccion: 'Calle 4 #56-78', MetodoPago: 'Efectivo', FechaPedido: '2025-05-04', FechaEntrega: '2025-05-08', Descripcion: 'Pedido por producción', ValorInicial: 20000, ValorRestante: 100000, ComprobantePago: 'comprobante604.jpg', TotalPedido: 120000, Estado: 'en proceso de entrega' },
+  { IdPedido: 605, Cliente: 'Lupita', Direccion: 'Carrera 5 #67-89', MetodoPago: 'Tarjeta', FechaPedido: '2025-05-01', FechaEntrega: '2025-05-05', Descripcion: 'Pedido por producción', ValorInicial: 30000, ValorRestante: 90000, ComprobantePago: 'comprobante605.jpg', TotalPedido: 120000, Estado: 'entregado' },
+  { IdPedido: 606, Cliente: 'Enrique', Direccion: 'Avenida 6 #78-90', MetodoPago: 'Efectivo', FechaPedido: '2025-05-02', FechaEntrega: '2025-05-06', Descripcion: 'Pedido por producción', ValorInicial: 40000, ValorRestante: 80000, ComprobantePago: 'comprobante606.jpg', TotalPedido: 120000, Estado: 'anulado' },
 ];
 
 const getColorClaseEstadoPedido = (estado: string) => {
@@ -106,16 +106,16 @@ const ListarPedidos: React.FC = () => {
     const infoY = 32;
     const lineSpacing = 7;
     const labels = [
-      ['Cliente', pedido.IdCliente],
+      ['Cliente', pedido.Cliente],
       ['Dirección', pedido.Direccion],
       ['Método de Pago', pedido.MetodoPago],
       ['Fecha del Pedido', pedido.FechaPedido],
       ['Fecha de Entrega', pedido.FechaEntrega],
       ['Estado', pedido.Estado],
       ['Descripción', pedido.Descripcion],
-      ['Valor Inicial', `$${pedido.ValorInicial.toLocaleString()}`],
-      ['Valor Restante', `$${pedido.ValorRestante.toLocaleString()}`],
-      ['Total Pedido', `$${pedido.TotalPedido.toLocaleString()}`],
+      ['Valor Inicial', `$${pedido.ValorInicial.toLocaleString("es-CO")}`],
+      ['Valor Restante', `$${pedido.ValorRestante.toLocaleString("es-CO")}`],
+      ['Total Pedido', `$${pedido.TotalPedido.toLocaleString("es-CO")}`],
     ];
 
     labels.forEach(([label, value], index) => {
@@ -131,7 +131,7 @@ const ListarPedidos: React.FC = () => {
       body: pedido.detallePedido?.map((item) => [
         item.producto,
         item.cantidad.toString(),
-        `$${item.precio.toLocaleString()}`,
+        `$${item.precio.toLocaleString("es-CO")}`,
       ]) || [],
       theme: 'striped',
       headStyles: {
@@ -151,7 +151,7 @@ const ListarPedidos: React.FC = () => {
 
   const pedidosFiltrados = pedidos.filter(p =>
     p.MetodoPago.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-    p.IdCliente.toLowerCase().startsWith(busqueda.toLowerCase()) ||
+    p.Cliente.toLowerCase().startsWith(busqueda.toLowerCase()) ||
     p.FechaEntrega.toLowerCase().startsWith(busqueda.toLowerCase()) ||
     p.ValorInicial.toString().startsWith(busqueda) ||
     p.TotalPedido.toString().startsWith(busqueda)
@@ -192,7 +192,7 @@ const ListarPedidos: React.FC = () => {
 
       <input
         type="text"
-        placeholder="Buscar Por Nombre de Cliente"
+        placeholder="Buscar por Cliente"
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={e => {
@@ -217,11 +217,11 @@ const ListarPedidos: React.FC = () => {
           <tbody>
             {pedidosPagina.map((p, index) => (
               <tr key={p.IdPedido} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{p.IdCliente}</td>
+                <td>{p.Cliente}</td>
                 <td>{p.MetodoPago}</td>
                 <td>{p.FechaEntrega}</td>
-                <td>${p.ValorInicial.toLocaleString()}</td>
-                <td>${p.TotalPedido.toLocaleString()}</td>
+                <td>${p.ValorInicial.toLocaleString("es-CO")}</td>
+                <td>${p.TotalPedido.toLocaleString("es-CO")}</td>
                 <td>
                   <select
                     className={`form-select estado-select ${getColorClaseEstadoPedido(p.Estado)}`}

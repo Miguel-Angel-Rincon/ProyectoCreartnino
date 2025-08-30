@@ -1,21 +1,9 @@
-import React, { useState } from 'react';
-import '../style/acciones.css';
-
-interface Proveedores {
-  IdProveedores: number;
-  TipoPersona: string;
-  TipoDocumento: string;
-  NombreCompleto: string;
-  NumDocumento: string;
-  Departamento?: string;
-  Ciudad: string;
-  Direccion: string;
-  Celular: string;
-  estado: boolean;
-}
+import React, { useState } from "react";
+import "../style/acciones.css";
+import type { IProveedores } from "../../interfaces/IProveedores"; // <-- interface centralizada
 
 interface Props {
-  proveedor: Proveedores;
+  proveedor: IProveedores; // usa la interface de tu proyecto
   onClose: () => void;
 }
 
@@ -23,18 +11,20 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
   const [showDireccionModal, setShowDireccionModal] = useState(false);
 
   const [direccionData, setDireccionData] = useState({
-    barrio: '',
-    calle: '',
-    codigoPostal: '',
+    barrio: "",
+    calle: "",
+    codigoPostal: "",
   });
 
   const abrirSubmodalDireccion = () => {
-    const partes = proveedor.Direccion.split(', ');
-    const barrio = partes[0] || '';
-    const calle = partes[1] || '';
-    const cp = partes[2]?.replace('CP ', '') || '';
-    setDireccionData({ barrio, calle, codigoPostal: cp });
-    setShowDireccionModal(true);
+    if (proveedor.Direccion) {
+      const partes = proveedor.Direccion.split(", ");
+      const barrio = partes[0] || "";
+      const calle = partes[1] || "";
+      const cp = partes[2]?.replace("CP ", "") || "";
+      setDireccionData({ barrio, calle, codigoPostal: cp });
+      setShowDireccionModal(true);
+    }
   };
 
   return (
@@ -47,7 +37,6 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
           </div>
           <div className="modal-body px-4 py-3">
             <div className="row g-4">
-
               <div className="col-md-6">
                 <label className="form-label">👤 Tipo de Persona</label>
                 <select className="form-select" disabled value={proveedor.TipoPersona}>
@@ -68,55 +57,35 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">
-                  {proveedor.TipoPersona === 'Jurídica'
-                    ? '🔢 Número NIT'
-                    : '🔢 Número de Documento'}
+                  {proveedor.TipoPersona === "Jurídica"
+                    ? "🔢 Número NIT"
+                    : "🔢 Número de Documento"}
                 </label>
-                <input
-                  className="form-control"
-                  value={proveedor.NumDocumento}
-                  disabled
-                />
+                <input className="form-control" value={proveedor.NumDocumento} disabled />
               </div>
 
               <div className="col-md-6">
                 <label className="form-label">
-                  {proveedor.TipoPersona === 'Jurídica'
-                    ? '🏢 Nombre de la Empresa'
-                    : '🙍 Nombre Completo'}
+                  {proveedor.TipoPersona === "Jurídica"
+                    ? "🏢 Nombre de la Empresa"
+                    : "🙍 Nombre Completo"}
                 </label>
-                <input
-                  className="form-control"
-                  value={proveedor.NombreCompleto}
-                  disabled
-                />
+                <input className="form-control" value={proveedor.NombreCompleto} disabled />
               </div>
 
               <div className="col-md-6">
                 <label className="form-label">📱 Celular</label>
-                <input
-                  className="form-control"
-                  value={proveedor.Celular}
-                  disabled
-                />
+                <input className="form-control" value={proveedor.Celular} disabled />
               </div>
 
               <div className="col-md-6">
                 <label className="form-label">🏞️ Departamento</label>
-                <input
-                  className="form-control"
-                  value={proveedor.Departamento || ''}
-                  disabled
-                />
+                <input className="form-control" value={proveedor.Departamento || ""} disabled />
               </div>
 
               <div className="col-md-6">
                 <label className="form-label">🏙️ Ciudad</label>
-                <input
-                  className="form-control"
-                  value={proveedor.Ciudad}
-                  disabled
-                />
+                <input className="form-control" value={proveedor.Ciudad} disabled />
               </div>
 
               <div className="col-md-6">
@@ -129,7 +98,6 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
                 />
                 <small className="text-muted">Haz clic para ver más detalle</small>
               </div>
-
             </div>
           </div>
           <div className="modal-footer pastel-footer">
@@ -154,27 +122,15 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
                       <label className="form-label">Barrio</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.barrio}
-                        disabled
-                      />
+                      <input className="form-control" value={direccionData.barrio} disabled />
                     </div>
                     <div className="mb-3">
                       <label className="form-label">Calle / Carrera</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.calle}
-                        disabled
-                      />
+                      <input className="form-control" value={direccionData.calle} disabled />
                     </div>
                     <div className="mb-3">
                       <label className="form-label">Código Postal</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.codigoPostal}
-                        disabled
-                      />
+                      <input className="form-control" value={direccionData.codigoPostal} disabled />
                     </div>
                   </div>
                   <div className="modal-footer pastel-footer">
@@ -190,7 +146,6 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

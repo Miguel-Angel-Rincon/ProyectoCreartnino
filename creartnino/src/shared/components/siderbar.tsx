@@ -105,20 +105,20 @@ export default function Sidebar() {
           </div>
           {openSection === "produccion" && (
             <>
-              <Link to="/produccion" className={location.pathname === "/produccion" ? "active" : ""}>
-                <FaChartLine /> Producción
-              </Link>
               <Link to="/cat-productos" className={location.pathname === "/cat-productos" ? "active" : ""}>
-                <FaBoxes /> Categoría Productos
+                <FaBoxes />Categoría Productos
               </Link>
               <Link to="/productos" className={location.pathname === "/productos" ? "active" : ""}>
                 <FaBox /> Productos
+              </Link>
+              <Link to="/produccion" className={location.pathname === "/produccion" ? "active" : ""}>
+                <FaChartLine /> Producción
               </Link>
             </>
           )}
 
           <div className="sidebar-section" onClick={() => toggleSection("procesos")}>
-            Procesos ▾
+            Gestión de Pedidos ▾
           </div>
           {openSection === "procesos" && (
             <Link to="/pedidos" className={location.pathname === "/pedidos" ? "active" : ""}>

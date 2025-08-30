@@ -12,7 +12,6 @@ interface PedidoDetalle {
   producto: string;
   cantidad: number;
   precio: number;
-  precioFormateado?: string;
   subtotal?: number;
 }
 
@@ -40,7 +39,8 @@ const sumarDiasHabiles = (fechaStr: string, diasHabiles: number) => {
 };
 
 const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
-  const [clienteSeleccionado, setClienteSeleccionado] = useState('');
+  const [clienteBusqueda, setClienteBusqueda] = useState('');
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
   const [direccionCliente, setDireccionCliente] = useState('');
   const [metodoPago, setMetodoPago] = useState('');
   const [fechaPedido, setFechaPedido] = useState('');
@@ -48,6 +48,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [descripcion, setDescripcion] = useState('');
   const [comprobantePago, setComprobantePago] = useState<File | null>(null);
   const [detallePedido, setDetallePedido] = useState<PedidoDetalle[]>([]);
+  const [productoQuery, setProductoQuery] = useState<string[]>([]);
 
   useEffect(() => {
     const hoy = new Date().toISOString().split('T')[0];
@@ -55,32 +56,67 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
     setFechaEntrega(sumarDiasHabiles(hoy, 3));
   }, []);
 
+  const clientesFiltrados = clienteBusqueda
+    ? clientesMock.filter(c =>
+        `${c.Nombre} ${c.Apellido}`.toLowerCase().includes(clienteBusqueda.toLowerCase())
+      )
+    : [];
+
+  const handleClienteSeleccionado = (c: typeof clientesMock[0]) => {
+    setClienteSeleccionado(c.IdClientes);
+    setClienteBusqueda(`${c.Nombre} ${c.Apellido}`);
+    setDireccionCliente(c.Direccion);
+  };
+
   const agregarDetalle = () => {
-    setDetallePedido([...detallePedido, { producto: '', cantidad: 0, precio: 0, precioFormateado: '', subtotal: 0 }]);
+    setDetallePedido([...detallePedido, { producto: '', cantidad: 0, precio: 0, subtotal: 0 }]);
+    setProductoQuery(prev => [...prev, '']);
   };
 
   const actualizarDetalle = (index: number, campo: keyof PedidoDetalle, valor: string | number) => {
     const copia = [...detallePedido];
     if (campo === 'producto') {
-      const producto = productosMock.find(p => p.Nombre === valor);
-      copia[index].producto = producto?.Nombre || '';
-      copia[index].precio = producto?.precio || 0;
-      copia[index].precioFormateado = producto ? producto.precio.toLocaleString('es-CO') : '';
-    } else if (campo === 'precio') {
-      const valorNumerico = parseFloat(valor as string);
-      copia[index].precio = isNaN(valorNumerico) ? 0 : valorNumerico;
-      copia[index].precioFormateado = isNaN(valorNumerico) ? '' : valorNumerico.toLocaleString('es-CO');
+      const prod = productosMock.find(p => p.Nombre === valor);
+      copia[index].producto = prod?.Nombre || (valor as string);
+      copia[index].precio = prod?.precio ?? copia[index].precio;
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+      setProductoQuery(prev => {
+        const copy = [...prev];
+        copy[index] = '';
+        return copy;
+      });
     } else if (campo === 'cantidad') {
-      copia[index].cantidad = parseFloat(valor as string);
+      copia[index].cantidad = Number(valor) || 0;
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+    } else if (campo === 'precio') {
+      copia[index].precio = Number(valor) || 0;
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
     }
-    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
     setDetallePedido(copia);
   };
 
+  const seleccionarProducto = (index: number, nombre: string) => {
+    const prod = productosMock.find(p => p.Nombre === nombre);
+    if (!prod) return;
+    actualizarDetalle(index, 'producto', prod.Nombre);
+  };
+
+  const handleProductoQueryChange = (index: number, value: string) => {
+    setProductoQuery(prev => {
+      const copia = [...prev];
+      copia[index] = value;
+      return copia;
+    });
+    setDetallePedido(prev => {
+      const copia = [...prev];
+      copia[index] = { ...copia[index], producto: '' };
+      return copia;
+    });
+  };
+
   const eliminarDetalle = (index: number) => {
-    const copia = [...detallePedido];
-    copia.splice(index, 1);
-    setDetallePedido(copia);
+    setDetallePedido(prev => prev.filter((_, i) => i !== index));
+    setProductoQuery(prev => prev.filter((_, i) => i !== index));
   };
 
   const calcularTotal = () =>
@@ -89,106 +125,108 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const calcularValorInicial = () => calcularTotal() * 0.5;
   const calcularValorRestante = () => calcularTotal() - calcularValorInicial();
 
-  const handleClienteSeleccionado = (id: string) => {
-    setClienteSeleccionado(id);
-    const cliente = clientesMock.find(c => c.IdClientes.toString() === id);
-    setDireccionCliente(cliente?.Direccion || '');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!clienteSeleccionado) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Cliente requerido',
-        text: 'Debe seleccionar un cliente para continuar.'
-      });
+      await Swal.fire({ icon: 'warning', title: 'Cliente requerido', text: 'Debe seleccionar un cliente válido.' });
       return;
     }
 
     if (!metodoPago) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Método de pago requerido',
-        text: 'Seleccione un método de pago válido.'
-      });
+      await Swal.fire({ icon: 'warning', title: 'Método de pago requerido', text: 'Seleccione un método válido.' });
       return;
     }
 
     if (!fechaEntrega) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Fecha de entrega requerida',
-        text: 'Debe seleccionar una fecha de entrega.'
-      });
+      await Swal.fire({ icon: 'warning', title: 'Fecha de entrega requerida', text: 'Seleccione una fecha válida.' });
       return;
     }
 
-    const productosValidos = detallePedido.filter(
-      item => item.producto && item.cantidad > 0 && item.precio > 0
-    );
-
-    if (productosValidos.length === 0) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Producto requerido',
-        text: 'Debe agregar al menos un producto al pedido con cantidad y precio válidos.'
-      });
+    if (detallePedido.length === 0) {
+      await Swal.fire({ icon: 'warning', title: 'Detalle vacío', text: 'Debe agregar al menos un producto.' });
       return;
+    }
+
+    for (let i = 0; i < detallePedido.length; i++) {
+      const item = detallePedido[i];
+      const existe = productosMock.some(p => p.Nombre === item.producto);
+      if (!item.producto || !existe || item.cantidad <= 0 || item.precio <= 0) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Error en producto',
+          text: `Fila #${i + 1}: debes seleccionar un producto válido y completar cantidad/precio.`
+        });
+        return;
+      }
     }
 
     if (metodoPago === 'Transferencia' && !comprobantePago) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Comprobante requerido',
-        text: 'Debe adjuntar el comprobante de pago para la transferencia.'
-      });
+      await Swal.fire({ icon: 'warning', title: 'Comprobante requerido', text: 'Debe adjuntar el comprobante de pago.' });
       return;
     }
 
-    const clienteSeleccionadoObj = clientesMock.find(c => c.IdClientes.toString() === clienteSeleccionado);
-    const nombreCliente = clienteSeleccionadoObj ? `${clienteSeleccionadoObj.Nombre} ${clienteSeleccionadoObj.Apellido}` : '';
+    const clienteObj = clientesMock.find(
+  (c) => c.IdClientes.toString() === String(clienteSeleccionado)
+);
+
+const nombreCliente = clienteObj
+  ? `${clienteObj.Nombre} ${clienteObj.Apellido}`
+  : '';
 
     const nuevoPedido = {
-      IdCliente: nombreCliente,
-      Direccion: direccionCliente,
-      MetodoPago: metodoPago,
-      FechaPedido: fechaPedido,
-      FechaEntrega: fechaEntrega,
-      Descripcion: descripcion,
-      ValorInicial: calcularValorInicial(),
-      ValorRestante: calcularValorRestante(),
-      ComprobantePago: comprobantePago ? comprobantePago.name : '',
-      TotalPedido: calcularTotal(),
-      Estado: 'primer pago',
-      detallePedido
-    };
+  Cliente: nombreCliente,  // ✅ ya guarda el nombre completo
+  Direccion: direccionCliente,
+  MetodoPago: metodoPago,
+  FechaPedido: fechaPedido,
+  FechaEntrega: fechaEntrega,
+  Descripcion: descripcion,
+  ValorInicial: calcularValorInicial(),
+  ValorRestante: calcularValorRestante(),
+  ComprobantePago: comprobantePago ? comprobantePago.name : '',
+  TotalPedido: calcularTotal(),
+  Estado: 'Primer Pago',  // 👈 te recomiendo mayúscula para que quede parejo
+  detallePedido
+};
 
-    await Swal.fire({
-      icon: 'success',
-      title: 'Pedido creado',
-      text: 'El pedido ha sido creado exitosamente.'
-    });
-
+    await Swal.fire({ icon: 'success', title: 'Pedido creado', text: 'El pedido ha sido creado exitosamente.' });
     onCrear(nuevoPedido);
+    onClose();
   };
 
   return (
     <div className="container py-4">
       <form onSubmit={handleSubmit}>
         <div className="row g-4 mb-3">
-          <div className="col-md-3">
+          {/* Cliente */}
+          <div className="col-md-3 position-relative">
             <label className="form-label">👤 Cliente <span className="text-danger">*</span></label>
-            <select className="form-select" value={clienteSeleccionado} onChange={e => handleClienteSeleccionado(e.target.value)} required>
-              <option value="">Seleccione</option>
-              {clientesMock.map(c => (
-                <option key={c.IdClientes} value={c.IdClientes}>
-                  {c.Nombre} {c.Apellido}
-                </option>
-              ))}
-            </select>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Buscar cliente..."
+              value={clienteBusqueda}
+              onChange={e => {
+                setClienteBusqueda(e.target.value);
+                setClienteSeleccionado(null);
+              }}
+            />
+            {!clienteSeleccionado && clienteBusqueda && clientesFiltrados.length > 0 && (
+              <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                {clientesFiltrados.map(c => (
+                  <li
+                    key={c.IdClientes}
+                    className="list-group-item list-group-item-action"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleClienteSeleccionado(c)}
+                  >
+                    {c.Nombre} {c.Apellido} - {c.Direccion}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
           <div className="col-md-3">
             <label className="form-label">💳 Método de Pago <span className="text-danger">*</span></label>
             <select className="form-select" value={metodoPago} onChange={e => setMetodoPago(e.target.value)} required>
@@ -208,44 +246,84 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
           </div>
         </div>
 
-        {/* Detalles del pedido */}
+        {/* Detalle Pedido */}
         <div className="col-12 mt-4">
           <h6 className="text-muted">🧾 Detalle del Pedido</h6>
           <div className="row fw-bold mb-2">
-            <div className="col-md-3">Producto <span className="text-danger">*</span></div>
-            <div className="col-md-2">Cantidad <span className="text-danger">*</span></div>
-            <div className="col-md-2">Precio <span className="text-danger">*</span></div>
+            <div className="col-md-3">Producto</div>
+            <div className="col-md-2">Cantidad</div>
+            <div className="col-md-2">Precio</div>
             <div className="col-md-3">Subtotal</div>
             <div className="col-md-2"></div>
           </div>
-          {detallePedido.map((item, index) => (
-            <div key={index} className="row mb-2 align-items-center">
-              <div className="col-md-3">
-                <select className="form-select" value={item.producto} onChange={e => actualizarDetalle(index, 'producto', e.target.value)} required>
-                  <option value="">Seleccione un producto</option>
-                  {productosMock.map(p => (
-                    <option key={p.IdProducto} value={p.Nombre}>{p.Nombre}</option>
-                  ))}
-                </select>
+
+          {detallePedido.map((item, index) => {
+            const query = productoQuery[index] ?? '';
+            const sugerencias = query.length > 0
+              ? productosMock.filter(p => p.Nombre.toLowerCase().includes(query.toLowerCase()))
+              : [];
+
+            return (
+              <div key={index} className="row mb-2 align-items-center position-relative">
+                <div className="col-md-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar producto..."
+                    value={query !== '' ? query : item.producto}
+                    onChange={e => handleProductoQueryChange(index, e.target.value)}
+                  />
+                  {query && sugerencias.length > 0 && (
+                    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: '38px' }}>
+                      {sugerencias.map(p => (
+                        <li
+                          key={p.IdProducto}
+                          className="list-group-item list-group-item-action"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => seleccionarProducto(index, p.Nombre)}
+                        >
+                          {p.Nombre} - ${p.precio.toLocaleString('es-CO')}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    min={1}
+                    value={item.cantidad}
+                    onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)}
+                  />
+                </div>
+                <div className="col-md-2">
+  <input
+    type="text"
+    className="form-control"
+    value={
+      item.precio > 0
+        ? item.precio.toLocaleString("es-CO")
+        : ""
+    }
+    onChange={e => {
+      // Quitamos puntos y comas al digitar
+      const raw = e.target.value.replace(/\./g, "").replace(/,/g, "");
+      const parsed = Number(raw) || 0;
+      actualizarDetalle(index, "precio", parsed);
+    }}
+  />
+</div>
+                <div className="col-md-3">
+                  <input type="text" className="form-control" value={`$${(item.cantidad * item.precio).toLocaleString('es-CO')}`} readOnly />
+                </div>
+                <div className="col-md-2 text-center">
+                  <button className="btn btn-danger btn-sm" type="button" onClick={() => eliminarDetalle(index)}><FaTrash /></button>
+                </div>
               </div>
-              <div className="col-md-2">
-                <input type="number" className="form-control" value={item.cantidad} min={1} onChange={e => actualizarDetalle(index, 'cantidad', e.target.value)} required />
-              </div>
-              <div className="col-md-2">
-                <input type="text" className="form-control" value={item.precioFormateado || ''} onChange={(e) => {
-                  const raw = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
-                  const numero = parseInt(raw, 10);
-                  actualizarDetalle(index, 'precio', isNaN(numero) ? 0 : numero);
-                }} required />
-              </div>
-              <div className="col-md-3">
-                <input type="text" className="form-control" value={`$${(item.cantidad * item.precio).toLocaleString()}`} readOnly />
-              </div>
-              <div className="col-md-2 text-center">
-                <button className="btn btn-danger btn-sm" type="button" onClick={() => eliminarDetalle(index)}><FaTrash /></button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
+
           <button type="button" className="btn pastel-btn-secondary mt-2" onClick={agregarDetalle}>+ Agregar Producto</button>
         </div>
 
@@ -265,9 +343,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             <div className="col-md-6 mt-3">
               <label className="form-label">📎 Comprobante de Pago</label>
               <input type="file" className="form-control" onChange={e => {
-                if (e.target.files?.length) {
-                  setComprobantePago(e.target.files[0]);
-                }
+                if (e.target.files?.length) setComprobantePago(e.target.files[0]);
               }} />
             </div>
           )}
@@ -280,10 +356,10 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             <div className="col-md-4">
               <div className="card pastel-card p-1">
                 <div className="d-flex align-items-center gap-1">
-                  <div><FaWallet size={16} className="text-info" /></div>
+                  <FaWallet size={16} className="text-info" />
                   <div>
                     <div className="fw-semibold fs-7">Valor Inicial</div>
-                    <div className="text-muted fw-bold fs-7">${calcularValorInicial().toLocaleString()}</div>
+                    <div className="text-muted fw-bold fs-7">${calcularValorInicial().toLocaleString('es-CO')}</div>
                   </div>
                 </div>
               </div>
@@ -291,10 +367,10 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             <div className="col-md-4">
               <div className="card pastel-card p-1">
                 <div className="d-flex align-items-center gap-1">
-                  <div><FaCoins size={16} className="text-danger" /></div>
+                  <FaCoins size={16} className="text-danger" />
                   <div>
                     <div className="fw-semibold fs-7">Valor Restante</div>
-                    <div className="text-muted fw-bold fs-7">${calcularValorRestante().toLocaleString()}</div>
+                    <div className="text-muted fw-bold fs-7">${calcularValorRestante().toLocaleString('es-CO')}</div>
                   </div>
                 </div>
               </div>
@@ -302,10 +378,10 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             <div className="col-md-4">
               <div className="card pastel-card p-1">
                 <div className="d-flex align-items-center gap-1">
-                  <div><FaCalculator size={16} className="text-primary" /></div>
+                  <FaCalculator size={16} className="text-primary" />
                   <div>
                     <div className="fw-semibold fs-7">Total</div>
-                    <div className="text-muted fw-bold fs-7">${calcularTotal().toLocaleString()}</div>
+                    <div className="text-muted fw-bold fs-7">${calcularTotal().toLocaleString('es-CO')}</div>
                   </div>
                 </div>
               </div>
@@ -323,4 +399,3 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 };
 
 export default CrearPedido;
-

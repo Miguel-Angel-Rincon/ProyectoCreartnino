@@ -19,6 +19,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     const cantidad = parseInt(form.cantidad.value.replace(/[^\d]/g, ''));
     const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, '');
     const precioUnitario = parseFloat(precioLimpio);
+    const unidadMedida = form.unidadMedida.value;
 
     if (isNaN(cantidad) || cantidad <= 0) {
       Swal.fire({
@@ -40,11 +41,21 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
+    if (!unidadMedida) {
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Unidad de medida requerida',
+        text: 'Debes seleccionar una unidad de medida.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     const nuevoInsumo = {
       IdInsumos: idInsumoActual++,
       IdCatInsumo: form.categoria.value,
       Nombre: form.nombre.value,
-      UnidadesMedidas: form.unidadMedida.value || '', // no obligatorio
+      UnidadesMedidas: unidadMedida,
       cantidad,
       precioUnitario,
       estado: form.estado?.checked ?? false,
@@ -65,7 +76,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
         <div className="modal-content pastel-modal shadow-lg">
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
-              <h5 className="modal-title">🧰 Crear Nuevo Insumo</h5>
+              <h5 className="modal-title">🧰 Crear Insumo</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body px-4 py-3">
@@ -89,16 +100,19 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   </select>
                 </div>
 
-                
                 <div className="col-md-6">
                   <label className="form-label">
-                    ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
+                    ⚖ Unidad de Medida <span className="text-danger">*</span>
                   </label>
-                  <input
-                    className="form-control"
-                    name="unidadMedida"
-                    placeholder="Ej: kg, mL, unidades..."
-                  />
+                  <select className="form-select" name="unidadMedida" required>
+                    <option value="">-- Selecciona --</option>
+                    <option value="kg">Kilogramos (kg)</option>
+                    <option value="g">Gramos (g)</option>
+                    <option value="L">Litros (L)</option>
+                    <option value="mL">Mililitros (mL)</option>
+                    <option value="m">Metros (m)</option>
+                    <option value="cm">Centímetros (cm)</option>
+                  </select>
                 </div>
 
                 {/* Cantidad */}

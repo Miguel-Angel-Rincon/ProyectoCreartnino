@@ -151,12 +151,20 @@ const ListarCompras: React.FC = () => {
     Swal.fire('Compra Exitosa', 'Compra registrada correctamente', 'success');
   };
 
-  const comprasFiltradas = compras.filter(p =>
-    p.IdProveedor.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-    p.MetodoPago.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-    p.FechaCompra.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-    p.TotalCompra.toString().toLowerCase().startsWith(busqueda.toLowerCase())
-  );
+  // 🔎 Búsqueda corregida
+  const comprasFiltradas = compras.filter((p) => {
+    const idProveedor = p?.IdProveedor?.toString().toLowerCase() || "";
+    const metodoPago = p?.MetodoPago?.toLowerCase() || "";
+    const fechaCompra = p?.FechaCompra?.toLowerCase() || "";
+    const totalCompra = p?.TotalCompra?.toString().toLowerCase() || "";
+
+    return (
+      idProveedor.includes(busqueda.toLowerCase()) ||
+      metodoPago.includes(busqueda.toLowerCase()) ||
+      fechaCompra.includes(busqueda.toLowerCase()) ||
+      totalCompra.includes(busqueda.toLowerCase())
+    );
+  });
 
   const indexInicio = (paginaActual - 1) * comprasPorPagina;
   const indexFin = indexInicio + comprasPorPagina;
@@ -196,7 +204,7 @@ const ListarCompras: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Buscar Por Nombre de Proveedor"
+            placeholder="Buscar por Proveedor, Método, Fecha o Total"
             className="form-control mb-3 buscador"
             value={busqueda}
             onChange={e => {

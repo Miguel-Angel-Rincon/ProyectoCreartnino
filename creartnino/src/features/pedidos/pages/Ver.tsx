@@ -9,7 +9,7 @@ interface PedidoDetalle {
 }
 
 interface Pedido {
-  IdCliente: string;
+  Cliente: string;
   Direccion: string;
   MetodoPago: string;
   FechaPedido: string;
@@ -35,7 +35,7 @@ const VerPedido: React.FC<VerPedidoProps> = ({ pedido, onVolver }) => {
       <div className="row g-4 mb-3">
         <div className="col-md-3">
           <label className="form-label">👤 Cliente</label>
-          <input type="text" className="form-control" value={pedido.IdCliente} readOnly />
+          <input type="text" className="form-control" value={pedido.Cliente} readOnly />
         </div>
         <div className="col-md-3">
           <label className="form-label">💳 Método de Pago</label>

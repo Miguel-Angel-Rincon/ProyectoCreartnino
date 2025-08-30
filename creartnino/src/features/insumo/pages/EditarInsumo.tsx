@@ -6,7 +6,7 @@ interface Insumos {
   IdInsumos: number;
   IdCatInsumo: string;
   Nombre: string;
-  UnidadesMedidas: string; // ahora será Unidad de Medida
+  UnidadesMedidas: string;
   cantidad: number;
   precioUnitario: number;
   estado: boolean;
@@ -81,6 +81,16 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
       return;
     }
 
+    if (!formData.UnidadesMedidas) {
+      await Swal.fire({
+        icon: 'warning',
+        title: '❌ Unidad de medida requerida',
+        text: 'Debes seleccionar una unidad de medida.',
+        confirmButtonColor: '#f78fb3',
+      });
+      return;
+    }
+
     try {
       onEditar(formData);
       await Swal.fire({
@@ -150,16 +160,24 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                 {/* Unidad de Medida */}
                 <div className="col-md-6">
                   <label className="form-label">
-                    ⚖ Unidad de Medida <small className="text-muted">(opcional)</small>
+                    ⚖ Unidad de Medida <span className="text-danger">*</span>
                   </label>
-                  <input
-                    className="form-control"
-                    name="Descripcion"
+                  <select
+                    className="form-select"
+                    name="UnidadesMedidas"
                     value={formData.UnidadesMedidas}
                     onChange={handleChange}
-                    placeholder="Ej: kg, mL, unidades..."
-                  />
-                </div> 
+                    required
+                  >
+                    <option value="">-- Selecciona --</option>
+                    <option value="kg">Kilogramos (kg)</option>
+                    <option value="g">Gramos (g)</option>
+                    <option value="L">Litros (L)</option>
+                    <option value="mL">Mililitros (mL)</option>
+                    <option value="m">Metros (m)</option>
+                    <option value="cm">Centímetros (cm)</option>
+                  </select>
+                </div>
 
                 {/* Cantidad */}
                 <div className="col-md-6">

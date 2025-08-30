@@ -89,7 +89,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
         <div className="modal-content pastel-modal shadow-lg">
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
-              <h5 className="modal-title">🛡️ Crear Nuevo Rol</h5>
+              <h5 className="modal-title">🛡️ Crear Rol</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
 
