@@ -1,19 +1,14 @@
 // components/EditarCategoriaProductoModal.tsx
-import React, { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-import '../styles/Funciones.css';
-
-interface CategoriaProductos {
-  IdCategoriaProducto: number;
-  Nombre: string;
-  Descripcion: string;
-  Estado: boolean;
-}
+import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import "../styles/funciones.css";
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatProductos } from "../../interfaces/ICatProductos";
 
 interface Props {
-  categoria: CategoriaProductos;
+  categoria: ICatProductos;
   onClose: () => void;
-  onEditar: (formData: CategoriaProductos) => void;
+  onEditar: (formData: ICatProductos) => void;
 }
 
 const EditarCategoriaProductoModal: React.FC<Props> = ({
@@ -21,7 +16,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
   onClose,
   onEditar,
 }) => {
-  const [formData, setFormData] = useState<CategoriaProductos>(categoria);
+  const [formData, setFormData] = useState<ICatProductos>(categoria);
 
   useEffect(() => {
     setFormData(categoria);
@@ -34,30 +29,54 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
     const { name, value, type } = target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: type === 'checkbox' ? (target as HTMLInputElement).checked : value,
+      [name]: type === "checkbox" ? (target as HTMLInputElement).checked : value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!formData.CategoriaProducto1.trim() || !formData.Descripcion.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos requeridos",
+        text: "Nombre y Descripción no pueden estar vacíos.",
+        confirmButtonColor: "#e83e8c",
+      });
+      return;
+    }
+
     try {
-      onEditar(formData);
+      const resp = await fetch(
+        `${APP_SETTINGS.apiUrl}Categoria_Productos/Actualizar/${formData.IdCategoriaProducto}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const data: ICatProductos = await resp.json();
+
+      onEditar(data);
 
       await Swal.fire({
-        icon: 'success',
-        title: 'Categoría actualizada',
-        text: 'Los cambios se han guardado correctamente.',
-        confirmButtonColor: '#f78fb3',
+        icon: "success",
+        title: "Categoría actualizada",
+        text: "Los cambios se han guardado correctamente.",
+        confirmButtonColor: "#f78fb3",
       });
 
       onClose();
     } catch (error) {
+      console.error("Error editando categoría:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Error al editar',
-        text: 'Ocurrió un error inesperado al guardar los cambios.',
-        confirmButtonColor: '#f78fb3',
+        icon: "error",
+        title: "Error al editar",
+        text: "Ocurrió un error inesperado al guardar los cambios.",
+        confirmButtonColor: "#f78fb3",
       });
     }
   };
@@ -69,22 +88,30 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
               <h5 className="modal-title">✏️ Editar Categoría de Producto</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+              ></button>
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-12">
-                  <label className="form-label">📛 Nombre <span className="text-danger">*</span></label>
+                  <label className="form-label">
+                    📛 Nombre <span className="text-danger">*</span>
+                  </label>
                   <input
                     className="form-control"
-                    name="Nombre"
-                    value={formData.Nombre}
+                    name="CategoriaProducto1"
+                    value={formData.CategoriaProducto1}
                     onChange={handleChange}
                     required
                   />
                 </div>
                 <div className="col-md-12">
-                  <label className="form-label">📝 Descripción</label>
+                  <label className="form-label">
+                    📝 Descripción <span className="text-danger">*</span>
+                  </label>
                   <textarea
                     className="form-control"
                     name="Descripcion"
@@ -94,7 +121,6 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
                     required
                   />
                 </div>
-                
               </div>
             </div>
             <div className="modal-footer pastel-footer">
