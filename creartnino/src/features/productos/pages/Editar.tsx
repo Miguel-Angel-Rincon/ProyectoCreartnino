@@ -81,6 +81,8 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     return () => clearTimeout(delay);
   }, [imagenPersonalURL]);
 
+  
+
   const validarURLImagen = (url: string): Promise<boolean> =>
     new Promise((resolve) => {
       const img = new Image();
@@ -105,24 +107,31 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   };
 
   // 🔹 Manejo de precio/cantidad
-  const formatearPrecio = (valor: string) => {
-    const limpio = valor.replace(/[^0-9]/g, "");
-    if (!limpio) return "";
-    return parseInt(limpio).toLocaleString("es-CO");
-  };
+  // 🔹 Manejo de precio (máx. 7 dígitos y formateado en pesos)
+const formatearPrecio = (valor: string) => {
+  const limpio = valor.replace(/[^0-9]/g, "");
+  if (!limpio) return "";
+  const numero = parseInt(limpio.slice(0, 7)); // 👉 Máx. 7 dígitos
+  return numero.toLocaleString("es-CO");
+};
 
-  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const limpio = e.target.value.replace(/[^0-9]/g, "");
-    setPrecio(formatearPrecio(limpio));
-  };
+const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const limpio = e.target.value.replace(/[^0-9]/g, "");
+  setPrecio(formatearPrecio(limpio));
+};
 
-  const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value;
-    const numero = parseInt(valor);
-    const esEntero = /^\d+$/.test(valor);
-    setCantidadValida(esEntero && numero >= 0);
-    setCantidad(valor);
-  };
+
+  // 🔹 Manejo de cantidad (simple con longitud)
+const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valor = e.target.value.replace(/[^0-9]/g, ""); // Solo números
+
+  // 👉 Solo permite hasta 4 dígitos
+  if (valor.length > 4) return;
+
+  setCantidad(valor);
+  setCantidadValida(!!valor && parseInt(valor) > 0);
+};
+
 
   // 🔹 Submit
   // 🔹 Submit
@@ -219,8 +228,8 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
     );
     Swal.fire({
       icon: "success",
-      title: "Éxito",
-      text: "Producto actualizado correctamente",
+      title: "Producto actualizado correctamente",
+      
     });
     onEditar(productoEditado);
     onClose();
@@ -251,7 +260,7 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
               <div className="row g-4">
                 {/* Nombre */}
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre</label>
+                  <label className="form-label">🛍️ Nombre <span className="text-danger">*</span></label>
                   <input
                     className="form-control"
                     value={nombre}
@@ -262,7 +271,7 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
 
                 {/* Categoría */}
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
+                  <label className="form-label">📦 Categoría <span className="text-danger">*</span></label>
                   <select
                     className="form-select"
                     value={categoria}
@@ -282,33 +291,40 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
                 </div>
 
                 {/* Cantidad */}
-                <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
-                  <input
-                    type="number"
-                    className={`form-control ${!cantidadValida ? "is-invalid" : ""}`}
-                    value={cantidad}
-                    onChange={handleCantidadChange}
-                    step="1"
-                    required
-                  />
-                </div>
+<div className="col-md-6">
+  <label className="form-label">
+    🔢 Cantidad <span className="text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    className={`form-control ${!cantidadValida ? "is-invalid" : ""}`}
+    value={cantidad}
+    onChange={handleCantidadChange}
+    maxLength={4}   // 🔹 No deja escribir más de 4 dígitos
+    required
+  />
+  <div className="form-text">Máximo 4 dígitos (hasta 9999)</div>
+</div>
 
                 {/* Precio */}
-                <div className="col-md-6">
-                  <label className="form-label">💲 Precio</label>
-                  <input
-                    type="text"
-                    className={`form-control ${!precioValido ? "is-invalid" : ""}`}
-                    value={precio}
-                    onChange={handlePrecioChange}
-                    required
-                  />
-                </div>
+<div className="col-md-6">
+  <label className="form-label">
+    💲 Precio <span className="text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    className={`form-control ${!precioValido ? "is-invalid" : ""}`}
+    value={precio}
+    onChange={handlePrecioChange}
+    required
+  />
+  <div className="form-text">Máximo 7 dígitos</div>
+</div>
+
 
                 {/* Imagen */}
                 <div className="col-md-12">
-                  <label className="form-label">🖼️ Imagen personalizada</label>
+                  <label className="form-label">🖼️ Imagen personalizada <span className="text-danger">*</span></label>
                   <div className="input-group">
                     <input
                       type="url"

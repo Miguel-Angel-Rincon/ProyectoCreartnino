@@ -9,25 +9,24 @@ import type { ICatProductos } from "../../interfaces/ICatProductos";
 
 interface Props {
   producto: IProductos;
-  categoria?: ICatProductos; // opcional: si quieres pasar el objeto categoría para mostrar nombre
   onClose: () => void;
 }
 
-const VerProductoModal: React.FC<Props> = ({ producto, categoria, onClose }) => {
+const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
   const [imagenUrl, setImagenUrl] = useState<string>("");
   const [cargandoImagen, setCargandoImagen] = useState(false);
+  const [nombreCategoria, setNombreCategoria] = useState<string>("");
 
+  // 🔹 Cargar imagen del producto
   useEffect(() => {
     let mounted = true;
 
     const cargarImagen = async () => {
-      // si producto.Imagen ya es una URL (por si acaso)
       if (typeof producto.Imagen === "string" && (producto.Imagen as string).startsWith("http")) {
-        if (mounted) setImagenUrl(producto.Imagen as string);
+        if (mounted) setImagenUrl(producto.Imagen);
         return;
       }
 
-      // si es un id (número) -> pedir la fila de Imagenes_Productos
       if (typeof producto.Imagen === "number" && producto.Imagen > 0) {
         setCargandoImagen(true);
         try {
@@ -35,7 +34,6 @@ const VerProductoModal: React.FC<Props> = ({ producto, categoria, onClose }) => 
             `https://apicreartnino.somee.com/api/Imagenes_Productos/Obtener/${producto.Imagen}`
           );
           if (!mounted) return;
-          // la API debe devolver { IdImagen, Url, Descripcion } u objeto similar
           setImagenUrl(res.data?.Url ?? "");
         } catch (err) {
           console.error("Error cargando imagen:", err);
@@ -44,19 +42,42 @@ const VerProductoModal: React.FC<Props> = ({ producto, categoria, onClose }) => 
           if (mounted) setCargandoImagen(false);
         }
       } else {
-        // valor inesperado
         if (mounted) setImagenUrl("");
       }
     };
 
     cargarImagen();
-
     return () => {
       mounted = false;
     };
   }, [producto]);
 
-  const nombreCategoria = categoria?.CategoriaProducto1 ?? String(producto.CategoriaProducto);
+  // 🔹 Cargar nombre de categoría por ID
+  useEffect(() => {
+    let mounted = true;
+
+    const cargarCategoria = async () => {
+      try {
+        const res = await axios.get<ICatProductos>(
+          `https://apicreartnino.somee.com/api/Categoria_Productos/Obtener/${producto.CategoriaProducto}`
+        );
+        if (mounted) {
+          setNombreCategoria(res.data.CategoriaProducto1);
+        }
+      } catch (error) {
+        console.error("Error cargando categoría", error);
+        if (mounted) setNombreCategoria(String(producto.CategoriaProducto)); // fallback al id
+      }
+    };
+
+    if (producto.CategoriaProducto) {
+      cargarCategoria();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [producto]);
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>

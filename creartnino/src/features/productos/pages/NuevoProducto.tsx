@@ -101,13 +101,17 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     setPrecio(formatearPrecio(limpio));
   };
 
-  const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value;
-    const numero = parseInt(valor);
-    const esEntero = /^\d+$/.test(valor);
-    setCantidadValida(esEntero && numero > 0);
-    setCantidad(valor);
-  };
+  // 🔹 Manejo de cantidad (simple con longitud)
+const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valor = e.target.value.replace(/[^0-9]/g, ""); // Solo números
+
+  // 👉 Solo permite hasta 4 dígitos
+  if (valor.length > 4) return;
+
+  setCantidad(valor);
+  setCantidadValida(!!valor && parseInt(valor) > 0);
+};
+
 
   // 🔹 Submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -242,7 +246,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <div className="row g-4">
                 {/* Nombre */}
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre</label>
+                  <label className="form-label">🛍️ Nombre <span className="text-danger">*</span></label>
                   <input
                     className="form-control"
                     value={nombre}
@@ -253,7 +257,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 {/* Categoría */}
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría</label>
+                  <label className="form-label">📦 Categoría <span className="text-danger">*</span></label>
                   <select
                     className="form-select"
                     value={categoria}
@@ -273,21 +277,25 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 {/* Cantidad */}
-                <div className="col-md-6">
-                  <label className="form-label">🔢 Cantidad</label>
-                  <input
-                    type="number"
-                    className={`form-control ${!cantidadValida ? "is-invalid" : ""}`}
-                    value={cantidad}
-                    onChange={handleCantidadChange}
-                    step="1"
-                    required
-                  />
-                </div>
+<div className="col-md-6">
+  <label className="form-label">
+    🔢 Cantidad <span className="text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    className={`form-control ${!cantidadValida ? "is-invalid" : ""}`}
+    value={cantidad}
+    onChange={handleCantidadChange}
+    maxLength={4}   // 🔹 No deja escribir más de 4 dígitos
+    required
+  />
+  <div className="form-text">Máximo 4 dígitos (hasta 9999)</div>
+</div>
+
 
                 {/* Precio */}
                 <div className="col-md-6">
-                  <label className="form-label">💲 Precio</label>
+                  <label className="form-label">💲 Precio <span className="text-danger">*</span></label>
                   <input
                     type="text"
                     className={`form-control ${!precioValido ? "is-invalid" : ""}`}
@@ -299,7 +307,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
                 {/* Imagen */}
                 <div className="col-md-12">
-                  <label className="form-label">🖼️ Imagen personalizada</label>
+                  <label className="form-label">🖼️ Imagen personalizada <span className="text-danger">*</span></label>
                   <div className="input-group">
                     <input
                       type="url"
