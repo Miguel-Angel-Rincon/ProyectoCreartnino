@@ -1,25 +1,29 @@
 // components/VisualizarInsumoModal.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/acciones.css';
 
-interface Insumos {
-  IdInsumos: number;
-  IdCatInsumo: string;
-  Nombre: string;
-  UnidadesMedidas: string; // ahora representa Unidad de Medida
-  cantidad: number;
-  precioUnitario: number;
-  estado: boolean;
-}
+import type { IInsumos } from '../../interfaces/IInsumos';
+import type { ICatInsumos } from '../../interfaces/ICatInsumos';
+import { APP_SETTINGS } from '../../../settings/appsettings';
 
 interface Props {
-  insumo: Insumos;
+  insumo: IInsumos;
   onClose: () => void;
 }
 
 const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
   const descripcionRef = useRef<HTMLTextAreaElement>(null);
+  const [categoriaNombre, setCategoriaNombre] = useState<string>("");
 
+  const apiBaseRaw =
+    (APP_SETTINGS as any).apiUrl ??
+    (APP_SETTINGS as any).API_URL ??
+    (APP_SETTINGS as any).API_URL_BASE ??
+    "";
+  const apiBase = apiBaseRaw.replace(/\/+$/, "");
+  const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
+
+  // Ajustar alto de textarea
   useEffect(() => {
     if (descripcionRef.current) {
       descripcionRef.current.style.height = 'auto';
@@ -27,8 +31,27 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
     }
   }, []);
 
+  // Buscar el nombre de la categoría
+  useEffect(() => {
+    const fetchCategoria = async () => {
+      try {
+        const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));
+        if (!resp.ok) throw new Error("Error al cargar categorías");
+        const data: ICatInsumos[] = await resp.json();
+
+        const categoria = data.find(c => c.IdCatInsumo === insumo.IdCatInsumo);
+        setCategoriaNombre(categoria ? categoria.NombreCategoria : "Desconocida");
+      } catch (err) {
+        console.error(err);
+        setCategoriaNombre("Error al cargar");
+      }
+    };
+    fetchCategoria();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insumo.IdCatInsumo]);
+
   // Formato COP para precio
-  const precioFormateado = insumo.precioUnitario.toLocaleString('es-CO', {
+  const precioFormateado = insumo.PrecioUnitario.toLocaleString('es-CO', {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
@@ -53,10 +76,9 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">📦 Categoría</label>
-                <input className="form-control" value={insumo.IdCatInsumo} disabled />
+                <input className="form-control" value={categoriaNombre} disabled />
               </div>
 
-              
               <div className="col-md-6">
                 <label className="form-label">⚖ Unidad de Medida</label>
                 <input
@@ -70,7 +92,7 @@ const VisualizarInsumoModal: React.FC<Props> = ({ insumo, onClose }) => {
               {/* Cantidad y Precio */}
               <div className="col-md-6">
                 <label className="form-label">🔢 Cantidad</label>
-                <input className="form-control" value={insumo.cantidad} disabled />
+                <input className="form-control" value={insumo.Cantidad} disabled />
               </div>
 
               <div className="col-md-6">
