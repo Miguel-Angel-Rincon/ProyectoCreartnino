@@ -1,55 +1,77 @@
-import React, { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-import '../styles/funciones.css';
-
-interface CategoriaInsumos {
-  IdCategoriaInsumo: number;
-  Nombre: string;
-  Descripcion: string;
-  Estado: boolean;
-}
+// EditarCategoriaInsumosModal.tsx
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "../styles/funciones.css";
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatInsumos } from "../../interfaces/ICatInsumos";
 
 interface Props {
-  categoria: CategoriaInsumos;
+  categoria: ICatInsumos;
   onClose: () => void;
-  onEditar: (formData: CategoriaInsumos) => void;
+  onEditar: (categoriaEditada: ICatInsumos) => void;
 }
 
-const EditarCategoriaInsumosModal: React.FC<Props> = ({ categoria, onClose, onEditar }) => {
-  const [formData, setFormData] = useState<CategoriaInsumos>(categoria);
+const EditarCategoriaInsumosModal: React.FC<Props> = ({
+  categoria,
+  onClose,
+  onEditar,
+}) => {
+  const [formData, setFormData] = useState<ICatInsumos>(categoria);
 
   useEffect(() => {
     setFormData(categoria);
   }, [categoria]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      onEditar(formData);
+    if (!formData.NombreCategoria.trim() || !formData.Descripcion.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos requeridos",
+        text: "Nombre y Descripción no pueden estar vacíos.",
+        confirmButtonColor: "#e83e8c",
+      });
+      return;
+    }
 
-      await Swal.fire({
-        icon: 'success',
-        title: 'Categoría actualizada',
-        text: 'Los cambios se han guardado correctamente.',
-        confirmButtonColor: '#e83e8c',
+    try {
+      const resp = await fetch(
+        `${APP_SETTINGS.apiUrl}Categoria_Insumos/Actualizar/${formData.IdCatInsumo}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const data: ICatInsumos = await resp.json();
+
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "La categoría fue actualizada correctamente",
+        confirmButtonColor: "#e83e8c",
       });
 
+      onEditar(data);
       onClose();
-    } catch (error) {
+    } catch (err) {
+      console.error("Error actualizando categoría:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'Error al editar',
-        text: 'Ocurrió un error inesperado al guardar los cambios.',
-        confirmButtonColor: '#e83e8c',
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar la categoría",
+        confirmButtonColor: "#e83e8c",
       });
     }
   };
@@ -60,23 +82,31 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({ categoria, onClose, onEd
         <div className="modal-content pastel-modal shadow-lg">
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
-              <h5 className="modal-title">📁 Editar Categoría de Insumo</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+              <h5 className="modal-title">📂 Editar Categoría de Insumo</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+              ></button>
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-12">
-                  <label className="form-label">📛 Nombre <span className="text-danger">*</span></label>
+                  <label className="form-label">
+                    📛 Nombre <span className="text-danger">*</span>
+                  </label>
                   <input
                     className="form-control"
-                    name="Nombre"
-                    value={formData.Nombre}
+                    name="NombreCategoria"
+                    value={formData.NombreCategoria}
                     onChange={handleChange}
                     required
                   />
                 </div>
                 <div className="col-md-12">
-                  <label className="form-label">📝 Descripción</label>
+                  <label className="form-label">
+                    📝 Descripción <span className="text-danger">*</span>
+                  </label>
                   <textarea
                     className="form-control"
                     name="Descripcion"
@@ -89,7 +119,11 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({ categoria, onClose, onEd
               </div>
             </div>
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn pastel-btn-secondary"
+                onClick={onClose}
+              >
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary">

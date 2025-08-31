@@ -1,131 +1,187 @@
-import { useState } from "react";
-import '../styles/style.css';
-import Swal from 'sweetalert2';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+// src/components/ListarCatInsumos.tsx
+import React, { useEffect, useState } from "react";
+import "../styles/style.css";
+import Swal from "sweetalert2";
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 
 import CrearCategoriaModal from "./Crear";
-import EditarCategoriaInsumosModal from "./Editar";
-import VerInsumoModal from './Ver';
+import EditarICatInsumosModal from "./Editar";
+import VerInsumoModal from "./Ver";
 
-interface CategoriaInsumos {
-  IdCategoriaInsumo: number;
-  Nombre: string;
-  Descripcion: string;
-  Estado: boolean;
-}
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatInsumos } from "../../interfaces/ICatInsumos";
 
-const categoriasIniciales: CategoriaInsumos[] = [
-  { IdCategoriaInsumo: 601, Nombre: 'Cartulina', Descripcion: 'Productos de tecnología y electrónicos', Estado: true },
-  { IdCategoriaInsumo: 602, Nombre: 'Carton', Descripcion: 'Ropa y accesorios para todas las edades', Estado: false },
-  { IdCategoriaInsumo: 603, Nombre: 'Lapices', Descripcion: 'Alimentos y bebidas de consumo diario', Estado: true },
-  { IdCategoriaInsumo: 604, Nombre: 'Papel', Descripcion: 'Artículos para el hogar y decoración', Estado: true },
-  { IdCategoriaInsumo: 605, Nombre: 'Tijeras', Descripcion: 'Productos de cuidado personal y belleza', Estado: false },
-  { IdCategoriaInsumo: 606, Nombre: 'Resaltador', Descripcion: 'Juguetes y juegos para niños y adultos', Estado: true },
-  { IdCategoriaInsumo: 607, Nombre: 'Boligrafos', Descripcion: 'Herramientas y equipos para bricolaje', Estado: false },
-  { IdCategoriaInsumo: 608, Nombre: 'Regla', Descripcion: 'Libros, música y material educativo', Estado: false },
-];
+const categoriasPorPagina = 6;
 
 const ListarCatInsumos: React.FC = () => {
-  const [categorias, setCategorias] = useState<CategoriaInsumos[]>(categoriasIniciales);
-  const [busqueda, setBusqueda] = useState('');
+  const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
+  const [busqueda, setBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
-  const [categoriaEditar, setCategoriaEditar] = useState<CategoriaInsumos | null>(null);
+  const [categoriaEditar, setCategoriaEditar] = useState<ICatInsumos | null>(null);
   const [mostrarVerModal, setMostrarVerModal] = useState(false);
-  const [categoriaVer, setCategoriaVer] = useState<CategoriaInsumos | null>(null);
+  const [categoriaVer, setCategoriaVer] = useState<ICatInsumos | null>(null);
 
-  const categoriasPorPagina = 6;
+  // --- Construcción de URL base ---
+  const apiBaseRaw =
+    (APP_SETTINGS as any).apiUrl ??
+    (APP_SETTINGS as any).API_URL ??
+    (APP_SETTINGS as any).API_URL_BASE ??
+    "";
+  const apiBase = apiBaseRaw.replace(/\/+$/, "");
+  const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
 
+  // --- Cargar categorías al inicio ---
+  useEffect(() => {
+    obtenerCategorias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const obtenerCategorias = async () => {
+    try {
+      const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data: ICatInsumos[] = await resp.json();
+      setCategorias(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("obtenerCategorias:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las categorías.",
+        confirmButtonColor: "#e83e8c",
+      });
+    }
+  };
+
+  // --- Eliminar categoría ---
   const handleEliminarCategoria = (id: number, estado: boolean) => {
     if (estado) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Categoría activa',
-        text: 'No puedes eliminar una categoría que está activa. Desactívala primero.',
-        confirmButtonColor: '#d33',
+        icon: "warning",
+        title: "Categoría activa",
+        text: "No puedes eliminar una categoría activa. Desactívala primero.",
+        confirmButtonColor: "#e83e8c",
       });
       return;
     }
 
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#aaa',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setCategorias(prev => prev.filter(c => c.IdCategoriaInsumo !== id));
-        Swal.fire({
-          icon: 'success',
-          title: 'Eliminado',
-          text: 'La categoría ha sido eliminada correctamente',
-          confirmButtonColor: '#e83e8c',
-        });
+        try {
+          const resp = await fetch(buildUrl(`Categoria_Insumos/Eliminar/${id}`), {
+            method: "DELETE",
+          });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          setCategorias((prev) => prev.filter((c) => c.IdCatInsumo !== id));
+          Swal.fire({
+            icon: "success",
+            title: "Eliminado",
+            text: "La categoría ha sido eliminada correctamente",
+            confirmButtonColor: "#e83e8c",
+          });
+        } catch (err) {
+          console.error("eliminarCategoria:", err);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudo eliminar la categoría.",
+            confirmButtonColor: "#e83e8c",
+          });
+        }
       }
     });
   };
 
-  const handleEstadoChange = (id: number) => {
-    setCategorias(prev =>
-      prev.map(c => (c.IdCategoriaInsumo === id ? { ...c, Estado: !c.Estado } : c))
+  // --- Cambiar estado ---
+  const handleEstadoChange = async (id: number) => {
+    const target = categorias.find((c) => c.IdCatInsumo === id);
+    if (!target) return;
+
+    const actualizado = { ...target, Estado: !target.Estado };
+
+    // Optimista en UI
+    setCategorias((prev) =>
+      prev.map((c) => (c.IdCatInsumo === id ? actualizado : c))
     );
+
+    try {
+      const resp = await fetch(buildUrl(`Categoria_Insumos/Actualizar/${id}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(actualizado),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      await obtenerCategorias();
+    } catch (err) {
+      console.error("actualizarEstado:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el estado de la categoría.",
+        confirmButtonColor: "#e83e8c",
+      });
+      setCategorias((prev) =>
+        prev.map((c) => (c.IdCatInsumo === id ? target : c))
+      );
+    }
   };
 
-  const handleCrear = (nuevaCategoria: CategoriaInsumos) => {
-    setCategorias(prev => [...prev, nuevaCategoria]);
-    setMostrarModal(false);
-    Swal.fire({
-      icon: 'success',
-      title: 'Categoría creada correctamente',
-      confirmButtonColor: '#e83e8c',
-    });
-  };
-
-  const handleEditarCategoria = (categoria: CategoriaInsumos) => {
+  // --- Abrir modales ---
+  const handleEditarCategoria = (categoria: ICatInsumos) => {
     setCategoriaEditar(categoria);
     setMostrarEditarModal(true);
   };
 
-  const handleActualizarCategoria = (categoriaActualizada: CategoriaInsumos) => {
-    setCategorias(prev =>
-      prev.map(c => (c.IdCategoriaInsumo === categoriaActualizada.IdCategoriaInsumo ? categoriaActualizada : c))
-    );
-    setMostrarEditarModal(false);
-  };
-
-  const handleVerCategoria = (categoria: CategoriaInsumos) => {
+  const handleVerCategoria = (categoria: ICatInsumos) => {
     setCategoriaVer(categoria);
     setMostrarVerModal(true);
   };
 
-const categoriasFiltradas = categorias.filter(c =>
-  c.Nombre.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-  c.Descripcion.toLowerCase().includes(busqueda.toLowerCase())
-);
+  // --- Filtro búsqueda ---
+  const categoriasFiltradas = categorias.filter((c) => {
+    return (
+      String(c.Nombre ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
+      String(c.Descripcion ?? "").toLowerCase().includes(busqueda.toLowerCase())
+    );
+  });
 
+  // --- Paginación ---
   const indexInicio = (paginaActual - 1) * categoriasPorPagina;
-  const indexFin = indexInicio + categoriasPorPagina;
-  const categoriasPagina = categoriasFiltradas.slice(indexInicio, indexFin);
-  const totalPaginas = Math.ceil(categoriasFiltradas.length / categoriasPorPagina);
+  const categoriasPagina = categoriasFiltradas.slice(
+    indexInicio,
+    indexInicio + categoriasPorPagina
+  );
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(categoriasFiltradas.length / categoriasPorPagina)
+  );
 
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="titulo">Categorías de Insumos</h2>
-        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Categoría</button>
+        <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
+          Crear Categoría
+        </button>
       </div>
 
       <input
         type="text"
-        placeholder="Buscar por nombre de categoría"
+        placeholder="Buscar por nombre o descripción"
         className="form-control mb-3 buscador"
         value={busqueda}
-        onChange={e => {
+        onChange={(e) => {
           setBusqueda(e.target.value);
           setPaginaActual(1);
         }}
@@ -143,15 +199,21 @@ const categoriasFiltradas = categorias.filter(c =>
           </thead>
           <tbody>
             {categoriasPagina.map((c, index) => (
-              <tr key={c.IdCategoriaInsumo} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{c.Nombre}</td>
+              <tr
+                key={c.IdCatInsumo}
+                className={index % 2 === 0 ? "fila-par" : "fila-impar"}
+              >
+                <td>{c.NombreCategoria}</td>
                 <td>{c.Descripcion}</td>
                 <td>
                   <label className="switch">
                     <input
                       type="checkbox"
                       checked={c.Estado}
-                      onChange={() => handleEstadoChange(c.IdCategoriaInsumo)}
+                      onChange={() =>
+                        typeof c.IdCatInsumo === "number" &&
+                        handleEstadoChange(c.IdCatInsumo)
+                      }
                     />
                     <span className="slider round"></span>
                   </label>
@@ -159,22 +221,32 @@ const categoriasFiltradas = categorias.filter(c =>
                 <td>
                   <FaEye
                     className="icono text-info"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
+                    style={{ cursor: "pointer", marginRight: "10px" }}
                     onClick={() => handleVerCategoria(c)}
                   />
                   <FaEdit
                     className="icono text-warning"
-                    style={{ cursor: 'pointer', marginRight: '10px' }}
+                    style={{ cursor: "pointer", marginRight: "10px" }}
                     onClick={() => handleEditarCategoria(c)}
                   />
                   <FaTrash
                     className="icono text-danger"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarCategoria(c.IdCategoriaInsumo, c.Estado)}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      typeof c.IdCatInsumo === "number" &&
+                      handleEliminarCategoria(c.IdCatInsumo, c.Estado)
+                    }
                   />
                 </td>
               </tr>
             ))}
+            {categoriasPagina.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center">
+                  No hay categorías registradas
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -182,7 +254,9 @@ const categoriasFiltradas = categorias.filter(c =>
           {[...Array(totalPaginas)].map((_, i) => (
             <button
               key={i}
-              className={`btn me-2 ${paginaActual === i + 1 ? 'btn-pink' : 'btn-light'}`}
+              className={`btn me-2 ${
+                paginaActual === i + 1 ? "btn-pink" : "btn-light"
+              }`}
               onClick={() => setPaginaActual(i + 1)}
             >
               {i + 1}
@@ -191,21 +265,58 @@ const categoriasFiltradas = categorias.filter(c =>
         </div>
       </div>
 
+      {/* Crear */}
       {mostrarModal && (
         <CrearCategoriaModal
           onClose={() => setMostrarModal(false)}
-          onCrear={handleCrear}
+          onCrear={async (nuevaCategoria: any) => {
+            try {
+              if (nuevaCategoria && nuevaCategoria.IdCategoriaInsumo) {
+                setCategorias((prev) => [...prev, nuevaCategoria]);
+              } else {
+                await obtenerCategorias();
+              }
+              setMostrarModal(false);
+              Swal.fire({
+                icon: "success",
+                title: "Categoría creada correctamente",
+                confirmButtonColor: "#e83e8c",
+              });
+            } catch (err) {
+              console.error("onCrear:", err);
+            }
+          }}
         />
       )}
 
+      {/* Editar */}
       {mostrarEditarModal && categoriaEditar && (
-        <EditarCategoriaInsumosModal
+        <EditarICatInsumosModal
           categoria={categoriaEditar}
           onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleActualizarCategoria}
+          onEditar={async (categoriaActualizada: any) => {
+            try {
+              if (categoriaActualizada && categoriaActualizada.IdCategoriaInsumo) {
+                setCategorias((prev) =>
+                  prev.map((c) =>
+                    c.IdCatInsumo === categoriaActualizada.IdCategoriaInsumo
+                      ? categoriaActualizada
+                      : c
+                  )
+                );
+              } else {
+                await obtenerCategorias();
+              }
+              setMostrarEditarModal(false);
+              
+            } catch (err) {
+              console.error("onEditar:", err);
+            }
+          }}
         />
       )}
 
+      {/* Ver */}
       {mostrarVerModal && categoriaVer && (
         <VerInsumoModal
           catinsumo={categoriaVer}

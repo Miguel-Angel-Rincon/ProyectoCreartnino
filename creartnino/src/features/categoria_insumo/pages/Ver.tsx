@@ -1,13 +1,7 @@
 import React from 'react';
 import '../styles/funciones.css';
 
-interface CategoriaInsumos {
-  IdCategoriaInsumo: number;
-  Nombre: string;
-  Descripcion: string;
-  Estado: boolean;
-}
-
+import type { ICatInsumos as CategoriaInsumos } from '../../interfaces/ICatInsumos';
 interface Props {
   catinsumo: CategoriaInsumos;
   onClose: () => void;
@@ -28,7 +22,7 @@ const VerInsumoModal: React.FC<Props> = ({ catinsumo, onClose }) => {
                 <label className="form-label">📛 Nombre</label>
                 <input
                   className="form-control"
-                  value={catinsumo.Nombre}
+                  value={catinsumo.NombreCategoria}
                   disabled
                 />
               </div>
