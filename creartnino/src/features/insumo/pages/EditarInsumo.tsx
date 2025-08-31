@@ -1,111 +1,153 @@
-import React, { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-import '../styles/acciones.css';
-
-interface Insumos {
-  IdInsumos: number;
-  IdCatInsumo: string;
-  Nombre: string;
-  UnidadesMedidas: string;
-  cantidad: number;
-  precioUnitario: number;
-  estado: boolean;
-}
+// src/components/EditarInsumo.tsx
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "../styles/acciones.css";
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatInsumos } from "../../interfaces/ICatInsumos";
+import type { IInsumos } from "../../interfaces/IInsumos";
 
 interface Props {
-  insumo: Insumos;
+  insumo: IInsumos;
   onClose: () => void;
-  onEditar: (formData: Insumos) => void;
+  onEditar: () => void; // 👈 refresca lista en el padre
 }
 
 const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
-  const [formData, setFormData] = useState<Insumos>(insumo);
-  const [precioTexto, setPrecioTexto] = useState('');
+  const [formData, setFormData] = useState<IInsumos>(insumo);
+  const [precioTexto, setPrecioTexto] = useState("");
+  const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
 
+  // --- API Base URL ---
+  const apiBaseRaw =
+    (APP_SETTINGS as any).apiUrl ??
+    (APP_SETTINGS as any).API_URL ??
+    (APP_SETTINGS as any).API_URL_BASE ??
+    "";
+  const apiBase = apiBaseRaw.replace(/\/+$/, "");
+  const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
+
+  // --- Inicializar formData ---
   useEffect(() => {
     setFormData(insumo);
-    setPrecioTexto(insumo.precioUnitario.toLocaleString('es-CO'));
+    setPrecioTexto(insumo.PrecioUnitario.toLocaleString("es-CO"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [insumo]);
 
-  const formatearCOP = (valor: string) => {
+  // --- Cargar categorías ---
+  useEffect(() => {
+    const obtenerCategorias = async () => {
+      try {
+        const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data: ICatInsumos[] = await resp.json();
+        setCategorias(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("obtenerCategorias:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudieron cargar las categorías de insumos.",
+          confirmButtonColor: "#f78fb3",
+        });
+      }
+    };
+    obtenerCategorias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- Formatear COP ---
+  const formatearCOPInput = (valor: string) => {
     const num = parseInt(valor);
-    if (isNaN(num)) return '';
-    return num.toLocaleString('es-CO');
+    if (isNaN(num)) return "";
+    return num.toLocaleString("es-CO");
   };
 
+  // --- Handle change ---
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
 
-    if (name === 'precioUnitario') {
-      const soloNumeros = value.replace(/[^\d]/g, '');
-      if (soloNumeros === '' || parseInt(soloNumeros) <= 0) {
-        setPrecioTexto('');
-        setFormData((prev) => ({ ...prev, precioUnitario: 0 }));
+    if (name === "PrecioUnitario") {
+      const soloNumeros = value.replace(/[^\d]/g, "");
+      if (soloNumeros.length > 7) return; // 👈 máximo 7 cifras
+      if (soloNumeros === "" || parseInt(soloNumeros) <= 0) {
+        setPrecioTexto("");
+        setFormData((prev) => ({ ...prev, PrecioUnitario: 0 }));
       } else {
-        setPrecioTexto(formatearCOP(soloNumeros));
+        setPrecioTexto(formatearCOPInput(soloNumeros));
         setFormData((prev) => ({
           ...prev,
-          precioUnitario: parseFloat(soloNumeros),
+          PrecioUnitario: parseFloat(soloNumeros),
         }));
       }
     } else {
       setFormData((prev) => ({
         ...prev,
-        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+        [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
       }));
     }
   };
 
+  // --- Editar insumo ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (formData.cantidad <= 0) {
-      await Swal.fire({
-        icon: 'warning',
-        title: '❌ Cantidad inválida',
-        text: 'La cantidad debe ser mayor a cero.',
-        confirmButtonColor: '#f78fb3',
+    // ✅ Validaciones
+    if (formData.Cantidad < 0 || formData.Cantidad > 9999) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Cantidad inválida",
+        text: "La cantidad debe estar entre 0 y 9999.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
-    if (formData.precioUnitario <= 0) {
-      await Swal.fire({
-        icon: 'warning',
-        title: '❌ Precio inválido',
-        text: 'El precio unitario debe ser mayor a cero.',
-        confirmButtonColor: '#f78fb3',
+    if (formData.PrecioUnitario <= 0 || formData.PrecioUnitario > 9999999) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Precio inválido",
+        text: "El precio debe estar entre 1 y 9.999.999.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
     if (!formData.UnidadesMedidas) {
-      await Swal.fire({
-        icon: 'warning',
-        title: '❌ Unidad de medida requerida',
-        text: 'Debes seleccionar una unidad de medida.',
-        confirmButtonColor: '#f78fb3',
+      Swal.fire({
+        icon: "error",
+        title: "❌ Unidad de medida requerida",
+        text: "Debes seleccionar una unidad de medida.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
     try {
-      onEditar(formData);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Insumo actualizado',
-        text: 'Los cambios se han guardado correctamente.',
-        confirmButtonColor: '#f78fb3',
+      const resp = await fetch(buildUrl(`Insumos/Actualizar/${formData.IdInsumo}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-      onClose();
-    } catch (error) {
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
       Swal.fire({
-        icon: 'error',
-        title: 'Error al editar',
-        text: 'Ocurrió un error inesperado al guardar los cambios.',
-        confirmButtonColor: '#f78fb3',
+        icon: "success",
+        title: "✅ Insumo actualizado correctamente",
+        confirmButtonColor: "#f78fb3",
+      });
+
+      onEditar(); // refresca lista en el padre
+      onClose();
+    } catch (err) {
+      console.error("editarInsumo:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo editar el insumo.",
+        confirmButtonColor: "#f78fb3",
       });
     }
   };
@@ -121,8 +163,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-
-                {/* Nombre y Categoría */}
+                {/* Nombre */}
                 <div className="col-md-6">
                   <label className="form-label">
                     📝 Nombre <span className="text-danger">*</span>
@@ -136,6 +177,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   />
                 </div>
 
+                {/* Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">
                     📦 Categoría <span className="text-danger">*</span>
@@ -147,17 +189,16 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     onChange={handleChange}
                     required
                   >
-                    <option value={formData.IdCatInsumo}>{formData.IdCatInsumo}</option>
-                    {Array.from({ length: 8 }, (_, i) => {
-                      const cat = `Categoría ${i + 1}`;
-                      return cat !== formData.IdCatInsumo ? (
-                        <option key={i} value={cat}>{cat}</option>
-                      ) : null;
-                    })}
+                    <option value="">-- Selecciona --</option>
+                    {categorias.map((c) => (
+                      <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
+                        {c.NombreCategoria}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Unidad de Medida */}
+                {/* Unidad medida */}
                 <div className="col-md-6">
                   <label className="form-label">
                     ⚖ Unidad de Medida <span className="text-danger">*</span>
@@ -187,14 +228,11 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                   <input
                     type="number"
                     className="form-control"
-                    name="cantidad"
-                    value={formData.cantidad}
-                    min={1}
+                    name="Cantidad"
+                    value={formData.Cantidad}
+                    min={0}   // ✅ ahora permite 0
+                    max={9999}
                     onChange={handleChange}
-                    onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                      const input = e.currentTarget;
-                      if (parseInt(input.value) < 1) input.value = '';
-                    }}
                     required
                   />
                 </div>
@@ -210,7 +248,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                       type="text"
                       inputMode="numeric"
                       className="form-control"
-                      name="precioUnitario"
+                      name="PrecioUnitario"
                       placeholder="Ej: 15000"
                       value={precioTexto}
                       onChange={handleChange}
@@ -218,9 +256,9 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                     />
                   </div>
                 </div>
-
               </div>
             </div>
+
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar

@@ -1,73 +1,151 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
-import '../styles/acciones.css';
-
-let idInsumoActual = 409;
+// src/components/CrearInsumo.tsx
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "../styles/acciones.css";
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatInsumos } from "../../interfaces/ICatInsumos";
 
 interface Props {
   onClose: () => void;
-  onCrear: (formData: any) => void;
+  onCrear: () => void; // 👈 refresca lista
 }
 
 const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
-  const [precioTexto, setPrecioTexto] = useState('');
+  const [precioTexto, setPrecioTexto] = useState("");
+  const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // --- API Base URL ---
+  const apiBaseRaw =
+    (APP_SETTINGS as any).apiUrl ??
+    (APP_SETTINGS as any).API_URL ??
+    (APP_SETTINGS as any).API_URL_BASE ??
+    "";
+  const apiBase = apiBaseRaw.replace(/\/+$/, "");
+  const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
+
+  // --- Cargar categorías ---
+  useEffect(() => {
+    const obtenerCategorias = async () => {
+      try {
+        const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data: ICatInsumos[] = await resp.json();
+        setCategorias(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("obtenerCategorias:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudieron cargar las categorías de insumos.",
+          confirmButtonColor: "#f78fb3",
+        });
+      }
+    };
+    obtenerCategorias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- Crear insumo ---
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
 
-    const cantidad = parseInt(form.cantidad.value.replace(/[^\d]/g, ''));
-    const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, '');
+    const cantidad = parseInt(form.cantidad.value.replace(/[^\d]/g, ""));
+    const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, "");
     const precioUnitario = parseFloat(precioLimpio);
     const unidadMedida = form.unidadMedida.value;
+    const idCatInsumo = parseInt(form.categoria.value);
 
+    // ✅ Validaciones de cantidad
     if (isNaN(cantidad) || cantidad <= 0) {
       Swal.fire({
-        icon: 'error',
-        title: '❌ Cantidad inválida',
-        text: 'La cantidad debe ser mayor a cero.',
-        confirmButtonColor: '#f78fb3',
+        icon: "error",
+        title: "❌ Cantidad inválida",
+        text: "La cantidad debe ser mayor a cero.",
+        confirmButtonColor: "#f78fb3",
+      });
+      return;
+    }
+    if (cantidad > 9999) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Cantidad inválida",
+        text: "La cantidad no puede superar 9999.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
+    // ✅ Validaciones de precio
     if (isNaN(precioUnitario) || precioUnitario <= 0) {
       Swal.fire({
-        icon: 'error',
-        title: '❌ Precio inválido',
-        text: 'El precio unitario debe ser mayor a cero.',
-        confirmButtonColor: '#f78fb3',
+        icon: "error",
+        title: "❌ Precio inválido",
+        text: "El precio unitario debe ser mayor a cero.",
+        confirmButtonColor: "#f78fb3",
+      });
+      return;
+    }
+    if (precioUnitario > 9999999) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Precio inválido",
+        text: "El precio no puede superar 9.999.999.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
     if (!unidadMedida) {
       Swal.fire({
-        icon: 'error',
-        title: '❌ Unidad de medida requerida',
-        text: 'Debes seleccionar una unidad de medida.',
-        confirmButtonColor: '#f78fb3',
+        icon: "error",
+        title: "❌ Unidad de medida requerida",
+        text: "Debes seleccionar una unidad de medida.",
+        confirmButtonColor: "#f78fb3",
       });
       return;
     }
 
     const nuevoInsumo = {
-      IdInsumos: idInsumoActual++,
-      IdCatInsumo: form.categoria.value,
+      IdCatInsumo: idCatInsumo,
       Nombre: form.nombre.value,
       UnidadesMedidas: unidadMedida,
-      cantidad,
-      precioUnitario,
-      estado: form.estado?.checked ?? false,
+      Cantidad: cantidad,
+      PrecioUnitario: precioUnitario,
+      Estado: form.estado?.checked ?? true, // 👈 por defecto activo
     };
 
-    onCrear(nuevoInsumo);
+    try {
+      const resp = await fetch(buildUrl("Insumos/Crear"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoInsumo),
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      Swal.fire({
+        icon: "success",
+        title: "✅ Insumo creado correctamente",
+        confirmButtonColor: "#f78fb3",
+      });
+
+      onCrear(); // refresca lista en el padre
+    } catch (err) {
+      console.error("crearInsumo:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear el insumo.",
+        confirmButtonColor: "#f78fb3",
+      });
+    }
   };
 
   const formatearCOPInput = (valor: string) => {
     const num = parseInt(valor);
-    if (isNaN(num)) return '';
-    return num.toLocaleString('es-CO');
+    if (isNaN(num)) return "";
+    return num.toLocaleString("es-CO");
   };
 
   return (
@@ -81,7 +159,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
             </div>
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-                {/* Nombre y Categoría */}
+                {/* Nombre */}
                 <div className="col-md-6">
                   <label className="form-label">
                     📝 Nombre <span className="text-danger">*</span>
@@ -89,17 +167,22 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <input className="form-control" name="nombre" required />
                 </div>
 
+                {/* Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">
                     📦 Categoría <span className="text-danger">*</span>
                   </label>
                   <select className="form-select" name="categoria" required>
-                    {Array.from({ length: 8 }, (_, i) => (
-                      <option key={i} value={`Categoría ${i + 1}`}>{`Categoría ${i + 1}`}</option>
+                    <option value="">-- Selecciona --</option>
+                    {categorias.map((c) => (
+                      <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
+                        {c.NombreCategoria}
+                      </option>
                     ))}
                   </select>
                 </div>
 
+                {/* Unidad medida */}
                 <div className="col-md-6">
                   <label className="form-label">
                     ⚖ Unidad de Medida <span className="text-danger">*</span>
@@ -126,14 +209,16 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     name="cantidad"
                     required
                     min={1}
+                    max={9999} // 👈 límite de 4 cifras
                     onInput={(e: React.FormEvent<HTMLInputElement>) => {
                       const input = e.currentTarget;
-                      if (parseInt(input.value) < 1) input.value = '';
+                      if (parseInt(input.value) < 1) input.value = "";
+                      if (parseInt(input.value) > 9999) input.value = "9999"; // 👈 límite
                     }}
                   />
                 </div>
 
-                {/* Precio Unitario */}
+                {/* Precio */}
                 <div className="col-md-6">
                   <label className="form-label">
                     💲 Precio Unitario (COP) <span className="text-danger">*</span>
@@ -149,9 +234,10 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       placeholder="Ej: 15000"
                       value={precioTexto}
                       onChange={(e) => {
-                        const soloNumeros = e.target.value.replace(/[^\d]/g, '');
-                        if (soloNumeros === '' || parseInt(soloNumeros) === 0) {
-                          setPrecioTexto('');
+                        const soloNumeros = e.target.value.replace(/[^\d]/g, "");
+                        if (soloNumeros.length > 7) return; // 👈 máximo 7 cifras
+                        if (soloNumeros === "" || parseInt(soloNumeros) === 0) {
+                          setPrecioTexto("");
                         } else {
                           setPrecioTexto(formatearCOPInput(soloNumeros));
                         }
