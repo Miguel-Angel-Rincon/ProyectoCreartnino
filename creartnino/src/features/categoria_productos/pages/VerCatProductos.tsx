@@ -4,7 +4,7 @@ import '../styles/Funciones.css';
 
 interface CategoriaProducto {
   IdCategoriaProducto: number;
-  Nombre: string;
+  CategoriaProducto1: string;
   Descripcion: string;
   Estado: boolean;
 }
@@ -29,7 +29,7 @@ const VerProductoModal: React.FC<Props> = ({ catproducto, onClose }) => {
                 <label className="form-label">📛 Nombre</label>
                 <input
                   className="form-control"
-                  value={catproducto.Nombre}
+                  value={catproducto.CategoriaProducto1}
                   disabled
                 />
               </div>

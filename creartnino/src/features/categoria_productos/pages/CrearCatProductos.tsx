@@ -1,50 +1,79 @@
-// components/CrearCategoriaModal.tsx
-import React from 'react';
-import Swal from 'sweetalert2';
-import '../styles/Funciones.css';
-
-interface CategoriaProductos {
-  IdCategoriaProducto: number;
-  Nombre: string;
-  Descripcion: string;
-  Estado: boolean;
-}
+// CrearCategoriaModal.tsx
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import "../styles/funciones.css";
+import { APP_SETTINGS } from "../../../settings/appsettings";
+import type { ICatProductos } from "../../interfaces/ICatProductos";
 
 interface Props {
   onClose: () => void;
-  onCrear: (nuevaCategoria: CategoriaProductos) => void;
+  onCrear: (nuevaCategoria: ICatProductos) => void;
 }
 
-// Contador incremental para IDs de categorías
-let idCategoriaActual = 409;
-
 const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [formData, setFormData] = useState({
+    CategoriaProducto1: "",
+    Descripcion: "",
+    Estado: true,
+    Productos: [] as any[],
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target as HTMLInputElement;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
 
-    const nombre = form.nombre.value.trim();
-    const descripcion = form.descripcion.value.trim();
-    const estado = form.estado?.checked ?? true; // Por defecto, estado es true si no se especifica
-
-    if (!nombre || !descripcion) {
+    if (!formData.CategoriaProducto1.trim() || !formData.Descripcion.trim()) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Campos requeridos',
-        text: 'Nombre y Descripción no pueden estar vacíos.',
-        confirmButtonColor: '#e83e8c',
+        icon: "warning",
+        title: "Campos requeridos",
+        text: "Nombre y Descripción no pueden estar vacíos.",
+        confirmButtonColor: "#e83e8c",
       });
       return;
     }
 
-    const nuevaCategoria: CategoriaProductos = {
-      IdCategoriaProducto: idCategoriaActual++,
-      Nombre: nombre,
-      Descripcion: descripcion,
-      Estado: estado,
-    };
+    try {
+      const resp = await fetch(
+        `${APP_SETTINGS.apiUrl}Categoria_Productos/Crear`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
-    onCrear(nuevaCategoria);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const data: ICatProductos = await resp.json();
+
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "La categoría fue creada correctamente",
+        confirmButtonColor: "#e83e8c",
+      });
+
+      onCrear(data);
+      onClose();
+    } catch (err) {
+      console.error("Error creando categoría:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear la categoría",
+        confirmButtonColor: "#e83e8c",
+      });
+    }
   };
 
   return (
@@ -59,14 +88,26 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-12">
-                  <label className="form-label">📛 Nombre <span className="text-danger">*</span></label>
-                  <input className="form-control" name="nombre" required />
+                  <label className="form-label">
+                    📛 Nombre <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    className="form-control"
+                    name="CategoriaProducto1"
+                    value={formData.CategoriaProducto1}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="col-md-12">
-                  <label className="form-label">📝 Descripción</label>
+                  <label className="form-label">
+                    📝 Descripción <span className="text-danger">*</span>
+                  </label>
                   <textarea
                     className="form-control"
-                    name="descripcion"
+                    name="Descripcion"
+                    value={formData.Descripcion}
+                    onChange={handleChange}
                     rows={3}
                     required
                   />
@@ -75,7 +116,11 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
               </div>
             </div>
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn pastel-btn-secondary"
+                onClick={onClose}
+              >
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary">
