@@ -293,17 +293,22 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 </div>
 
 
+                
                 {/* Precio */}
-                <div className="col-md-6">
-                  <label className="form-label">💲 Precio <span className="text-danger">*</span></label>
-                  <input
-                    type="text"
-                    className={`form-control ${!precioValido ? "is-invalid" : ""}`}
-                    value={precio}
-                    onChange={handlePrecioChange}
-                    required
-                  />
-                </div>
+<div className="col-md-6">
+  <label className="form-label">
+    💲 Precio <span className="text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    className={`form-control ${!precioValido ? "is-invalid" : ""}`}
+    value={precio}
+    onChange={handlePrecioChange}
+    maxLength={8}
+    required
+  />
+  <div className="form-text">Máximo 7 dígitos</div>
+</div>
 
                 {/* Imagen */}
                 <div className="col-md-12">

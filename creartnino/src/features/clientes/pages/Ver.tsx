@@ -1,19 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/acciones.css';
 
-interface Cliente {
-  IdClientes: number;
-  NombreCompleto: string;
-  Tipodocumento: string;
-  Numerodocumento: string;
-  Correo: string;
-  Celular: string;
-  Departamento: string;
-  Ciudad: string;
-  Direccion: string;
-  estado: boolean;
-}
+import type { IClientes } from '../../interfaces/IClientes';
 
+type Cliente = IClientes;
 interface Props {
   cliente: Cliente;
   onClose: () => void;
@@ -49,11 +39,11 @@ const VerClienteModal: React.FC<Props> = ({ cliente, onClose }) => {
 
               <div className="col-md-6">
                 <label className="form-label">🧾 Tipo de Documento</label>
-                <input className="form-control" value={cliente.Tipodocumento} disabled />
+                <input className="form-control" value={cliente.TipoDocumento} disabled />
               </div>
               <div className="col-md-6">
                 <label className="form-label">🔢 Número de Documento</label>
-                <input className="form-control" value={cliente.Numerodocumento} disabled />
+                <input className="form-control" value={cliente.NumDocumento} disabled />
               </div>
 
               <div className="col-md-6">

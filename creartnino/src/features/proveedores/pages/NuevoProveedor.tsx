@@ -278,24 +278,30 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">
-                    🧾 Tipo de Documento <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    className="form-select"
-                    name="TipoDocumento"
-                    value={formData.TipoDocumento}
-                    onChange={handleChange}
-                    required
-                    disabled={esJuridica}
-                  >
-                    <option value="">Seleccione...</option>
-                    <option value="CC">Cédula de Ciudadanía</option>
-                    <option value="NIT">NIT</option>
-                    <option value="CE">Cédula de Extranjería</option>
-                    <option value="TI">Tarjeta de Identidad</option>
-                  </select>
-                </div>
+  <label className="form-label">
+    🧾 Tipo de Documento <span className="text-danger">*</span>
+  </label>
+  <select
+    className="form-select"
+    name="TipoDocumento"
+    value={formData.TipoDocumento}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Seleccione...</option>
+
+    {esJuridica ? (
+      <option value="NIT">NIT</option>
+    ) : (
+      <>
+        <option value="CC">Cédula de Ciudadanía</option>
+        <option value="CE">Cédula de Extranjería</option>
+        <option value="TI">Tarjeta de Identidad</option>
+      </>
+    )}
+  </select>
+</div>
+
 
                 <div className="col-md-6">
                   <label className="form-label">
@@ -307,6 +313,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     name="NumDocumento"
                     value={formData.NumDocumento}
                     onChange={handleChange}
+                    maxLength={11}
                     required
                   />
                 </div>
