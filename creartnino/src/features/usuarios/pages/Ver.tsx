@@ -1,22 +1,9 @@
 import React from 'react';
 import '../style/acciones.css';
-interface Usuario {
-  IdUsuarios: number;
-  NombreCompleto: string;
-  Tipodocumento: string;
-  Numerodocumento: string;
-  Celular: string;
-  Direccion: string;
-  Departamento: string;
-  Ciudad: string;
-  Correo: string;
-  contrasena: string;
-  idRol: string;
-  estado: boolean;
-}
+import type { IUsuarios } from '../../interfaces/IUsuarios'; // ✅ Importa la interfaz
 
 interface Props {
-  usuario: Usuario;
+  usuario: IUsuarios;  // ✅ Usa la interfaz importada
   onClose: () => void;
 }
 
@@ -33,11 +20,11 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
             <div className="row g-4">
               <div className="col-md-6">
                 <label className="form-label">🧾 Tipo de Documento</label>
-                <input className="form-control" value={usuario.Tipodocumento} disabled />
+                <input className="form-control" value={usuario.TipoDocumento} disabled />
               </div>
               <div className="col-md-6">
                 <label className="form-label">🔢 Número de Documento</label>
-                <input className="form-control" value={usuario.Numerodocumento} disabled />
+                <input className="form-control" value={usuario.NumDocumento} disabled />
               </div>
               <div className="col-md-12">
                 <label className="form-label">🙍 Nombre Completo</label>
@@ -52,9 +39,9 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
                 <input className="form-control" type="email" value={usuario.Correo} disabled />
               </div>
 
-            <div className="col-md-6">
+              <div className="col-md-6">
                 <label className="form-label">🔐 Contraseña</label>
-                <input className="form-control" type="email" value={usuario.contrasena} disabled />
+                <input className="form-control" type="text" value={usuario.Contrasena} disabled />
               </div>
 
               <div className="col-md-6">
@@ -71,9 +58,8 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
               </div>
               <div className="col-md-6">
                 <label className="form-label">🛡️ Rol</label>
-                <input className="form-control" value={usuario.idRol} disabled />
+                <input className="form-control" value={String(usuario.IdRol)} disabled />
               </div>
-             
             </div>
           </div>
           <div className="modal-footer pastel-footer">

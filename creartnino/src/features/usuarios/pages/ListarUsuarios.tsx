@@ -1,89 +1,146 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Swal from 'sweetalert2';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-
 import CrearUsuarioModal from "./Crear";
 import EditarUsuarioModal from "./Editar";
 import VerUsuarioModal from './Ver';
-
-interface Usuarios {
-  IdUsuarios: number;
-  NombreCompleto: string;
-  Tipodocumento: string;
-  Numerodocumento: string;
-  Celular: string;
-  Direccion: string;
-  Departamento: string;
-  Ciudad: string;
-  Correo: string;
-  contrasena?: string;
-  idRol: string;
-  estado: boolean;
-}
-
-const usuariosiniciales: Usuarios[] = [
-  { IdUsuarios: 1, NombreCompleto: 'Juan Pérez', Tipodocumento: 'CC', Numerodocumento: '1010101010', Celular: '3001234567', Direccion: 'Calle 123 #45-67', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'juan.perez@example.com',contrasena: '236666', idRol: 'admin', estado: true },
-  { IdUsuarios: 2, NombreCompleto: 'María Gómez', Tipodocumento: 'TI', Numerodocumento: '1020304050', Celular: '3007654321', Direccion: 'Carrera 10 #20-30', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'maria.gomez@example.com',contrasena: '123456', idRol: 'cliente', estado: true },
-  { IdUsuarios: 3, NombreCompleto: 'Carlos Ramirez', Tipodocumento: 'CC', Numerodocumento: '1122334455', Celular: '3012345678', Direccion: 'Av. Siempre Viva 742', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'carlos.ramirez@example.com',contrasena: '789456', idRol: 'vendedor', estado: false },
-  { IdUsuarios: 4, NombreCompleto: 'Laura Martínez', Tipodocumento: 'CE', Numerodocumento: '5566778899', Celular: '3023456789', Direccion: 'Calle 50 #10-20', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'laura.martinez@example.com',contrasena: '34568', idRol: 'admin', estado: true },
-  { IdUsuarios: 5, NombreCompleto: 'Andrés López', Tipodocumento: 'CC', Numerodocumento: '9988776655', Celular: '3034567890', Direccion: 'Diagonal 60 #30-40', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'andres.lopez@example.com',contrasena: '484848',idRol: 'cliente', estado: false },
-  { IdUsuarios: 6, NombreCompleto: 'Sofía Torres', Tipodocumento: 'TI', Numerodocumento: '3344556677', Celular: '3045678901', Direccion: 'Transversal 80 #40-50', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'sofia.torres@example.com',contrasena: '121212', idRol: 'cliente', estado: true },
-  { IdUsuarios: 7, NombreCompleto: 'Miguel Salazar', Tipodocumento: 'CC', Numerodocumento: '7788990011', Celular: '3056789012', Direccion: 'Calle 70 #30-31', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'miguel.salazar@example.com',contrasena: '1011394', idRol: 'vendedor', estado: true },
-  { IdUsuarios: 8, NombreCompleto: 'Valentina Ríos', Tipodocumento: 'CE', Numerodocumento: '4455667788', Celular: '3067890123', Direccion: 'Carrera 25 #15-16', Departamento: 'Antioquia', Ciudad: 'Medellín', Correo: 'valentina.rios@example.com',contrasena: '1111111', idRol: 'admin', estado: false }
-];
+import type { IUsuarios } from '../../interfaces/IUsuarios';
 
 const ListarUsuarios: React.FC = () => {
-  const [Usuarios, setusuarios] = useState<Usuarios[]>(usuariosiniciales);
+  const [Usuarios, setUsuarios] = useState<IUsuarios[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarVerModal, setMostrarVerModal] = useState(false);
-  const [usuarioVer, setUsuariosVer] = useState<Usuarios | null>(null);
+  const [usuarioVer, setUsuarioVer] = useState<IUsuarios | null>(null);
   const [mostrarEditarModal, setMostrarEditarModal] = useState(false);
-  const [UsuarioEditar, setUsuarioEditar] = useState<Usuarios | null>(null);
+  const [UsuarioEditar, setUsuarioEditar] = useState<IUsuarios | null>(null);
   const UsuariosPorPagina = 6;
 
-  const handleEliminarUsuarios = (id: number, estado: boolean) => {
-    if (estado) {
+  // Fetch desde la API
+  const obtenerUsuarios = async () => {
+    try {
+      const response = await fetch("https://apicreartnino.somee.com/api/Usuarios/Lista");
+      if (!response.ok) throw new Error("Error al obtener usuarios");
+      const data: IUsuarios[] = await response.json();
+      setUsuarios(data);
+    } catch (error: any) {
+      console.error(error);
       Swal.fire({
-        icon: 'warning',
-        title: 'Usuario activo',
-        text: 'No puedes eliminar un Usuario que está activo. Desactívalo primero.',
-        confirmButtonColor: '#d33',
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los usuarios',
       });
-      return;
     }
+  };
 
+  useEffect(() => {
+    obtenerUsuarios();
+  }, []);
+
+  const handleEliminarUsuarios = async (id: number, estado: boolean) => {
+  if (estado) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
       icon: 'warning',
-      showCancelButton: true,
+      title: 'Usuario activo',
+      text: 'No puedes eliminar un Usuario que está activo. Desactívalo primero.',
       confirmButtonColor: '#d33',
-      cancelButtonColor: '#aaa',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setusuarios(prev => prev.filter(p => p.IdUsuarios !== id));
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const resp = await fetch(
+          `https://apicreartnino.somee.com/api/Usuarios/Eliminar/${id}`,
+          { method: "DELETE" }
+        );
+
+        if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
+
+        // Refresca la lista
+        await obtenerUsuarios();
+
         Swal.fire({
           icon: 'success',
           title: 'Eliminado',
           text: 'El Usuario ha sido eliminado correctamente',
           confirmButtonColor: '#e83e8c',
         });
+      } catch (err) {
+        console.error("Eliminar usuario:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
+          confirmButtonColor: '#e83e8c',
+        });
       }
-    });
-  };
+    }
+  });
+};
 
-  const handleEstadoChange = (id: number) => {
-    setusuarios(prev =>
-      prev.map(p => (p.IdUsuarios === id ? { ...p, estado: !p.estado } : p))
+  const handleEstadoChange = async (id: number) => {
+  const target = Usuarios.find((u) => u.IdUsuarios === id);
+  if (!target) return;
+
+  const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
+
+  // Actualiza localmente
+  setUsuarios((prev) =>
+    prev.map((u) => (u.IdUsuarios === id ? actualizado : u))
+  );
+
+  try {
+    const resp = await fetch(
+      `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(actualizado),
+      }
     );
-  };
 
-  const handleCrear = (nuevoUsuario: Usuarios) => {
-    setusuarios(prev => [...prev, nuevoUsuario]);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    // Vuelve a traer los usuarios desde la API
+    await obtenerUsuarios();
+
+    // Aviso de éxito
+    Swal.fire({
+      icon: "success",
+      title: "Estado actualizado",
+      text: `El usuario ${actualizado.NombreCompleto} ahora está ${actualizado.Estado ? "activo" : "inactivo"}.`,
+      confirmButtonColor: "#e83e8c",
+    });
+  } catch (err) {
+    console.error("actualizarEstado:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo actualizar el estado del usuario.",
+      confirmButtonColor: "#e83e8c",
+    });
+
+    // Revertir el cambio local si falla
+    setUsuarios((prev) =>
+      prev.map((u) => (u.IdUsuarios === id ? target : u))
+    );
+  }
+};
+
+  const handleCrear = (nuevoUsuario: IUsuarios) => {
+    setUsuarios(prev => [...prev, nuevoUsuario]);
     setMostrarModal(false);
     Swal.fire({
       icon: 'success',
@@ -92,27 +149,28 @@ const ListarUsuarios: React.FC = () => {
     });
   };
 
-  const handleVerusuario = (usuario: Usuarios) => {
-    setUsuariosVer(usuario);
+  const handleVerUsuario = (usuario: IUsuarios) => {
+    setUsuarioVer(usuario);
     setMostrarVerModal(true);
   };
 
-  const handleEditarUsuario = (usuario: Usuarios) => {
+  const handleEditarUsuario = (usuario: IUsuarios) => {
     setUsuarioEditar(usuario);
     setMostrarEditarModal(true);
   };
 
-  const handleActualizarProducto = (UsuariosActualizado: Usuarios) => {
-    setusuarios(prev =>
-      prev.map(p => (p.IdUsuarios === UsuariosActualizado.IdUsuarios ? UsuariosActualizado : p))
+  const handleActualizarUsuario = (usuarioActualizado: IUsuarios) => {
+    setUsuarios(prev =>
+      prev.map(p => (p.IdUsuarios === usuarioActualizado.IdUsuarios ? usuarioActualizado : p))
     );
     setMostrarEditarModal(false);
   };
 
+  // Filtrado y paginación
   const UsuariosFiltrados = Usuarios.filter(p =>
     p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.Numerodocumento.includes(busqueda) ||
-    p.idRol.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.NumDocumento.includes(busqueda) ||
+    (p.IdRolNavigation ? p.IdRolNavigation.toString().toLowerCase().includes(busqueda.toLowerCase()) : false) ||
     p.Celular.includes(busqueda)
   );
 
@@ -145,7 +203,6 @@ const ListarUsuarios: React.FC = () => {
             <tr>
               <th># Documento</th>
               <th>Nombre Completo</th>
-              
               <th>Celular</th>
               <th>Rol</th>
               <th>Estado</th>
@@ -155,16 +212,18 @@ const ListarUsuarios: React.FC = () => {
           <tbody>
             {UsuariosPagina.map((p, index) => (
               <tr key={p.IdUsuarios} className={index % 2 === 0 ? 'fila-par' : 'fila-impar'}>
-                <td>{p.Tipodocumento} {p.Numerodocumento}</td>
+                <td>{p.TipoDocumento} {p.NumDocumento}</td>
                 <td>{p.NombreCompleto}</td>
-                
                 <td>{p.Celular}</td>
-                <td>{p.idRol}</td>
+                <td>
+  {p.IdRol === 1 ? "Administrador" : "Usuario"}
+</td>
+
                 <td>
                   <label className="switch">
                     <input
                       type="checkbox"
-                      checked={p.estado}
+                      checked={p.Estado}
                       onChange={() => handleEstadoChange(p.IdUsuarios)}
                     />
                     <span className="slider round"></span>
@@ -174,7 +233,7 @@ const ListarUsuarios: React.FC = () => {
                   <FaEye
                     className="icono text-info"
                     style={{ cursor: 'pointer', marginRight: '10px' }}
-                    onClick={() => handleVerusuario(p)}
+                    onClick={() => handleVerUsuario(p)}
                   />
                   <FaEdit
                     className="icono text-warning"
@@ -184,7 +243,7 @@ const ListarUsuarios: React.FC = () => {
                   <FaTrash
                     className="icono text-danger"
                     style={{ cursor: 'pointer' }}
-                    onClick={() => handleEliminarUsuarios(p.IdUsuarios, p.estado)}
+                    onClick={() => handleEliminarUsuarios(p.IdUsuarios, p.Estado)}
                   />
                 </td>
               </tr>
@@ -211,14 +270,17 @@ const ListarUsuarios: React.FC = () => {
 
       {mostrarEditarModal && UsuarioEditar && (
         <EditarUsuarioModal
-          usuario={{ ...UsuarioEditar, contrasena: UsuarioEditar.contrasena ?? "" }}
+          usuario={{ ...UsuarioEditar, Contrasena: UsuarioEditar.Contrasena ?? "" }}
           onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleActualizarProducto}
+          onEditar={handleActualizarUsuario}
         />
       )}
 
       {mostrarVerModal && usuarioVer && (
-        <VerUsuarioModal usuario={{ ...usuarioVer, contrasena: usuarioVer.contrasena ?? "" }} onClose={() => setMostrarVerModal(false)} />
+        <VerUsuarioModal
+          usuario={{ ...usuarioVer, Contrasena: usuarioVer.Contrasena ?? "" }}
+          onClose={() => setMostrarVerModal(false)}
+        />
       )}
     </div>
   );
