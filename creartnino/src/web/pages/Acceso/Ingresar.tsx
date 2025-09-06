@@ -89,18 +89,20 @@ const Ingresar = () => {
       const data = await resp.json();
 
       if (resp.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("idRol", data.idRol);
-        localStorage.setItem("correo", correo);
-        localStorage.setItem("NumDocumento", data.usuario.numDocumento ?? "");
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("idRol", data.idRol);
+  localStorage.setItem("correo", correo);
+  localStorage.setItem("NumDocumento", data.usuario.numDocumento ?? "");
 
-        iniciarSesion({ ...data.usuario, idRol: data.idRol });
-        showAlert("✅ Sesión iniciada", "Bienvenido", "success");
+  // Ojo: mapeamos idRol → IdRol
+  iniciarSesion({ ...data.usuario, IdRol: data.idRol }, data.token);
 
-        if (data.idRol === 1) navigate("/dashboard");
-        else if (data.idRol === 4) navigate("/");
-        else showAlert("⚠️ Rol no reconocido", "", "warning");
-      } else {
+  showAlert("✅ Sesión iniciada", "Bienvenido", "success");
+
+  if (data.idRol === 1) navigate("/dashboard");
+  else if (data.idRol === 4) navigate("/");
+  else showAlert("⚠️ Rol no reconocido", "", "warning");
+}else {
         showAlert("Error", data.mensaje || "Código inválido", "error");
       }
     } catch {

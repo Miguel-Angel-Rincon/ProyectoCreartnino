@@ -40,10 +40,10 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
     if (usuario) {
       setForm(f => ({
         ...f,
-        nombreCompleto: usuario.nombreCompleto,
-        correo: usuario.correo,
-        celular: usuario.celular,
-        direccion: usuario.direccion,
+        nombreCompleto: usuario.NombreCompleto,
+        correo: usuario.Correo,
+        celular: usuario.Celular,
+        direccion: usuario.Direccion,
       }));
     }
 

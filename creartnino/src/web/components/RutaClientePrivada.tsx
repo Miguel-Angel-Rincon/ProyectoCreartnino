@@ -11,7 +11,7 @@ const RutaClientePrivada = ({ children }: { children: JSX.Element }) => {
   }
 
   // Solo cliente (idRol === 4) puede entrar
-  if (usuario?.idRol !== 4) {
+  if (usuario?.IdRol !== 4) {
     return <Navigate to="/dashboard" />; // si es admin lo mandamos al panel
   }
 

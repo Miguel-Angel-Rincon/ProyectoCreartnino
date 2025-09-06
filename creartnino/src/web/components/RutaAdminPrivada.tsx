@@ -11,7 +11,7 @@ const RutaAdminPrivada = ({ children }: { children: JSX.Element }) => {
   }
 
   // Solo admin (idRol === 1) puede entrar
-  if (usuario?.idRol !== 1) {
+  if (usuario?.IdRol !== 1) {
     return <Navigate to="/" />; // si es cliente lo mandamos al inicio
   }
 

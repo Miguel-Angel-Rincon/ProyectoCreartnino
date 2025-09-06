@@ -23,8 +23,8 @@ const CardProducto = ({ producto }: Props) => {
   const navigate = useNavigate();
 
   // ✅ Validamos con el id del rol (1 = admin, 4 = cliente)
-   const esAdmin = usuario?.idRol === 1;
-  const esCliente = usuario?.idRol === 4;
+   const esAdmin = usuario?.IdRol === 1;
+  const esCliente = usuario?.IdRol === 4;
 
   const handleAgregar = () => {
     if (!usuario) {

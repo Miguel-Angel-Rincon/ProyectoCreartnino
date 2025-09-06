@@ -12,7 +12,7 @@ const RutaPrivada = ({ children }: { children: JSX.Element }) => {
   }
 
   // 🔒 Si no es cliente, lo mandamos al dashboard admin
-  if (usuario?.idRol !== 4) {
+  if (usuario?.IdRol !== 4) {
     return <Navigate to="/dashboard" />;
   }
 

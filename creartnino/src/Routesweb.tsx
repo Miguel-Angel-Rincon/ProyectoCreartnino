@@ -3,13 +3,17 @@ import { Route, Routes } from "react-router-dom";
 import Inicio from "./web/pages/Inicio";
 import Quienes from "./web/pages/Qsomos";
 import Ingresar from "./web/pages/Acceso/Ingresar";
-import RutaPrivada from './web/components/RutaPrivada';
 import Registrar from "./web/pages/Acceso/Registar";
-import PublicLayout from './web/layouts/PublicLayouts';
-import Perfil from "./web/pages/Acceso/perfil";
+import PublicLayout from "./web/layouts/PublicLayouts";
+import Perfil from "./web/pages/Acceso/perfil.tsx";
+
 import ProductosPorCategoria from "./web/pages/categorias/ProductosPorCategoria.tsx";
-import Carrito from './web/pages/categorias/Carrito';
+import Carrito from "./web/pages/categorias/Carrito";
 import MisCompras from "./web/pages/Acceso/MisCompras";
+
+// 🔒 Importar rutas protegidas
+import RutaPrivada from "./web/components/RutaPrivada";         // solo clientes
+import RutaPerfilPrivada from "./web/components/RutaPerfilPrivada"; // todos los autenticados
 
 export default function Routesweb() {
   return (
@@ -21,15 +25,17 @@ export default function Routesweb() {
       <Route path="/nosotros" element={<PublicLayout><Quienes /></PublicLayout>} />
       <Route path="/productos/:categoria" element={<PublicLayout><ProductosPorCategoria /></PublicLayout>} />
 
-      {/* 🔒 Rutas privadas SOLO clientes autenticados */}
+      {/* 🔒 Perfil accesible a admin y clientes */}
       <Route
         path="/perfil"
         element={
-          <RutaPrivada>
+          <RutaPerfilPrivada>
             <PublicLayout><Perfil /></PublicLayout>
-          </RutaPrivada>
+          </RutaPerfilPrivada>
         }
       />
+
+      {/* 🔒 Solo clientes */}
       <Route
         path="/carrito"
         element={

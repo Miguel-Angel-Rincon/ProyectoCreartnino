@@ -7,25 +7,19 @@ import {
   FaUserCircle, FaSignOutAlt, FaGlobe
 } from "react-icons/fa";
 import logo from '../../assets/Imagenes/logo.jpg';
-import avatarImg from '../../assets/Imagenes/avatar-default.png';
 import { useAuth } from '../../context/AuthContext';
+import Swal from "sweetalert2"; // 👈 importamos SweetAlert
 import '../styles/siderbar.css';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [mostrarOpciones, setMostrarOpciones] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { cerrarSesion } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const storedAvatar = localStorage.getItem('avatarPerfil');
-    setAvatar(storedAvatar || avatarImg);
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -41,9 +35,28 @@ export default function Sidebar() {
   const toggleSection = (section: string) =>
     setOpenSection(openSection === section ? null : section);
 
-  const handleCerrarSesion = () => {
-    cerrarSesion();
-    navigate('/ingresar');
+  const handleCerrarSesion = async () => {
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Tu sesión se cerrará y volverás a la página de ingreso.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f48fb1", // 👈 color igual al navbar
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      cerrarSesion();
+      navigate("/ingresar");
+      Swal.fire({
+        title: "Sesión cerrada",
+        text: "Has cerrado sesión correctamente.",
+        icon: "success",
+        confirmButtonColor: "#7d3cf0",
+      });
+    }
   };
 
   return (
@@ -106,7 +119,7 @@ export default function Sidebar() {
           {openSection === "produccion" && (
             <>
               <Link to="/cat-productos" className={location.pathname === "/cat-productos" ? "active" : ""}>
-                <FaBoxes />Categoría Productos
+                <FaBoxes /> Categoría Productos
               </Link>
               <Link to="/productos" className={location.pathname === "/productos" ? "active" : ""}>
                 <FaBox /> Productos
@@ -129,21 +142,34 @@ export default function Sidebar() {
 
         {/* Parte inferior */}
         <div className="sidebar-user-container" ref={menuRef}>
-          <div className="sidebar-user" onClick={() => setMostrarOpciones(prev => !prev)}>
-            <img src={avatar!} alt="Avatar" className="sidebar-avatar" />
+          <div
+            className="sidebar-user"
+            onClick={() => setMostrarOpciones(prev => !prev)}
+            style={{ cursor: "pointer" }}
+          >
+            <FaUserCircle
+              size={28}
+              className="sidebar-user-icon"
+              style={{ color: "#000000ff" }} // 👈 color del navbar
+            />
             {mostrarOpciones && (
               <div className="sidebar-user-menu">
-                <p onClick={() => navigate('/')}>
+                <p onClick={() => navigate('/')} style={{ cursor: "pointer" }}>
                   <FaGlobe /> Volver a la web
                 </p>
-                <p onClick={() => navigate('/perfil')}>
+                <p onClick={() => navigate('/perfil')} style={{ cursor: "pointer" }}>
                   <FaUserCircle /> Mi perfil
                 </p>
               </div>
             )}
           </div>
 
-          <div className="sidebar-logout" onClick={handleCerrarSesion} title="Cerrar sesión">
+          <div
+            className="sidebar-logout"
+            onClick={handleCerrarSesion}
+            title="Cerrar sesión"
+            style={{ cursor: "pointer", color: "#ff0000ff" }}
+          >
             <FaSignOutAlt size={22} />
           </div>
         </div>

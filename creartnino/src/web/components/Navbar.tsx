@@ -5,9 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
 import { useCompras } from '../../context/CompraContext';
 import '../styles/Navbar.css';
-import { FaShoppingCart, FaClipboardList, FaTachometerAlt } from 'react-icons/fa';
+import { FaShoppingCart, FaClipboardList, FaTachometerAlt, FaUserCircle } from 'react-icons/fa';
 import logorina from '../../assets/Imagenes/logorina.png';
-import avatarDefault from '../../assets/Imagenes/avatar-default.png';
 import Swal from 'sweetalert2';
 
 const Navbar = () => {
@@ -15,14 +14,14 @@ const Navbar = () => {
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { usuario, isAuthenticated, cerrarSesion, avatar } = useAuth();
+  const { usuario, isAuthenticated, cerrarSesion } = useAuth();
   const { carrito } = useCarrito();
   const { compras } = useCompras();
   const navigate = useNavigate();
 
-  // ✅ Usamos idRol (1 = admin, 4 = cliente)
-  const esAdmin = usuario?.idRol === 1;
-  const esCliente = usuario?.idRol === 4;
+  // ✅ Roles
+  const esAdmin = usuario?.IdRol === 1;
+  const esCliente = usuario?.IdRol === 4;
 
   const comprasActivas = compras.filter(c => c.estado !== 'anulado').length;
 
@@ -118,10 +117,11 @@ const Navbar = () => {
                   />
                 )}
 
-                <img
-                  src={avatar || avatarDefault}
-                  alt="Avatar"
-                  className="avatar-icono"
+                {/* 🔄 Icono en vez de avatar */}
+                <FaUserCircle
+                  size={28}
+                  className="icono-nav"
+                  style={{ cursor: 'pointer', color: "#000000ff" }} // 👈 color del navbar
                   onClick={() => setMostrarMenuUsuario(prev => !prev)}
                 />
               </div>

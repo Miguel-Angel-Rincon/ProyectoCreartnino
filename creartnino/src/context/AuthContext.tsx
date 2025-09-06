@@ -7,28 +7,21 @@ import {
   type ReactNode,
 } from "react";
 import avatarImg from "../assets/Imagenes/avatar-default.png";
-
-export interface Usuario {
-  nombreCompleto: string;
-  correo: string;
-  celular: string;
-  direccion: string;
-  idRol: number; // 1 = admin, 4 = cliente
-  imagen?: string;
-}
+import type { IUsuarios } from "../features/interfaces/IUsuarios";
 
 interface AuthContextType {
-  usuario: Usuario | null;
+  usuario: IUsuarios | null;
+  token: string | null;
   isAuthenticated: boolean;
-  iniciarSesion: (datos: Usuario) => void;
+  iniciarSesion: (datos: IUsuarios, token: string) => void;
   cerrarSesion: () => void;
   avatar: string;
   setAvatar: (nuevoAvatar: string) => void;
 }
 
-// Usamos un contexto interno para evitar conflictos con Fast Refresh
-const AuthContextInternal = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   usuario: null,
+  token: null,
   isAuthenticated: false,
   iniciarSesion: () => {},
   cerrarSesion: () => {},
@@ -37,34 +30,54 @@ const AuthContextInternal = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [usuario, setUsuario] = useState<Usuario | null>(() => {
+  const [usuario, setUsuario] = useState<IUsuarios | null>(() => {
     const almacenado = localStorage.getItem("usuario");
     return almacenado ? JSON.parse(almacenado) : null;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("token") || null;
   });
 
   const [avatar, setAvatar] = useState<string>(() => {
     return localStorage.getItem("avatarPerfil") || avatarImg;
   });
 
-  const iniciarSesion = (datos: Usuario) => {
-    setUsuario(datos);
-    localStorage.setItem("usuario", JSON.stringify(datos));
-    if (datos.imagen) {
-      localStorage.setItem("avatarPerfil", datos.imagen);
-      setAvatar(datos.imagen);
+  const iniciarSesion = (datos: IUsuarios, token: string) => {
+    setUsuario((prev) => {
+      const nuevoUsuario = { ...prev, ...datos }; // 🔥 fusiona con lo anterior
+      localStorage.setItem("usuario", JSON.stringify(nuevoUsuario));
+
+      console.log("✅ Usuario guardado en localStorage:", nuevoUsuario);
+
+      return nuevoUsuario;
+    });
+
+    setToken(token);
+    localStorage.setItem("token", token);
+
+    if (datos.IdRolNavigation?.NombreRol) {
+      localStorage.setItem("rolUsuario", datos.IdRolNavigation.NombreRol);
     }
   };
 
   const cerrarSesion = () => {
     setUsuario(null);
+    setToken(null);
     localStorage.removeItem("usuario");
+    localStorage.removeItem("token");
     localStorage.removeItem("avatarPerfil");
+    localStorage.removeItem("rolUsuario");
     setAvatar(avatarImg);
+
+    console.log("❌ Sesión cerrada, storage limpio");
   };
 
   useEffect(() => {
     const almacenado = localStorage.getItem("usuario");
+    const tokenStored = localStorage.getItem("token");
     const avatarStored = localStorage.getItem("avatarPerfil");
+
     if (almacenado) {
       try {
         setUsuario(JSON.parse(almacenado));
@@ -72,26 +85,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("usuario");
       }
     }
+    if (tokenStored) setToken(tokenStored);
     if (avatarStored) setAvatar(avatarStored);
   }, []);
 
   return (
-    <AuthContextInternal.Provider
+    <AuthContext.Provider
       value={{
         usuario,
+        token,
         iniciarSesion,
         cerrarSesion,
-        isAuthenticated: !!usuario,
+        isAuthenticated: !!usuario && !!token,
         avatar,
         setAvatar,
       }}
     >
       {children}
-    </AuthContextInternal.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContextInternal);
-
-// Alias opcional para compatibilidad si en algún archivo antiguo importabas { AuthContext }
-export { AuthContextInternal as AuthContext };
+export const useAuth = () => useContext(AuthContext);
