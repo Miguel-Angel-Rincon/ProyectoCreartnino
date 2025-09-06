@@ -4,9 +4,20 @@ import { useAuth } from '../../context/AuthContext';
 import type { JSX } from 'react';
 
 const RutaPrivada = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, usuario } = useAuth();
 
-  return isAuthenticated ? children : <Navigate to="/ingresar" />;
+  // 🔒 Si no está autenticado, redirige a ingresar
+  if (!isAuthenticated) {
+    return <Navigate to="/ingresar" />;
+  }
+
+  // 🔒 Si no es cliente, lo mandamos al dashboard admin
+  if (usuario?.idRol !== 4) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  // ✅ Si es cliente, muestra la ruta protegida
+  return children;
 };
 
 export default RutaPrivada;

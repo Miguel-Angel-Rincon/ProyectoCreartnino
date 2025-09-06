@@ -15,12 +15,11 @@ import ListarRoles from "./features/roles/pages/ListarRoles";
 import ListarCatInsumos from "./features/categoria_insumo/pages/ListarCatInsumos";
 import ListarProduccion from "./features/produccion/pages/ListarProduccion";
 
-import RutaAdminPrivada from "./web/components/RutaAdminPrivada"; // ✅ AÑADIDO
+import RutaAdminPrivada from "./web/components/RutaAdminPrivada";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* ✅ Todas las rutas del administrador ahora protegidas */}
       <Route
         path="/dashboard"
         element={

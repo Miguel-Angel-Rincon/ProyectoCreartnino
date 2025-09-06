@@ -22,7 +22,9 @@ const CardProducto = ({ producto }: Props) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
 
-  const esAdmin = usuario?.rol === 'admin';
+  // ✅ Validamos con el id del rol (1 = admin, 4 = cliente)
+   const esAdmin = usuario?.idRol === 1;
+  const esCliente = usuario?.idRol === 4;
 
   const handleAgregar = () => {
     if (!usuario) {
@@ -51,23 +53,25 @@ const CardProducto = ({ producto }: Props) => {
       return;
     }
 
-    agregarProducto({
-      IdProducto: producto.IdProducto,
-      Nombre: producto.Nombre,
-      Precio: producto.Precio,
-      ImagenUrl: producto.ImagenUrl,
-      cantidad,
-      CategoriaProducto: producto.CategoriaProducto,
-      tipo: 'Prediseñado'
-    });
+    if (esCliente) {
+      agregarProducto({
+        IdProducto: producto.IdProducto,
+        Nombre: producto.Nombre,
+        Precio: producto.Precio,
+        ImagenUrl: producto.ImagenUrl,
+        cantidad,
+        CategoriaProducto: producto.CategoriaProducto,
+        tipo: 'Prediseñado'
+      });
 
-    Swal.fire({
-      title: '¡Agregado al carrito!',
-      text: `Has agregado ${producto.Nombre}`,
-      icon: 'success',
-      confirmButtonColor: '#f072d1',
-      confirmButtonText: 'OK'
-    });
+      Swal.fire({
+        title: '¡Agregado al carrito!',
+        text: `Has agregado ${producto.Nombre}`,
+        icon: 'success',
+        confirmButtonColor: '#f072d1',
+        confirmButtonText: 'OK'
+      });
+    }
   };
 
   return (
@@ -76,8 +80,8 @@ const CardProducto = ({ producto }: Props) => {
       <h3>{producto.Nombre}</h3>
       <p className="precio">${producto.Precio.toLocaleString()} COP</p>
 
-      {/* Mostrar cantidad solo si no es admin y hay usuario */}
-      {usuario && !esAdmin && (
+      {/* Mostrar cantidad solo si es cliente */}
+      {esCliente && (
         <div className="cantidad-container">
           <label>Cantidad:</label>
           <input
@@ -89,12 +93,20 @@ const CardProducto = ({ producto }: Props) => {
         </div>
       )}
 
-      {/* Mostrar botón solo si no es admin */}
-      {!esAdmin && (
+      {/* Botón depende del rol */}
+      {esCliente && (
         <button className="btn-agregar" onClick={handleAgregar}>
-          {usuario ? 'Agregar al Carrito' : 'Iniciar sesión para comprar'}
+          Agregar al Carrito
         </button>
       )}
+
+      {!usuario && (
+        <button className="btn-agregar" onClick={handleAgregar}>
+          Iniciar sesión para comprar
+        </button>
+      )}
+
+      {esAdmin && <small style={{ color: 'gray' }}>Vista de administrador</small>}
     </div>
   );
 };

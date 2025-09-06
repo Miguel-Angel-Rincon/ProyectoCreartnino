@@ -20,7 +20,10 @@ const Navbar = () => {
   const { compras } = useCompras();
   const navigate = useNavigate();
 
-  const esAdmin = usuario?.rol === 'admin';
+  // ✅ Usamos idRol (1 = admin, 4 = cliente)
+  const esAdmin = usuario?.idRol === 1;
+  const esCliente = usuario?.idRol === 4;
+
   const comprasActivas = compras.filter(c => c.estado !== 'anulado').length;
 
   const handleCerrarSesion = async () => {
@@ -92,7 +95,7 @@ const Navbar = () => {
           ) : (
             <div className="usuario-logueado">
               <div className="iconos-usuario">
-                {!esAdmin && (
+                {esCliente && (
                   <>
                     <Link to="/carrito" className="icono-nav">
                       <FaShoppingCart />

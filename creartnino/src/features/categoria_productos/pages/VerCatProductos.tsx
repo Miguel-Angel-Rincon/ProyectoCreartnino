@@ -2,15 +2,10 @@
 import React from 'react';
 import '../styles/Funciones.css';
 
-interface CategoriaProducto {
-  IdCategoriaProducto: number;
-  CategoriaProducto1: string;
-  Descripcion: string;
-  Estado: boolean;
-}
+import type { ICatProductos } from '../../interfaces/ICatProductos';
 
 interface Props {
-  catproducto: CategoriaProducto;
+  catproducto: ICatProductos;
   onClose: () => void;
 }
 

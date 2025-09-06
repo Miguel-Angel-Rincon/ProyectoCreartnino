@@ -116,13 +116,7 @@ const ListarUsuarios: React.FC = () => {
     // Vuelve a traer los usuarios desde la API
     await obtenerUsuarios();
 
-    // Aviso de éxito
-    Swal.fire({
-      icon: "success",
-      title: "Estado actualizado",
-      text: `El usuario ${actualizado.NombreCompleto} ahora está ${actualizado.Estado ? "activo" : "inactivo"}.`,
-      confirmButtonColor: "#e83e8c",
-    });
+    
   } catch (err) {
     console.error("actualizarEstado:", err);
     Swal.fire({

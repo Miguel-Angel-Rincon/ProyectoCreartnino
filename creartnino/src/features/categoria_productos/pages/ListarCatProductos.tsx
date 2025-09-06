@@ -205,15 +205,20 @@ const ListarCatProductos: React.FC = () => {
                 <td>{c.CategoriaProducto1}</td>
                 <td>{c.Descripcion}</td>
                 <td>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={c.Estado}
-                      onChange={() => handleEstadoChange(c.IdCategoriaProducto)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </td>
+  <label className="switch">
+    <input
+      type="checkbox"
+      checked={c.Estado}
+      onChange={() => {
+        if (c.IdCategoriaProducto !== undefined) {
+          handleEstadoChange(c.IdCategoriaProducto);
+        }
+      }}
+    />
+    <span className="slider round"></span>
+  </label>
+</td>
+
                 <td>
                   <FaEye
                     className="icono text-info"
@@ -226,12 +231,15 @@ const ListarCatProductos: React.FC = () => {
                     onClick={() => handleEditarCategoria(c)}
                   />
                   <FaTrash
-                    className="icono text-danger"
-                    style={{ cursor: "pointer" }}
-                    onClick={() =>
-                      handleEliminarCategoria(c.IdCategoriaProducto, c.Estado)
-                    }
-                  />
+  className="icono text-danger"
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+    if (c.IdCategoriaProducto !== undefined) {
+      handleEliminarCategoria(c.IdCategoriaProducto, c.Estado);
+    }
+  }}
+/>
+
                 </td>
               </tr>
             ))}
