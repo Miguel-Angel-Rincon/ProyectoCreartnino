@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 import '../style/acciones.css';
-import type { IUsuarios } from '../../interfaces/IUsuarios'; // Asegúrate de que la ruta sea correcta
- // Asegúrate de que la ruta sea correcta
+import type { IUsuarios } from '../../interfaces/IUsuarios';
 
 interface Props {
   onClose: () => void;
   onCrear: (nuevoUsuario: IUsuarios) => void;
 }
 
-const CrearUsuarioModal: React.FC<Props> = ({ onClose }) => {
+const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
   const [formData, setFormData] = useState<Omit<IUsuarios, 'IdUsuarios' | 'IdRolNavigation'>>({
     NombreCompleto: '',
     TipoDocumento: '',
@@ -31,9 +30,12 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose }) => {
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({ municipio: '', barrio: '', calle: '' });
 
+  // Roles desde API
+  const [roles, setRoles] = useState<{ IdRol: number; Rol: string; Descripcion?: string }[]>([]);
+
   const navigate = useNavigate();
 
-  // Traer departamentos
+  // Departamentos
   useEffect(() => {
     fetch('https://api-colombia.com/api/v1/Department')
       .then(res => res.json())
@@ -43,7 +45,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose }) => {
       .catch(console.error);
   }, []);
 
-  // Traer ciudades según departamento
+  // Ciudades por departamento
   useEffect(() => {
     if (!formData.Departamento) {
       setCiudades([]);
@@ -64,6 +66,14 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose }) => {
       .catch(console.error);
   }, [formData.Departamento, departamentos]);
 
+  // Roles
+  useEffect(() => {
+    fetch("https://apicreartnino.somee.com/api/Roles/Lista")
+      .then(res => res.json())
+      .then((data) => setRoles(data))
+      .catch(console.error);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
@@ -80,66 +90,72 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose }) => {
     setShowDireccionModal(false);
   };
 
-  
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // Validaciones
-  if (!formData.NombreCompleto.trim()) {
-    return Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'El nombre completo es obligatorio.', confirmButtonColor: '#e83e8c' });
-  }
-  if (!formData.Correo.includes('@')) {
-    return Swal.fire({ icon: 'error', title: 'Correo inválido', text: 'Por favor ingresa un correo válido.', confirmButtonColor: '#e83e8c' });
-  }
-  if (!/^\d+$/.test(formData.Celular)) {
-    return Swal.fire({ icon: 'error', title: 'Celular inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
-  }
-  if (!/^\d+$/.test(formData.NumDocumento)) {
-    return Swal.fire({ icon: 'error', title: 'Documento inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
-  }
-  if (formData.Departamento && ciudades.length && !formData.Ciudad) {
-    return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
-  }
-
-  try {
-    const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-    // ✅ Alert con temporizador de 3 segundos
-    const result = await Swal.fire({
-      icon: "success",
-      title: "Éxito",
-      text: "El Usuario fue creado correctamente",
-      confirmButtonColor: "#e83e8c",
-      timer: 3000,
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-    });
-
-    // ✅ Cuando se cierre el SweetAlert (por tiempo o por clic), cerramos modal y redirigimos
-    if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-      onClose();          // 🔹 Cierra el modal de crear
-      navigate("/usuario"); // 🔹 Redirige a la lista
+    // Validaciones
+    if (!formData.NombreCompleto.trim()) {
+      return Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'El nombre completo es obligatorio.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!formData.TipoDocumento) {
+      return Swal.fire({ icon: 'error', title: 'Tipo de documento', text: 'Selecciona un tipo de documento.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!/^\d+$/.test(formData.NumDocumento)) {
+      return Swal.fire({ icon: 'error', title: 'Documento inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!/^\d+$/.test(formData.Celular)) {
+      return Swal.fire({ icon: 'error', title: 'Celular inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!formData.Correo.includes('@')) {
+      return Swal.fire({ icon: 'error', title: 'Correo inválido', text: 'Por favor ingresa un correo válido.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!formData.Contrasena.trim()) {
+      return Swal.fire({ icon: 'error', title: 'Contraseña requerida', text: 'La contraseña es obligatoria.', confirmButtonColor: '#e83e8c' });
+    }
+    if (!formData.IdRol) {
+      return Swal.fire({ icon: 'error', title: 'Rol requerido', text: 'Selecciona un rol.', confirmButtonColor: '#e83e8c' });
+    }
+    if (formData.Departamento && ciudades.length && !formData.Ciudad) {
+      return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
     }
 
-  } catch (err) {
-    console.error("crearUsuario:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo crear el usuario.",
-      confirmButtonColor: "#e83e8c",
-    });
-  }
-};
+    try {
+      const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
+      await Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "El Usuario fue creado correctamente",
+        confirmButtonColor: "#e83e8c",
+        timer: 3000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
+
+      onClose();
+      navigate("/usuario");
+
+      // Si prefieres actualizar la lista sin navegar, puedes llamar onCrear aquí con la respuesta de la API.
+      // const creado = await resp.json();
+      // onCrear(creado);
+
+    } catch (err) {
+      console.error("crearUsuario:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear el usuario.",
+        confirmButtonColor: "#e83e8c",
+      });
+    }
+  };
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -155,7 +171,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="row g-4">
                 <div className="col-md-6">
                   <label className="form-label">🧾 Tipo Documento</label>
-                  <select name="TipoDocumento" className="form-select" value={formData.TipoDocumento} onChange={handleChange}>
+                  <select
+                    name="TipoDocumento"
+                    className="form-select"
+                    value={formData.TipoDocumento}
+                    onChange={handleChange}
+                  >
+                    <option value="">Seleccione tipo</option>
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="TI">Tarjeta de Identidad</option>
                     <option value="CE">Cédula de Extranjería</option>
@@ -164,22 +186,45 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                 <div className="col-md-6">
                   <label className="form-label">🔢 Número Documento</label>
-                  <input name="NumDocumento" className="form-control" value={formData.NumDocumento} onChange={handleChange} />
+                  <input
+                    name="NumDocumento"
+                    className="form-control"
+                    value={formData.NumDocumento}
+                    onChange={handleChange}
+                    maxLength={11}
+                  />
                 </div>
 
                 <div className="col-md-12">
                   <label className="form-label">🙍 Nombre Completo</label>
-                  <input name="NombreCompleto" className="form-control" value={formData.NombreCompleto} onChange={handleChange} />
+                  <input
+                    name="NombreCompleto"
+                    className="form-control"
+                    value={formData.NombreCompleto}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular</label>
-                  <input name="Celular" className="form-control" value={formData.Celular} onChange={handleChange} />
+                  <input
+                    name="Celular"
+                    className="form-control"
+                    value={formData.Celular}
+                    onChange={handleChange}
+                    maxLength={11}
+                  />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">📧 Correo</label>
-                  <input type="email" name="Correo" className="form-control" value={formData.Correo} onChange={handleChange} />
+                  <input
+                    type="email"
+                    name="Correo"
+                    className="form-control"
+                    value={formData.Correo}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 <div className="col-md-6">
@@ -192,23 +237,41 @@ const handleSubmit = async (e: React.FormEvent) => {
                       value={formData.Contrasena}
                       onChange={handleChange}
                     />
-                    <button type="button" className="btn btn-outline-secondary" tabIndex={-1} onClick={() => setShowPassword(prev => !prev)}>
-                      {showPassword ? "🙈" : "👁️"}
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword(prev => !prev)}
+                    >
+                      {showPassword ? "" : "👁️"}
                     </button>
                   </div>
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">🏞️ Departamento</label>
-                  <select name="Departamento" className="form-select" value={formData.Departamento} onChange={handleChange}>
+                  <select
+                    name="Departamento"
+                    className="form-select"
+                    value={formData.Departamento}
+                    onChange={handleChange}
+                  >
                     <option value="">Seleccione un departamento</option>
-                    {departamentos.map(dep => <option key={dep.id} value={dep.name}>{dep.name}</option>)}
+                    {departamentos.map(dep => (
+                      <option key={dep.id} value={dep.name}>{dep.name}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">🏙️ Ciudad</label>
-                  <select name="Ciudad" className="form-select" value={formData.Ciudad} onChange={handleChange}>
+                  <select
+                    name="Ciudad"
+                    className="form-select"
+                    value={formData.Ciudad}
+                    onChange={handleChange}
+                    disabled={!formData.Departamento || !ciudades.length}
+                  >
                     <option value="">Seleccione una ciudad</option>
                     {ciudades.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
@@ -216,14 +279,32 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                 <div className="col-md-6">
                   <label className="form-label">🏡 Dirección</label>
-                  <input name="Direccion" className="form-control" value={formData.Direccion} readOnly onClick={() => setShowDireccionModal(true)} />
+                  <input
+                    name="Direccion"
+                    className="form-control"
+                    value={formData.Direccion}
+                    readOnly
+                    onClick={() => setShowDireccionModal(true)}
+                    placeholder="Haz clic para ingresar la dirección"
+                  />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">🛡️ Rol</label>
-                  <select name="IdRol" className="form-select" value={formData.IdRol} onChange={handleChange}>
-                    <option value={1}>Administrador</option>
-                    <option value={4}>Usuario</option>
+                  <select
+                    name="IdRol"
+                    className="form-select"
+                    value={formData.IdRol}
+                    onChange={handleChange}
+                    disabled={!roles.length}
+                    title={roles.find(r => r.IdRol === formData.IdRol)?.Descripcion || ''}
+                  >
+                    <option value="">Seleccione un rol</option>
+                    {roles.map((rol) => (
+                      <option key={rol.IdRol} value={rol.IdRol} title={rol.Descripcion}>
+                        {rol.Rol}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -254,9 +335,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, municipio: e.target.value }))
-                        }
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -264,9 +343,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, barrio: e.target.value }))
-                        }
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -274,9 +351,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, calle: e.target.value }))
-                        }
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value }))}
                       />
                     </div>
                   </div>

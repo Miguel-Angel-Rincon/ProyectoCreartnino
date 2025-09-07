@@ -8,6 +8,7 @@ import type { IUsuarios } from '../../interfaces/IUsuarios';
 
 const ListarUsuarios: React.FC = () => {
   const [Usuarios, setUsuarios] = useState<IUsuarios[]>([]);
+  const [roles, setRoles] = useState<{ IdRol: number; Rol: string; Descripcion: string }[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -17,7 +18,7 @@ const ListarUsuarios: React.FC = () => {
   const [UsuarioEditar, setUsuarioEditar] = useState<IUsuarios | null>(null);
   const UsuariosPorPagina = 6;
 
-  // Fetch desde la API
+  // =================== FETCH USUARIOS ===================
   const obtenerUsuarios = async () => {
     try {
       const response = await fetch("https://apicreartnino.somee.com/api/Usuarios/Lista");
@@ -34,105 +35,134 @@ const ListarUsuarios: React.FC = () => {
     }
   };
 
+  // =================== FETCH ROLES ===================
+  const obtenerRoles = async () => {
+    try {
+      const response = await fetch("https://apicreartnino.somee.com/api/Roles/Lista");
+      if (!response.ok) throw new Error("Error al obtener roles");
+      const data = await response.json();
+      setRoles(data);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar los roles",
+      });
+    }
+  };
+
   useEffect(() => {
     obtenerUsuarios();
+    obtenerRoles();
   }, []);
 
+  // =================== OBTENER NOMBRE DEL ROL ===================
+  const getRoleName = (id: number) => {
+    const rol = roles.find((r) => r.IdRol === id);
+    return rol ? rol.Rol : "Desconocido";
+  };
+
+  // =================== ELIMINAR USUARIO ===================
   const handleEliminarUsuarios = async (id: number, estado: boolean) => {
-  if (estado) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Usuario activo',
-      text: 'No puedes eliminar un Usuario que está activo. Desactívalo primero.',
-      confirmButtonColor: '#d33',
-    });
-    return;
-  }
-
-  Swal.fire({
-    title: '¿Estás seguro?',
-    text: 'Esta acción no se puede deshacer',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#aaa',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const resp = await fetch(
-          `https://apicreartnino.somee.com/api/Usuarios/Eliminar/${id}`,
-          { method: "DELETE" }
-        );
-
-        if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
-
-        // Refresca la lista
-        await obtenerUsuarios();
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Eliminado',
-          text: 'El Usuario ha sido eliminado correctamente',
-          confirmButtonColor: '#e83e8c',
-        });
-      } catch (err) {
-        console.error("Eliminar usuario:", err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
-          confirmButtonColor: '#e83e8c',
-        });
-      }
+    if (estado) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Usuario activo',
+        text: 'No puedes eliminar un Usuario que está activo. Desactívalo primero.',
+        confirmButtonColor: '#d33',
+      });
+      return;
     }
-  });
-};
 
-  const handleEstadoChange = async (id: number) => {
-  const target = Usuarios.find((u) => u.IdUsuarios === id);
-  if (!target) return;
-
-  const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
-
-  // Actualiza localmente
-  setUsuarios((prev) =>
-    prev.map((u) => (u.IdUsuarios === id ? actualizado : u))
-  );
-
-  try {
-    const resp = await fetch(
-      `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(actualizado),
-      }
-    );
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-    // Vuelve a traer los usuarios desde la API
-    await obtenerUsuarios();
-
-    
-  } catch (err) {
-    console.error("actualizarEstado:", err);
     Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo actualizar el estado del usuario.",
-      confirmButtonColor: "#e83e8c",
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const resp = await fetch(
+            `https://apicreartnino.somee.com/api/Usuarios/Eliminar/${id}`,
+            { method: "DELETE" }
+          );
+
+          if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
+
+          // Refresca la lista
+          await obtenerUsuarios();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'El Usuario ha sido eliminado correctamente',
+            confirmButtonColor: '#e83e8c',
+          });
+        } catch (err) {
+          console.error("Eliminar usuario:", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
+            confirmButtonColor: '#e83e8c',
+          });
+        }
+      }
     });
+  };
 
-    // Revertir el cambio local si falla
+  // =================== CAMBIO DE ESTADO ===================
+  const handleEstadoChange = async (id: number) => {
+    const target = Usuarios.find((u) => u.IdUsuarios === id);
+    if (!target) return;
+
+    const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
+
     setUsuarios((prev) =>
-      prev.map((u) => (u.IdUsuarios === id ? target : u))
+      prev.map((u) => (u.IdUsuarios === id ? actualizado : u))
     );
-  }
-};
 
+    try {
+      const resp = await fetch(
+        `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(actualizado),
+        }
+      );
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      await obtenerUsuarios();
+
+      Swal.fire({
+        icon: "success",
+        title: "Estado actualizado",
+        text: `El usuario ${actualizado.NombreCompleto} ahora está ${actualizado.Estado ? "activo" : "inactivo"}.`,
+        confirmButtonColor: "#e83e8c",
+      });
+    } catch (err) {
+      console.error("actualizarEstado:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el estado del usuario.",
+        confirmButtonColor: "#e83e8c",
+      });
+
+      setUsuarios((prev) =>
+        prev.map((u) => (u.IdUsuarios === id ? target : u))
+      );
+    }
+  };
+
+  // =================== CREAR, EDITAR, VER ===================
   const handleCrear = (nuevoUsuario: IUsuarios) => {
     setUsuarios(prev => [...prev, nuevoUsuario]);
     setMostrarModal(false);
@@ -160,11 +190,11 @@ const ListarUsuarios: React.FC = () => {
     setMostrarEditarModal(false);
   };
 
-  // Filtrado y paginación
+  // =================== FILTRADO Y PAGINACIÓN ===================
   const UsuariosFiltrados = Usuarios.filter(p =>
     p.NombreCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
     p.NumDocumento.includes(busqueda) ||
-    (p.IdRolNavigation ? p.IdRolNavigation.toString().toLowerCase().includes(busqueda.toLowerCase()) : false) ||
+    (getRoleName(p.IdRol).toLowerCase().includes(busqueda.toLowerCase())) ||
     p.Celular.includes(busqueda)
   );
 
@@ -209,10 +239,7 @@ const ListarUsuarios: React.FC = () => {
                 <td>{p.TipoDocumento} {p.NumDocumento}</td>
                 <td>{p.NombreCompleto}</td>
                 <td>{p.Celular}</td>
-                <td>
-  {p.IdRol === 1 ? "Administrador" : "Usuario"}
-</td>
-
+                <td>{getRoleName(p.IdRol)}</td>
                 <td>
                   <label className="switch">
                     <input

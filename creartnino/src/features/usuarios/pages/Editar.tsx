@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import "../style/acciones.css";
-import type { IUsuarios } from '../../interfaces/IUsuarios';
+import type { IUsuarios } from "../../interfaces/IUsuarios";
 
 interface Props {
   usuario: IUsuarios; // Usuario a editar
@@ -13,58 +13,36 @@ interface Props {
 const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => {
   const [formData, setFormData] = useState<IUsuarios>(usuario);
   const [showPassword, setShowPassword] = useState(false);
-  const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
-  const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
-  const [direccionData, setDireccionData] = useState({
+  const [direccionData] = useState({
     municipio: "",
     barrio: "",
     calle: "",
     codigoPostal: "",
   });
 
+  // 🔹 Estado para roles desde API
+  const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
+
   const navigate = useNavigate();
 
-  // Cargar departamentos
+  // 🔹 Cargar roles desde la API
   useEffect(() => {
-    fetch("https://api-colombia.com/api/v1/Department")
+    fetch("https://apicreartnino.somee.com/api/Roles/Lista")
       .then((res) => res.json())
-      .then((data: { id: number; name: string }[]) => {
-        setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name)));
-      })
+      .then((data) => setRoles(data))
       .catch(console.error);
   }, []);
 
-  // Cargar ciudades según departamento
-  useEffect(() => {
-    if (!formData.Departamento) {
-      setCiudades([]);
-      return;
-    }
-    const dep = departamentos.find((d) => d.name === formData.Departamento);
-    if (!dep) return;
-
-    fetch("https://api-colombia.com/api/v1/City/pagedList?page=1&pageSize=1000")
-      .then((res) => res.json())
-      .then(
-        (res: { data: { id: number; name: string; departmentId: number }[] }) => {
-          const cities = res.data
-            .filter((c) => c.departmentId === dep.id)
-            .map((c) => ({ id: c.id, name: c.name }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-          setCiudades(cities);
-        }
-      )
-      .catch(console.error);
-  }, [formData.Departamento, departamentos]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target;
-    const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+    const checked =
+      type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
     setFormData((prev: any) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-      ...(name === "Departamento" ? { Ciudad: "" } : {}),
     }));
   };
 
@@ -77,7 +55,6 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones básicas
     if (!formData.NombreCompleto.trim()) {
       return Swal.fire({
         icon: "error",
@@ -132,12 +109,16 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
               <h5 className="modal-title">✏️ Editar Usuario</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+              ></button>
             </div>
 
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-                {/* Campos iguales al crear */}
+                {/* Tipo Documento */}
                 <div className="col-md-6">
                   <label className="form-label">🧾 Tipo Documento</label>
                   <select
@@ -152,6 +133,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   </select>
                 </div>
 
+                {/* Número Documento */}
                 <div className="col-md-6">
                   <label className="form-label">🔢 Número Documento</label>
                   <input
@@ -159,9 +141,11 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     className="form-control"
                     value={formData.NumDocumento}
                     onChange={handleChange}
+                    maxLength={11}
                   />
                 </div>
 
+                {/* Nombre */}
                 <div className="col-md-12">
                   <label className="form-label">🙍 Nombre Completo</label>
                   <input
@@ -172,6 +156,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   />
                 </div>
 
+                {/* Celular */}
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular</label>
                   <input
@@ -179,9 +164,11 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     className="form-control"
                     value={formData.Celular}
                     onChange={handleChange}
+                    maxLength={11}
                   />
                 </div>
 
+                {/* Correo */}
                 <div className="col-md-6">
                   <label className="form-label">📧 Correo</label>
                   <input
@@ -193,6 +180,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   />
                 </div>
 
+                {/* Contraseña */}
                 <div className="col-md-6">
                   <label className="form-label">🔐 Contraseña</label>
                   <div className="input-group">
@@ -214,40 +202,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   </div>
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">🏞️ Departamento</label>
-                  <select
-                    name="Departamento"
-                    className="form-select"
-                    value={formData.Departamento}
-                    onChange={handleChange}
-                  >
-                    <option value="">Seleccione un departamento</option>
-                    {departamentos.map((dep) => (
-                      <option key={dep.id} value={dep.name}>
-                        {dep.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">🏙️ Ciudad</label>
-                  <select
-                    name="Ciudad"
-                    className="form-select"
-                    value={formData.Ciudad}
-                    onChange={handleChange}
-                  >
-                    <option value="">Seleccione una ciudad</option>
-                    {ciudades.map((c) => (
-                      <option key={c.id} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+                {/* Dirección */}
                 <div className="col-md-6">
                   <label className="form-label">🏡 Dirección</label>
                   <input
@@ -259,6 +214,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   />
                 </div>
 
+                {/* Rol dinámico */}
                 <div className="col-md-6">
                   <label className="form-label">🛡️ Rol</label>
                   <select
@@ -267,8 +223,12 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     value={formData.IdRol}
                     onChange={handleChange}
                   >
-                    <option value={1}>Administrador</option>
-                    <option value={4}>Usuario</option>
+                    <option value="">Seleccione un rol</option>
+                    {roles.map((rol) => (
+                      <option key={rol.IdRol} value={rol.IdRol}>
+                        {rol.Rol}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -303,22 +263,15 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio</label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, municipio: e.target.value }))
-                        }
-                      />
-                    </div>
-                    <div className="mb-3">
                       <label>Barrio</label>
                       <input
                         className="form-control"
                         value={direccionData.barrio}
                         onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, barrio: e.target.value }))
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            Direccion: `${e.target.value}, ${direccionData.calle}, ${direccionData.codigoPostal}`,
+                          }))
                         }
                       />
                     </div>
@@ -328,7 +281,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                         className="form-control"
                         value={direccionData.calle}
                         onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, calle: e.target.value }))
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            Direccion: `${direccionData.barrio}, ${e.target.value}, ${direccionData.codigoPostal}`,
+                          }))
                         }
                       />
                     </div>

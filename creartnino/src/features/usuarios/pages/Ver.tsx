@@ -1,13 +1,26 @@
-import React from 'react';
-import '../style/acciones.css';
-import type { IUsuarios } from '../../interfaces/IUsuarios'; // ✅ Importa la interfaz
+import React, { useEffect, useState } from "react";
+import "../style/acciones.css";
+import type { IUsuarios } from "../../interfaces/IUsuarios";
 
 interface Props {
-  usuario: IUsuarios;  // ✅ Usa la interfaz importada
+  usuario: IUsuarios;
   onClose: () => void;
 }
 
 const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
+  const [rolNombre, setRolNombre] = useState<string>("");
+
+  // 🔹 Cargar roles desde la API
+  useEffect(() => {
+    fetch("https://apicreartnino.somee.com/api/Roles/Lista")
+      .then((res) => res.json())
+      .then((data) => {
+        // Buscar el rol que coincide con el usuario
+        const rolEncontrado = data.find((r: any) => r.IdRol === usuario.IdRol);
+        setRolNombre(rolEncontrado ? rolEncontrado.Rol : "Sin rol");
+      });
+  }, [usuario.IdRol]);
+
   return (
     <div className="modal d-block" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -58,12 +71,14 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
               </div>
               <div className="col-md-6">
                 <label className="form-label">🛡️ Rol</label>
-                <input className="form-control" value={String(usuario.IdRol)} disabled />
+                <input className="form-control" value={rolNombre || "Cargando..."} disabled />
               </div>
             </div>
           </div>
           <div className="modal-footer pastel-footer">
-            <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cerrar</button>
+            <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+              Cerrar
+            </button>
           </div>
         </div>
       </div>
