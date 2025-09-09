@@ -1,86 +1,142 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
-import '../style/acciones.css';
-
-export interface Rol {
-  idRol: number;
-  nombre: string;
-  descripcion: string;
-  estado: boolean;
-  permisos: string[];
-}
+// src/components/EditarRolModal.tsx
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "../style/acciones.css";
+import type { IRol, IPermiso, IRolPermiso } from "../../interfaces/IRoles";
 
 interface Props {
-  rol: Rol;
+  rol: IRol;
   onClose: () => void;
-  onEditar: (rolActualizado: Rol) => void;
+  onEditar: (rolActualizado: IRol) => void;
 }
 
-const MODULOS = [
-  'Dashboard',
-  'Roles',
-  'Usuario',
-  'Clientes',
-  'Proveedores',
-  'Cate.Insumo',
-  'Insumos',
-  'Compras',
-  'Producción',
-  'Cat.Productos',
-  'Productos',
-  'Pedidos',
-];
-
 const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
-  const [nombre, setNombre] = useState(rol.nombre);
-  const [descripcion, setDescripcion] = useState(rol.descripcion);
-  const [permisosSeleccionados, setPermisosSeleccionados] = useState<string[]>(rol.permisos);
+  const [nombre, setNombre] = useState<string>(rol.Rol ?? "");
+  const [descripcion, setDescripcion] = useState<string>(rol.Descripcion ?? "");
+  const [permisosDisponibles, setPermisosDisponibles] = useState<IPermiso[]>([]);
+  const [permisosSeleccionados, setPermisosSeleccionados] = useState<IPermiso[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [cargandoPermisos, setCargandoPermisos] = useState<boolean>(true);
 
-  const togglePermiso = (modulo: string) => {
-    setPermisosSeleccionados(prev =>
-      prev.includes(modulo) ? prev.filter(p => p !== modulo) : [...prev, modulo]
+  useEffect(() => {
+    const fetchRolCompleto = async () => {
+      setCargandoPermisos(true);
+      try {
+        const [resRoles, resPermisos, resRolPermisos] = await Promise.all([
+          fetch("https://apicreartnino.somee.com/api/Roles/Lista"),
+          fetch("https://apicreartnino.somee.com/api/permisos/Lista"),
+          fetch("https://apicreartnino.somee.com/api/Rolpermisos/Lista"),
+        ]);
+
+        if (!resRoles.ok || !resPermisos.ok || !resRolPermisos.ok) {
+          throw new Error("Error en alguna de las llamadas a la API");
+        }
+
+        const rolesData: IRol[] = await resRoles.json();
+        const permisosData: IPermiso[] = await resPermisos.json();
+        const rolPermisosData: IRolPermiso[] = await resRolPermisos.json();
+
+        const rolData = rolesData.find((r) => r.IdRol === rol.IdRol);
+        if (!rolData) {
+          Swal.fire("Error", "Rol no encontrado", "error");
+          return;
+        }
+
+        setNombre(rolData.Rol ?? "");
+        setDescripcion(rolData.Descripcion ?? "");
+        setPermisosDisponibles(permisosData);
+
+        const permisosIdsAsignados = new Set(
+          rolPermisosData.filter((rp) => rp.IdRol === rol.IdRol).map((rp) => rp.IdPermisos)
+        );
+
+        const permisosRol = permisosData.filter((p) => permisosIdsAsignados.has(p.IdPermisos));
+        setPermisosSeleccionados(permisosRol);
+      } catch (error) {
+        console.error("❌ Error al traer rol/permisos:", error);
+        Swal.fire("Error", "No se pudieron cargar los datos del rol", "error");
+      } finally {
+        setCargandoPermisos(false);
+      }
+    };
+
+    if (rol?.IdRol) fetchRolCompleto();
+  }, [rol?.IdRol]);
+
+  const togglePermiso = (permiso: IPermiso) => {
+    setPermisosSeleccionados((prev) =>
+      prev.some((p) => p.IdPermisos === permiso.IdPermisos)
+        ? prev.filter((p) => p.IdPermisos !== permiso.IdPermisos)
+        : [...prev, permiso]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!nombre.trim()) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Nombre requerido',
-        text: 'El nombre del rol es obligatorio.',
-        confirmButtonColor: '#f78fb3',
-      });
+      await Swal.fire("Error", "El nombre del rol es obligatorio", "error");
       return;
     }
 
     if (permisosSeleccionados.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Permisos requeridos',
-        text: 'Debe seleccionar al menos un permiso.',
-        confirmButtonColor: '#f78fb3',
-      });
+      await Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
       return;
     }
 
-    const rolActualizado: Rol = {
-      ...rol,
-      nombre,
-      descripcion,
-      permisos: permisosSeleccionados,
-    };
+    setLoading(true);
+    try {
+      // 1) Actualizar rol
+      const rolBody = {
+        IdRol: rol.IdRol,
+        Rol: nombre,
+        Descripcion: descripcion ?? "",
+        Estado: true,
+      };
 
-    onEditar(rolActualizado);
+      const resRol = await fetch(
+        `https://apicreartnino.somee.com/api/Roles/Actualizar/${rol.IdRol}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rolBody),
+        }
+      );
+      if (!resRol.ok) throw new Error("Error al actualizar el rol");
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Rol actualizado correctamente',
-      confirmButtonColor: '#f78fb3',
-    });
+      // 2) Reemplazar permisos
+      const permisosIds = permisosSeleccionados.map((p) => p.IdPermisos);
+      const resPermisos = await fetch(
+        `https://apicreartnino.somee.com/api/RolPermisos/ReemplazarPermisos/${rol.IdRol}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(permisosIds),
+        }
+      );
+      if (!resPermisos.ok) throw new Error("Error al reemplazar permisos");
 
-    onClose();
+      // 3) Todo OK → Swal éxito
+      await Swal.fire("Éxito", "Rol actualizado correctamente", "success");
+
+      // 4) Actualizar lista en padre
+      onEditar({
+        ...rol,
+        Rol: nombre,
+        Descripcion: descripcion ?? "",
+        RolPermisos: permisosSeleccionados.map((p) => ({
+          IdRol: rol.IdRol,
+          IdPermisos: p.IdPermisos,
+        })),
+      });
+
+      onClose();
+    } catch (err: any) {
+      console.error("❌ Error en actualización:", err);
+      await Swal.fire("Error", err?.message ?? "No se pudo actualizar el rol", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,77 +150,77 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
             </div>
 
             <div className="modal-body px-4 py-3">
+              {/* Campos de edición */}
               <div className="row g-4">
-
                 <div className="col-md-6">
-                  <label className="form-label">
-                    🏷️ Nombre del Rol <span className="text-danger">*</span>
-                  </label>
+                  <label className="form-label">🏷️ Nombre del Rol *</label>
                   <input
                     className="form-control"
                     value={nombre}
-                    onChange={e => setNombre(e.target.value)}
-                    required
+                    onChange={(e) => setNombre(e.target.value)}
+                    disabled={loading || cargandoPermisos}
                   />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">🧾 Descripción</label>
-                  <textarea
+                  <input
                     className="form-control"
-                    rows={1}
-                    value={descripcion}
-                    onChange={e => setDescripcion(e.target.value)}
-                    style={{ resize: 'none', overflow: 'hidden' }}
-                    onFocus={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.height = 'auto';
-                    }}
+                    value={descripcion ?? ""}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                    disabled={loading || cargandoPermisos}
                   />
                 </div>
 
                 <div className="col-md-12">
-                  <label className="form-label">
-                    🔐 Permisos <span className="text-danger">*</span>
-                  </label>
-                  <div className="row">
-                    {MODULOS.map((modulo) => (
-                      <div key={modulo} className="col-6 col-md-4">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={modulo}
-                            checked={permisosSeleccionados.includes(modulo)}
-                            onChange={() => togglePermiso(modulo)}
-                          />
-                          <label className="form-check-label" htmlFor={modulo}>
-                            {modulo}
-                          </label>
+                  <label className="form-label">🔐 Permisos *</label>
+                  {cargandoPermisos ? (
+                    <small className="text-muted">Cargando permisos...</small>
+                  ) : (
+                    <div className="row">
+                      {permisosDisponibles.map((permiso) => (
+                        <div key={permiso.IdPermisos} className="col-6 col-md-4">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`permiso-${permiso.IdPermisos}`}
+                              checked={permisosSeleccionados.some(
+                                (p) => p.IdPermisos === permiso.IdPermisos
+                              )}
+                              onChange={() => togglePermiso(permiso)}
+                              disabled={loading}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor={`permiso-${permiso.IdPermisos}`}
+                            >
+                              {permiso.RolPermisos}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                <div className="col-12">
-                  <small className="text-muted">
-                    Los campos marcados con <span className="text-danger">*</span> son obligatorios.
-                  </small>
-                </div>
-
               </div>
             </div>
 
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn pastel-btn-secondary"
+                onClick={onClose}
+                disabled={loading}
+              >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Guardar Cambios
+              <button
+                type="submit"
+                className="btn pastel-btn-primary"
+                disabled={loading || cargandoPermisos}
+              >
+                {loading ? "Guardando..." : "Guardar Cambios"}
               </button>
             </div>
           </form>
