@@ -1,87 +1,121 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../style/acciones.css';
+import type { IRolPermiso } from '../../interfaces/IRoles';
 
 export interface Rol {
-  idRol: number;
-  nombre: string;
-  descripcion: string;
-  estado: boolean;
-  permisos: string[];
+  IdRol: number;
+  Rol: string;
+  Descripcion: string;
+  Estado: boolean;
+  Usuarios: any[];         // si luego defines IUsuario lo reemplazas
+  RolPermisos: IRolPermiso[];
 }
-
 interface Props {
   onClose: () => void;
   onCrear: (nuevoRol: Rol) => void;
 }
 
-let idRolActual = 4;
+interface Permiso {
+  id: number;
+  nombre: string;
+}
 
-const MODULOS = [
-  'Dashboard', 'Roles', 'Usuario', 'Clientes', 'Proveedores',
-  'Cate.Insumo', 'Insumos', 'Compras', 'Producción',
-  'Cat.Productos', 'Productos', 'Pedidos',
-];
+const CrearRolModal: React.FC<Props> = ({ onClose,}) => {
+  const [permisosDisponibles, setPermisosDisponibles] = useState<Permiso[]>([]);
+  const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
 
-const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
-  const [permisosSeleccionados, setPermisosSeleccionados] = useState<string[]>([]);
+  // ✅ Traer permisos desde la API
+  useEffect(() => {
+    const fetchPermisos = async () => {
+      try {
+        const response = await fetch("https://apicreartnino.somee.com/api/permisos/Lista");
+        if (!response.ok) throw new Error("Error al obtener permisos");
 
-  const togglePermiso = (modulo: string) => {
+        const data = await response.json();
+        const permisosApi = data.map((p: any) => ({
+          id: p.IdPermisos,
+          nombre: p.RolPermisos
+        }));
+
+        setPermisosDisponibles(permisosApi);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "No se pudieron cargar los permisos", "error");
+      }
+    };
+
+    fetchPermisos();
+  }, []);
+
+  const togglePermiso = (idPermiso: number) => {
     setPermisosSeleccionados((prev) =>
-      prev.includes(modulo)
-        ? prev.filter((m) => m !== modulo)
-        : [...prev, modulo]
+      prev.includes(idPermiso)
+        ? prev.filter((id) => id !== idPermiso)
+        : [...prev, idPermiso]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  const form = e.currentTarget;
 
-    const nombre = (form.nombre as HTMLInputElement).value.trim();
-    const descripcion = (form.descripcion as HTMLInputElement).value.trim();
+  const rol = (form.nombre as HTMLInputElement).value.trim();
+  const descripcion = (form.descripcion as HTMLInputElement).value.trim();
 
-    if (!nombre) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Nombre requerido',
-        text: 'El nombre del rol es obligatorio.',
-        confirmButtonColor: '#f78fb3',
-      });
-      return;
-    }
+  if (!rol) {
+    Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+    return;
+  }
 
-    if (permisosSeleccionados.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Permisos requeridos',
-        text: 'Debe seleccionar al menos un permiso.',
-        confirmButtonColor: '#f78fb3',
-      });
-      return;
-    }
+  if (permisosSeleccionados.length === 0) {
+    Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+    return;
+  }
 
-    const nuevoRol: Rol = {
-      idRol: idRolActual++,
-      nombre,
-      descripcion,
-      estado: true,
-      permisos: permisosSeleccionados,
-    };
-
-    onCrear(nuevoRol);
-
-    Swal.fire({
-      icon: 'success',
-      title: '¡Rol creado!',
-      text: `El rol "${nombre}" se ha creado exitosamente.`,
-      confirmButtonColor: '#f78fb3',
+  try {
+    // ✅ Crear rol en la API
+    const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        IdRol: 0, // 👈 importante: inicializar en 0 para que lo cree
+        Rol: rol,
+        Descripcion: descripcion || "",
+        Estado: true
+      }),
     });
 
+    if (!response.ok) throw new Error("Error al crear rol");
+
+    const rolCreado = await response.json();
+
+    // ✅ Asegurar que obtenemos el IdRol correctamente (la API puede devolver IdRol o idRol)
+    const nuevoId = rolCreado.IdRol || rolCreado.idRol;
+
+    // ✅ Asociar permisos seleccionados
+    for (const idPermiso of permisosSeleccionados) {
+      await fetch("https://apicreartnino.somee.com/api/Rolpermisos/Crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          IdRol: nuevoId,
+          IdPermisos: idPermiso
+        }),
+      });
+    }
+
+    Swal.fire("Éxito", `Rol "${rol}" creado con permisos`, "success");
     form.reset();
     setPermisosSeleccionados([]);
     onClose();
-  };
+
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error", "No se pudo crear el rol", "error");
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -95,7 +129,6 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
-
                 <div className="col-md-6">
                   <label className="form-label">
                     🏷️ Nombre del Rol <span className="text-danger">*</span>
@@ -111,18 +144,18 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 <div className="col-md-12">
                   <label className="form-label">🔐 Permisos <span className="text-danger">*</span></label>
                   <div className="row">
-                    {MODULOS.map((modulo) => (
-                      <div key={modulo} className="col-6 col-md-4">
+                    {permisosDisponibles.map((permiso) => (
+                      <div key={permiso.id} className="col-6 col-md-4">
                         <div className="form-check">
                           <input
                             className="form-check-input"
                             type="checkbox"
-                            id={modulo}
-                            checked={permisosSeleccionados.includes(modulo)}
-                            onChange={() => togglePermiso(modulo)}
+                            id={`permiso-${permiso.id}`}
+                            checked={permisosSeleccionados.includes(permiso.id)}
+                            onChange={() => togglePermiso(permiso.id)}
                           />
-                          <label className="form-check-label" htmlFor={modulo}>
-                            {modulo}
+                          <label className="form-check-label" htmlFor={`permiso-${permiso.id}`}>
+                            {permiso.nombre}
                           </label>
                         </div>
                       </div>
@@ -131,7 +164,9 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 </div>
 
                 <div className="col-12">
-                  <small className="text-muted">Los campos marcados con <span className="text-danger">*</span> son obligatorios.</small>
+                  <small className="text-muted">
+                    Los campos marcados con <span className="text-danger">*</span> son obligatorios.
+                  </small>
                 </div>
               </div>
             </div>
