@@ -1,86 +1,123 @@
 // src/web/components/CardProducto.tsx
-import { useState } from 'react';
-import { useCarrito } from '../../context/CarritoContext';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import '../styles/categoriasproductos.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+
+import { useCarrito } from "../../context/CarritoContext";
+import { useAuth } from "../../context/AuthContext";
+
+import "../styles/categoriasproductos.css";
+import type { IProductos } from "../../features/interfaces/IProductos";
 
 interface Props {
-  producto: {
-    IdProducto: number;
-    Nombre: string;
-    Precio: number;
-    ImagenUrl: string;
-    CategoriaProducto: number;
-  };
+  producto: IProductos;
+}
+
+interface IImagenProducto {
+  IdImagen: number;
+  Url: string;
+  Estado: boolean;
 }
 
 const CardProducto = ({ producto }: Props) => {
   const [cantidad, setCantidad] = useState(1);
+  const [imagenUrl, setImagenUrl] = useState<string>("/placeholder.png");
+
   const { agregarProducto } = useCarrito();
   const { usuario } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Validamos con el id del rol (1 = admin, 4 = cliente)
-   const esAdmin = usuario?.IdRol === 1;
+  const esAdmin = usuario?.IdRol === 1;
   const esCliente = usuario?.IdRol === 4;
 
+  // 📷 Obtener imagen del producto
+  useEffect(() => {
+  const fetchImagen = async () => {
+    try {
+      if (!producto.Imagen) return;
+
+      const resp = await fetch("https://www.apicreartnino.somee.com/api/Imagenes_Productos/Lista");
+      if (!resp.ok) throw new Error(`Error HTTP: ${resp.status}`);
+      const data: IImagenProducto[] = await resp.json();
+
+      console.table(data);
+      console.log("Producto.Imagen:", producto.Imagen);
+
+      const idImagen = Number(producto.Imagen);
+      const imagenEncontrada = data.find((img) => img.IdImagen === idImagen);
+
+      if (imagenEncontrada) {
+        const urlFinal = imagenEncontrada.Url.startsWith("http")
+          ? imagenEncontrada.Url
+          : `https://www.apicreartnino.somee.com/${imagenEncontrada.Url}`;
+        setImagenUrl(urlFinal);
+      } else {
+        console.warn(`⚠️ No se encontró imagen para IdImagen ${idImagen}`);
+      }
+    } catch (err) {
+      console.error("Error al cargar imagen:", err);
+    }
+  };
+
+  fetchImagen();
+}, [producto.Imagen]);
+
+
+  // 🛒 Agregar producto al carrito
   const handleAgregar = () => {
     if (!usuario) {
       Swal.fire({
-        title: 'Debes iniciar sesión',
-        text: 'Inicia sesión para agregar productos al carrito.',
-        icon: 'info',
-        confirmButtonColor: '#f072d1',
-        confirmButtonText: 'Ir al login'
+        title: "Debes iniciar sesión",
+        text: "Inicia sesión para agregar productos al carrito.",
+        icon: "info",
+        confirmButtonColor: "#f072d1",
+        confirmButtonText: "Ir al login",
       }).then((result) => {
-        if (result.isConfirmed) {
-          navigate('/ingresar');
-        }
+        if (result.isConfirmed) navigate("/ingresar");
       });
       return;
     }
 
     if (esAdmin) {
       Swal.fire({
-        title: 'Acceso restringido',
-        text: 'El administrador no puede agregar productos al carrito.',
-        icon: 'warning',
-        confirmButtonColor: '#f072d1',
-        confirmButtonText: 'OK'
+        title: "Acceso restringido",
+        text: "El administrador no puede agregar productos al carrito.",
+        icon: "warning",
+        confirmButtonColor: "#f072d1",
       });
       return;
     }
 
     if (esCliente) {
       agregarProducto({
-        IdProducto: producto.IdProducto,
+        IdProducto: producto.IdProducto!,
         Nombre: producto.Nombre,
         Precio: producto.Precio,
-        ImagenUrl: producto.ImagenUrl,
+        ImagenUrl: imagenUrl,
         cantidad,
         CategoriaProducto: producto.CategoriaProducto,
-        tipo: 'Prediseñado'
+        tipo: "Prediseñado",
       });
 
       Swal.fire({
-        title: '¡Agregado al carrito!',
+        title: "¡Agregado al carrito!",
         text: `Has agregado ${producto.Nombre}`,
-        icon: 'success',
-        confirmButtonColor: '#f072d1',
-        confirmButtonText: 'OK'
+        icon: "success",
+        confirmButtonColor: "#f072d1",
       });
     }
   };
 
   return (
     <div className="categoria-card">
-      <img src={producto.ImagenUrl} alt={producto.Nombre} />
+      <img
+        src={imagenUrl}
+        alt={producto.Nombre}
+        onError={(e) => (e.currentTarget.src = "/placeholder.png")}
+      />
       <h3>{producto.Nombre}</h3>
       <p className="precio">${producto.Precio.toLocaleString()} COP</p>
 
-      {/* Mostrar cantidad solo si es cliente */}
       {esCliente && (
         <div className="cantidad-container">
           <label>Cantidad:</label>
@@ -93,20 +130,13 @@ const CardProducto = ({ producto }: Props) => {
         </div>
       )}
 
-      {/* Botón depende del rol */}
-      {esCliente && (
+      {(esCliente || !usuario) && (
         <button className="btn-agregar" onClick={handleAgregar}>
-          Agregar al Carrito
+          {usuario ? "Agregar al Carrito" : "Iniciar sesión para comprar"}
         </button>
       )}
 
-      {!usuario && (
-        <button className="btn-agregar" onClick={handleAgregar}>
-          Iniciar sesión para comprar
-        </button>
-      )}
-
-      {esAdmin && <small style={{ color: 'gray' }}>Vista de administrador</small>}
+      {esAdmin && <small style={{ color: "gray" }}>Vista de administrador</small>}
     </div>
   );
 };

@@ -55,7 +55,7 @@ interface ImagenProducto {
   Url: string;
 }
 
-// ==== Utils de fechas ====
+// ==== Utils de fechas ==== 
 function parseFecha(fechaStr?: string | null): Date | null {
   if (!fechaStr) return null;
   if (!isNaN(Date.parse(fechaStr))) return new Date(fechaStr);
@@ -67,7 +67,15 @@ function parseFecha(fechaStr?: string | null): Date | null {
   return null;
 }
 
-const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const DIAS_SEMANA = [
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+  "Domingo",
+];
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
@@ -76,6 +84,23 @@ const MESES = [
 function mondayIndex(date: Date) {
   return (date.getDay() + 6) % 7;
 }
+
+// ✅ Obtener los días de la semana actual con su fecha
+function getDiasSemanaActual(): { name: string; date: Date }[] {
+  const hoy = new Date();
+  const start = new Date(hoy);
+  start.setDate(hoy.getDate() - mondayIndex(hoy)); // lunes de la semana actual
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return {
+      name: `${DIAS_SEMANA[i]} ${d.getDate()}/${d.getMonth() + 1}`,
+      date: d,
+    };
+  });
+}
+
 
 function getWeekOfMonth(date: Date): number {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -138,92 +163,105 @@ export default function DashboardStatsDemo() {
   // ==============================
   //   SERIES DE PEDIDOS (FechaPedido)
   // ==============================
-  function buildSeriesPedidos(filtro: "dia" | "semana" | "mes") {
-    if (filtro === "dia") {
-      const series = DIAS_SEMANA.map((name) => ({ name, pedidos: 0 }));
-      pedidos.forEach((p) => {
-        if (p.IdEstado === 6) return;
-        const f = parseFecha(p.FechaPedido);
-        if (!f) return;
-        if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
-        const idx = mondayIndex(f);
-        series[idx].pedidos += 1;
-      });
-      return series;
-    }
+ function buildSeriesPedidos(filtro: "dia" | "semana" | "mes") {
+  if (filtro === "dia") {
+    const diasSemana = getDiasSemanaActual();
+    const series = diasSemana.map((d) => ({ name: d.name, pedidos: 0 }));
 
-    if (filtro === "semana") {
-      const nWeeks = getWeeksInMonth(currentYear, currentMonth);
-      const series = Array.from({ length: nWeeks }, (_, i) => ({
-        name: `Semana ${i + 1}`,
-        pedidos: 0,
-      }));
-      pedidos.forEach((p) => {
-        if (p.IdEstado === 6) return;
-        const f = parseFecha(p.FechaPedido);
-        if (!f) return;
-        if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
-        const wk = getWeekOfMonth(f);
-        if (wk >= 1 && wk <= nWeeks) series[wk - 1].pedidos += 1;
-      });
-      return series;
-    }
+    pedidos.forEach((p) => {
+      if (p.IdEstado === 6) return; // excluir anulados
+      const f = parseFecha(p.FechaPedido);
+      if (!f) return;
 
-    const series = MESES.map((name) => ({ name, pedidos: 0 }));
+      diasSemana.forEach((d, idx) => {
+        if (f.toDateString() === d.date.toDateString()) {
+          series[idx].pedidos += 1;
+        }
+      });
+    });
+
+    return series;
+  }
+
+  if (filtro === "semana") {
+    const nWeeks = getWeeksInMonth(currentYear, currentMonth);
+    const series = Array.from({ length: nWeeks }, (_, i) => ({
+      name: `Semana ${i + 1}`,
+      pedidos: 0,
+    }));
     pedidos.forEach((p) => {
       if (p.IdEstado === 6) return;
       const f = parseFecha(p.FechaPedido);
       if (!f) return;
-      if (f.getFullYear() !== currentYear) return;
-      series[f.getMonth()].pedidos += 1;
+      if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
+      const wk = getWeekOfMonth(f);
+      if (wk >= 1 && wk <= nWeeks) series[wk - 1].pedidos += 1;
     });
     return series;
   }
+
+  const series = MESES.map((name) => ({ name, pedidos: 0 }));
+  pedidos.forEach((p) => {
+    if (p.IdEstado === 6) return;
+    const f = parseFecha(p.FechaPedido);
+    if (!f) return;
+    if (f.getFullYear() !== currentYear) return;
+    series[f.getMonth()].pedidos += 1;
+  });
+  return series;
+}
 
   // ==============================
   //   SERIES DE VENTAS (FechaEntrega)
   // ==============================
   function buildSeriesVentas(filtro: "dia" | "semana" | "mes") {
-    if (filtro === "dia") {
-      const series = DIAS_SEMANA.map((name) => ({ name, ventas: 0 }));
-      pedidos.forEach((p) => {
-        if (!(p.IdEstado === 5 || p.IdEstado === 7)) return;
-        const f = parseFecha(p.FechaEntrega);
-        if (!f) return;
-        if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
-        const idx = mondayIndex(f);
-        series[idx].ventas += p.TotalPedido ?? 0;
-      });
-      return series;
-    }
+  if (filtro === "dia") {
+    const diasSemana = getDiasSemanaActual();
+    const series = diasSemana.map((d) => ({ name: d.name, ventas: 0 }));
 
-    if (filtro === "semana") {
-      const nWeeks = getWeeksInMonth(currentYear, currentMonth);
-      const series = Array.from({ length: nWeeks }, (_, i) => ({
-        name: `Semana ${i + 1}`,
-        ventas: 0,
-      }));
-      pedidos.forEach((p) => {
-        if (!(p.IdEstado === 5 || p.IdEstado === 7)) return;
-        const f = parseFecha(p.FechaEntrega);
-        if (!f) return;
-        if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
-        const wk = getWeekOfMonth(f);
-        if (wk >= 1 && wk <= nWeeks) series[wk - 1].ventas += p.TotalPedido ?? 0;
-      });
-      return series;
-    }
-
-    const series = MESES.map((name) => ({ name, ventas: 0 }));
     pedidos.forEach((p) => {
       if (!(p.IdEstado === 5 || p.IdEstado === 7)) return;
       const f = parseFecha(p.FechaEntrega);
       if (!f) return;
-      if (f.getFullYear() !== currentYear) return;
-      series[f.getMonth()].ventas += p.TotalPedido ?? 0;
+
+      diasSemana.forEach((d, idx) => {
+        if (f.toDateString() === d.date.toDateString()) {
+          series[idx].ventas += p.TotalPedido ?? 0;
+        }
+      });
+    });
+
+    return series;
+  }
+
+  if (filtro === "semana") {
+    const nWeeks = getWeeksInMonth(currentYear, currentMonth);
+    const series = Array.from({ length: nWeeks }, (_, i) => ({
+      name: `Semana ${i + 1}`,
+      ventas: 0,
+    }));
+    pedidos.forEach((p) => {
+      if (!(p.IdEstado === 5 || p.IdEstado === 7)) return;
+      const f = parseFecha(p.FechaEntrega);
+      if (!f) return;
+      if (f.getFullYear() !== currentYear || f.getMonth() !== currentMonth) return;
+      const wk = getWeekOfMonth(f);
+      if (wk >= 1 && wk <= nWeeks) series[wk - 1].ventas += p.TotalPedido ?? 0;
     });
     return series;
   }
+
+  const series = MESES.map((name) => ({ name, ventas: 0 }));
+  pedidos.forEach((p) => {
+    if (!(p.IdEstado === 5 || p.IdEstado === 7)) return;
+    const f = parseFecha(p.FechaEntrega);
+    if (!f) return;
+    if (f.getFullYear() !== currentYear) return;
+    series[f.getMonth()].ventas += p.TotalPedido ?? 0;
+  });
+  return series;
+}
+
 
   const dataPedidos = buildSeriesPedidos(filtroPedidos);
   const dataVentas = buildSeriesVentas(filtroVentas);

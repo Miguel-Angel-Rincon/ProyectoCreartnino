@@ -1,4 +1,3 @@
-// src/data/categorias.ts
 export const categorias = [
   { id: 1, nombre: 'toppers' },
   { id: 2, nombre: 'tazas' },
