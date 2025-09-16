@@ -190,7 +190,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="NumDocumento"
                     className="form-control"
                     value={formData.NumDocumento}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     maxLength={11}
                   />
                 </div>
@@ -201,7 +205,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="NombreCompleto"
                     className="form-control"
                     value={formData.NombreCompleto}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -211,7 +219,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     maxLength={11}
                   />
                 </div>
@@ -223,7 +235,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Correo"
                     className="form-control"
                     value={formData.Correo}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -235,7 +251,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       name="Contrasena"
                       className="form-control"
                       value={formData.Contrasena}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     />
                     <button
                       type="button"
@@ -335,7 +355,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -343,7 +363,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -351,7 +371,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                   </div>

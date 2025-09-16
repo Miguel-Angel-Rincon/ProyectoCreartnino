@@ -161,7 +161,7 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
                   className="btn btn-outline-secondary btn-sm"
                   onClick={() => setMostrarSubmodal(index)}
                 >
-                  🧪
+                  Gasto Insumos🧪
                 </button>
               </div>
 
@@ -182,7 +182,7 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
                         <input type="text" className="form-control" value={insumo.Nombre} disabled />
                       </div>
                       <div className="col-md-6">
-                        <input type="number" className="form-control" value={d.CantidadInsumo ?? 0} disabled />
+                        <input type="number" className="form-control" value={d.CantidadInsumo ?? 0} min={0} disabled />
                       </div>
                     </div>
                   ))}

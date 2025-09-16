@@ -182,7 +182,9 @@ const ListarCatInsumos: React.FC = () => {
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={(e) => {
-          setBusqueda(e.target.value);
+            const value = e.target.value;
+            if (value.trim() === "" && value !== "") return;
+            setBusqueda(value);
           setPaginaActual(1);
         }}
       />
@@ -277,11 +279,7 @@ const ListarCatInsumos: React.FC = () => {
                 await obtenerCategorias();
               }
               setMostrarModal(false);
-              Swal.fire({
-                icon: "success",
-                title: "Categoría creada correctamente",
-                confirmButtonColor: "#e83e8c",
-              });
+              
             } catch (err) {
               console.error("onCrear:", err);
             }

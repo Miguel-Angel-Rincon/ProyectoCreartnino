@@ -200,7 +200,9 @@ const ListarProductos: React.FC = () => {
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={(e) => {
-          setBusqueda(e.target.value);
+            const value = e.target.value;
+            if (value.trim() === "" && value !== "") return;
+            setBusqueda(value);
           setPaginaActual(1);
         }}
       />

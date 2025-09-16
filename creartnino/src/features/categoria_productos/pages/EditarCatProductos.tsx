@@ -104,7 +104,11 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
                     className="form-control"
                     name="CategoriaProducto1"
                     value={formData.CategoriaProducto1}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     required
                   />
                 </div>
@@ -116,7 +120,11 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
                     className="form-control"
                     name="Descripcion"
                     value={formData.Descripcion}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     rows={3}
                     required
                   />

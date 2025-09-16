@@ -362,7 +362,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -370,7 +370,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -378,7 +378,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                   </div>

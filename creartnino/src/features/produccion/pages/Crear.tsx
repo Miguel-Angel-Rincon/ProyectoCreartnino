@@ -763,7 +763,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
       className="btn btn-outline-secondary btn-sm"
       onClick={() => setMostrarSubmodal(index)}
     >
-      🧪
+      Gasto Insumos🧪
     </button>
 
     {tipoProduccion !== "Pedido" && (
@@ -841,6 +841,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
               className="form-control"
               value={insumo.cantidadUsada}
               maxLength={5}
+              min={0}
               onChange={(e) =>
                 actualizarInsumoCantidad(index, i, Number(e.target.value))
               }

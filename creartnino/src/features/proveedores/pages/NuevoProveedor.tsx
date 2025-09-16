@@ -312,7 +312,11 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     className="form-control"
                     name="NumDocumento"
                     value={formData.NumDocumento}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     maxLength={11}
                     required
                   />
@@ -327,7 +331,11 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     className="form-control"
                     name="NombreCompleto"
                     value={formData.NombreCompleto}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     required
                   />
                 </div>
@@ -340,7 +348,11 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     className="form-control"
                     name="Celular"
                     value={formData.Celular}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     required
                   />
                 </div>
@@ -426,9 +438,10 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, municipio: e.target.value }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, municipio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -436,9 +449,10 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, barrio: e.target.value }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, barrio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -446,9 +460,10 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, calle: e.target.value }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
                       />
                     </div>
                   </div>

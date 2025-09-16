@@ -250,7 +250,7 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   <input
                     className="form-control"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
+                    onChange={(e) => setNombre(e.target.value.replace(/\s/g, ""))}
                     required
                   />
                 </div>

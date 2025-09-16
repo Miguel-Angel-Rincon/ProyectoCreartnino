@@ -236,7 +236,7 @@ const VerProduccionVista: React.FC<Props> = ({ idProduccion, onClose }) => {
                 className="btn btn-outline-secondary btn-sm"
                 onClick={() => setMostrarSubmodal(index)}
               >
-                🧪
+                Gasto de insumos🧪
               </button>
 
               {/* Modal de insumos */}

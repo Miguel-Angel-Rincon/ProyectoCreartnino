@@ -81,14 +81,18 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <div className="row g-4">
                 <div className="col-md-12">
                   <label className="form-label">
-                    📛 Nombre <span className="text-danger">*</span>
+                  📛 Nombre <span className="text-danger">*</span>
                   </label>
                   <input
-                    className="form-control"
-                    name="NombreCategoria"
-                    value={formData.NombreCategoria}
-                    onChange={handleChange}
-                    required
+                  className="form-control"
+                  name="NombreCategoria"
+                  value={formData.NombreCategoria}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
+                  required
                   />
                 </div>
                 <div className="col-md-12">
@@ -99,7 +103,11 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     className="form-control"
                     name="Descripcion"
                     value={formData.Descripcion}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     rows={3}
                     required
                   />
