@@ -297,7 +297,10 @@ const Ingresar = () => {
                     className="input"
                     placeholder="Nueva contraseña"
                     value={nuevaPass}
-                    onChange={(e) => setNuevaPass(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                      setNuevaPass(value)}}
                   />
                   <span className="toggle-password" onClick={() => setVerNuevaPass(!verNuevaPass)}>
                     {verNuevaPass ? <FaEyeSlash /> : <FaEye />}
@@ -311,7 +314,10 @@ const Ingresar = () => {
                     className="input"
                     placeholder="Confirmar contraseña"
                     value={confirmPass}
-                    onChange={(e) => setConfirmPass(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                      setConfirmPass(value)}}
                   />
                   <span className="toggle-password" onClick={() => setVerConfirmPass(!verConfirmPass)}>
                     {verConfirmPass ? <FaEyeSlash /> : <FaEye />}
@@ -332,7 +338,10 @@ const Ingresar = () => {
                   className="input"
                   placeholder="Correo electrónico"
                   value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                    setCorreo(value)}}
                 />
 
                 {!codigoEnviado ? (
@@ -347,7 +356,10 @@ const Ingresar = () => {
                       className="input"
                       placeholder="Código de recuperación"
                       value={codigo}
-                      onChange={(e) => setCodigo(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                        setCodigo(e.target.value)}}
                     />
                     <button
                       className="boton-principal"
@@ -401,7 +413,10 @@ const Ingresar = () => {
                 className="input"
                 placeholder="Código de verificación"
                 value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                  setCodigo(e.target.value)}}
               />
               <button className="boton-principal" onClick={handleValidarCodigo} disabled={loading}>
                 {loading ? "Verificando..." : "Enviar"}
@@ -435,7 +450,10 @@ const Ingresar = () => {
                 className="input"
                 placeholder="Correo electrónico"
                 value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                  setCorreo(value)}}
               />
               <label>Contraseña</label>
               <input
@@ -443,7 +461,10 @@ const Ingresar = () => {
                 className="input"
                 placeholder="Contraseña"
                 value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                      if (value.trim() === "" && value !== "") return;
+                  setContrasena(value)}}
               />
               <button className="boton-principal" onClick={handleLogin} disabled={loading}>
                 {loading ? "Ingresando..." : "Ingresar"}

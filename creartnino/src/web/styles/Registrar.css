@@ -1,133 +1,171 @@
-/* Registrar.css */
-
-.contenedor {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* === Contenedor General === */
+.registro-container {
   min-height: 100vh;
-  background-color: white;
-  font-family: sans-serif;
-  padding: 20px;
-}
-
-.tarjeta {
   display: flex;
-  flex-direction: row;
-  background-color: #ffffff;
-  border-radius: 25px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fceff9, #fdf8ff);
+  padding: 20px;
+  font-family: "Poppins", sans-serif;
 }
 
-.formulario {
-  background-color: #ffffff;
-  border-radius: 25px 0 0 25px;
-  padding: 40px;
-  width: 350px;
+/* === Tarjeta Principal === */
+.registro-card {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  width: 100%;
+  max-width: 1100px;
+  border-radius: 20px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* === Panel Izquierdo (Imagen + Slogan) === */
+.registro-left {
+  background: linear-gradient(135deg, #f9d7eb, #fcdff5);
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-weight: bold;
-}
-
-.titulo {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.input {
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  outline: none;
-  font-weight: normal;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.3s ease-in-out;
-}
-
-.campo-password {
-  position: relative;
-  display: flex;
   align-items: center;
-}
-
-.icono-ojo {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #555;
-}
-
-.boton-principal {
-  background-color: #a2ded0;
-  padding: 10px;
-  border-radius: 25px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: background-color 0.3s ease-in-out;
-}
-
-.boton-principal:hover {
-  background-color: #88d2c3;
-}
-
-.boton-secundario {
-  background-color: #b4e5e3;
-  padding: 10px;
-  border-radius: 25px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 10px;
-  display: block;
   text-align: center;
-  text-decoration: none;
-  color: black;
-  transition: background-color 0.3s ease-in-out;
 }
 
-.boton-secundario:hover {
-  background-color: #a3d8d6;
+.registro-left .slogan {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #d63384;
+  margin-bottom: 20px;
+}
+
+.registro-img {
+  max-width: 85%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(214, 51, 132, 0.2);
+}
+
+/* === Panel Derecho (Formulario) === */
+.registro-right {
+  padding: 40px 30px;
+  background: #fff;
+}
+
+.form-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #b83280;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #444;
+}
+
+.form-control,
+.form-select {
+  border-radius: 12px;
+  border: 1px solid #e3c8e5;
+  padding: 10px 12px;
+  transition: 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #e83e8c;
+  box-shadow: 0 0 0 0.2rem rgba(232, 62, 140, 0.25);
+}
+
+/* === Input Group para contraseñas === */
+.input-group-text {
+  background: #f9e8f5;
+  border: 1px solid #e3c8e5;
+  cursor: pointer;
+}
+.input-group-text:hover {
+  background: #f5d3eb;
+}
+
+/* === Botones === */
+.pastel-btn-primary {
+  background: #e83e8c;
+  border: none;
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.pastel-btn-primary:hover {
+  background: #d63384;
+  transform: translateY(-2px);
+}
+
+.pastel-btn-secondary {
+  background: #f8d7ef;
+  border: none;
+  color: #b83280;
+  border-radius: 14px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.pastel-btn-secondary:hover {
+  background: #f3bde3;
+  transform: translateY(-2px);
+}
+
+/* === Acciones === */
+.acciones {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
 }
 
 .volver {
-  margin-top: 20px;
   text-align: center;
 }
-
 .volver a {
-  color: black;
+  color: #b83280;
+  font-weight: 500;
   text-decoration: none;
 }
-
-.imagen {
-  background-color: #f5cfd3;
-  border-radius: 0 25px 25px 0;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 300px;
-  text-align: center;
+.volver a:hover {
+  text-decoration: underline;
 }
 
-.imagen img {
-  width: 230px;
-  height: auto;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+/* === Modal Pastel === */
+.pastel-overlay {
+  background: rgba(0, 0, 0, 0.4);
 }
 
-.asterisco {
-  color: red;
-  font-weight: bold;
+.pastel-modal {
+  border-radius: 18px;
+  overflow: hidden;
+  border: none;
+}
+
+.pastel-header {
+  background: #fce9f7;
+  color: #b83280;
+  border-bottom: 1px solid #f3cbe2;
+}
+
+.pastel-footer {
+  border-top: 1px solid #f3cbe2;
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .registro-card {
+    grid-template-columns: 1fr;
+  }
+  .registro-left {
+    display: none; /* en móvil solo formulario */
+  }
 }
