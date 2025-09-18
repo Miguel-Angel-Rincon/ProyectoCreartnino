@@ -13,6 +13,8 @@ interface Props {
 const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => {
   const [formData, setFormData] = useState<IUsuarios>(usuario);
   const [showPassword, setShowPassword] = useState(false);
+  const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
+    const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({
       municipio: "",
@@ -44,6 +46,39 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+  useEffect(() => {
+      fetch("https://api-colombia.com/api/v1/Department")
+        .then((res) => res.json())
+        .then((data: { id: number; name: string }[]) =>
+          setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name)))
+        )
+        .catch(console.error);
+    }, []);
+  
+    // 🔹 Cargar ciudades según departamento
+    useEffect(() => {
+      if (!formData.Departamento) {
+        setCiudades([]);
+        return;
+      }
+      const dep = departamentos.find((d) => d.name === formData.Departamento);
+      if (!dep) return;
+  
+      fetch("https://api-colombia.com/api/v1/City/pagedList?page=1&pageSize=1000")
+        .then((res) => res.json())
+        .then((res: { data: { id: number; name: string; departmentId: number }[] }) => {
+          const cityList = res.data
+            .filter((c) => c.departmentId === dep.id)
+            .map((c) => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+          setCiudades(cityList);
+        })
+        .catch(console.error);
+    }, [formData.Departamento, departamentos]);
+  
+    // 🔹 Manejo de inputs
+    
 
   const handleDireccionModalSave = () => {
     const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.municipio}`;
@@ -195,6 +230,8 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   />
                 </div>
 
+                
+
                 {/* Contraseña */}
                 <div className="col-md-6">
                   <label className="form-label">🔐 Contraseña</label>
@@ -219,6 +256,38 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       {showPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">🏞️ Departamento</label>
+                  <select
+                    name="Departamento"
+                    className="form-select"
+                    value={formData.Departamento}
+                    onChange={handleChange}
+                  >
+                    {departamentos.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">🏙️ Ciudad</label>
+                  <select
+                    name="Ciudad"
+                    className="form-select"
+                    value={formData.Ciudad}
+                    onChange={handleChange}
+                  >
+                    {ciudades.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Dirección */}
