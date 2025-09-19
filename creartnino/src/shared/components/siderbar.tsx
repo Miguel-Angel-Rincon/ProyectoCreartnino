@@ -1,15 +1,12 @@
 // src/shared/components/Sidebar.tsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  FaBars, FaUser, FaUsers, FaUserShield, FaTruck, FaCogs,
-  FaBox, FaChartBar, FaBoxes, FaShoppingCart, FaTasks, FaChartLine,
-  FaUserCircle, FaSignOutAlt, FaGlobe
-} from "react-icons/fa";
-import logo from '../../assets/Imagenes/logo.jpg';
-import { useAuth } from '../../context/AuthContext';
-import Swal from "sweetalert2"; // 👈 importamos SweetAlert
-import '../styles/siderbar.css';
+import { FaBars, FaUserCircle, FaSignOutAlt, FaGlobe } from "react-icons/fa";
+import logo from "../../assets/Imagenes/logo.jpg";
+import { useAuth } from "../../context/AuthContext";
+import { useMenuFiltrado } from "../hooks/useMenuFiltrado";
+import Swal from "sweetalert2";
+import "../styles/siderbar.css";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,8 +16,10 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { cerrarSesion } = useAuth();
+  const menuFiltrado = useMenuFiltrado(); // 🔑 Aquí usamos el hook
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Cerrar menú de usuario si clic fuera
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -31,7 +30,7 @@ export default function Sidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
+  const toggleSidebar = () => setIsOpen((prev) => !prev);
   const toggleSection = (section: string) =>
     setOpenSection(openSection === section ? null : section);
 
@@ -41,7 +40,7 @@ export default function Sidebar() {
       text: "Tu sesión se cerrará y volverás a la página de ingreso.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#f48fb1", // 👈 color igual al navbar
+      confirmButtonColor: "#f48fb1",
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, cerrar sesión",
       cancelButtonText: "Cancelar",
@@ -71,93 +70,55 @@ export default function Sidebar() {
           <h2>CREART NINO</h2>
         </div>
 
+        {/* 🔑 Menú dinámico */}
         <nav className="sidebar-nav">
-          <Link to="/dashboard" className={location.pathname === "/dashboard" ? "active" : ""}>
-            <FaChartBar /> Dashboard
-          </Link>
-
-          <div className="sidebar-section" onClick={() => toggleSection("config")}>
-            Configuración ▾
-          </div>
-          {openSection === "config" && (
-            <>
-              <Link to="/roles" className={location.pathname === "/roles" ? "active" : ""}>
-                <FaUserShield /> Roles
-              </Link>
-              <Link to="/usuario" className={location.pathname === "/usuario" ? "active" : ""}>
-                <FaUser /> Usuario
-              </Link>
-              <Link to="/clientes" className={location.pathname === "/clientes" ? "active" : ""}>
-                <FaUsers /> Clientes
-              </Link>
-            </>
-          )}
-
-          <div className="sidebar-section" onClick={() => toggleSection("material")}>
-            Gestión de Materiales ▾
-          </div>
-          {openSection === "material" && (
-            <>
-              <Link to="/proveedores" className={location.pathname === "/proveedores" ? "active" : ""}>
-                <FaTruck /> Proveedores
-              </Link>
-              <Link to="/cate-insumo" className={location.pathname === "/cate-insumo" ? "active" : ""}>
-                <FaCogs /> Categoría Insumo
-              </Link>
-              <Link to="/insumos" className={location.pathname === "/insumos" ? "active" : ""}>
-                <FaBox /> Insumos
-              </Link>
-              <Link to="/compras" className={location.pathname === "/compras" ? "active" : ""}>
-                <FaShoppingCart /> Compras
-              </Link>
-            </>
-          )}
-
-          <div className="sidebar-section" onClick={() => toggleSection("produccion")}>
-            Gestión de Producción ▾
-          </div>
-          {openSection === "produccion" && (
-            <>
-              <Link to="/cat-productos" className={location.pathname === "/cat-productos" ? "active" : ""}>
-                <FaBoxes /> Categoría Productos
-              </Link>
-              <Link to="/productos" className={location.pathname === "/productos" ? "active" : ""}>
-                <FaBox /> Productos
-              </Link>
-              <Link to="/produccion" className={location.pathname === "/produccion" ? "active" : ""}>
-                <FaChartLine /> Producción
-              </Link>
-            </>
-          )}
-
-          <div className="sidebar-section" onClick={() => toggleSection("procesos")}>
-            Gestión de Pedidos ▾
-          </div>
-          {openSection === "procesos" && (
-            <Link to="/pedidos" className={location.pathname === "/pedidos" ? "active" : ""}>
-              <FaTasks /> Pedidos
-            </Link>
-          )}
+          {menuFiltrado.map((item) => (
+            <div key={item.key}>
+              {item.children ? (
+                <>
+                  <div
+                    className="sidebar-section"
+                    onClick={() => toggleSection(item.key)}
+                  >
+                    {item.label} ▾
+                  </div>
+                  {openSection === item.key &&
+                    item.children.map((child) => (
+                      <Link
+                        key={child.key}
+                        to={child.path!}
+                        className={location.pathname === child.path ? "active" : ""}
+                      >
+                        {child.icon} {child.label}
+                      </Link>
+                    ))}
+                </>
+              ) : (
+                <Link
+                  to={item.path!}
+                  className={location.pathname === item.path ? "active" : ""}
+                >
+                  {item.icon} {item.label}
+                </Link>
+              )}
+            </div>
+          ))}
         </nav>
 
         {/* Parte inferior */}
         <div className="sidebar-user-container" ref={menuRef}>
           <div
             className="sidebar-user"
-            onClick={() => setMostrarOpciones(prev => !prev)}
+            onClick={() => setMostrarOpciones((prev) => !prev)}
             style={{ cursor: "pointer" }}
           >
-            <FaUserCircle
-              size={28}
-              className="sidebar-user-icon"
-              style={{ color: "#000000ff" }} // 👈 color del navbar
-            />
+            <FaUserCircle size={28} className="sidebar-user-icon" />
             {mostrarOpciones && (
               <div className="sidebar-user-menu">
-                <p onClick={() => navigate('/')} style={{ cursor: "pointer" }}>
+                <p onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
                   <FaGlobe /> Volver a la web
                 </p>
-                <p onClick={() => navigate('/perfil')} style={{ cursor: "pointer" }}>
+                <p onClick={() => navigate("/perfil")} style={{ cursor: "pointer" }}>
                   <FaUserCircle /> Mi perfil
                 </p>
               </div>

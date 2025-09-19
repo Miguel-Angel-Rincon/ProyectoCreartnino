@@ -1,3 +1,4 @@
+// src/web/components/Navbar.tsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -21,13 +22,18 @@ const Navbar = () => {
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { usuario, isAuthenticated, cerrarSesion } = useAuth();
+  const { usuario, isAuthenticated, cerrarSesion, permisos } = useAuth();
   const { carrito } = useCarrito();
   const { compras } = useCompras();
   const navigate = useNavigate();
 
-  const esAdmin = usuario?.IdRol === 1;
+  // ✅ Cliente se sigue manejando por IdRol estético
   const esCliente = usuario?.IdRol === 4;
+
+  // ✅ Admin ahora depende de permisos
+  const tienePermisoAdmin = permisos.some(
+    (p) => p === "Dashboard" || p === "Admin"
+  );
 
   const comprasActivas = compras.filter((c) => c.estado !== "anulado").length;
 
@@ -52,7 +58,6 @@ const Navbar = () => {
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data: ICatProductos[] = await resp.json();
 
-        // ✅ Guardar solo categorías activas
         setCategorias(data.filter((c) => c.Estado === true));
       } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -72,13 +77,12 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🔧 función para generar URL amigable
   const generarSlug = (nombre: string) =>
     nombre
       .toLowerCase()
-      .normalize("NFD") // elimina acentos
+      .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "-"); // reemplaza espacios por guiones
+      .replace(/\s+/g, "-");
 
   return (
     <nav className="custom-navbar">
@@ -108,11 +112,9 @@ const Navbar = () => {
             <div className="mega-menu">
               <h4>Categorías Productos</h4>
               <div className="categories">
-                {/* ✅ Solo mostrar "Todos los productos" si hay al menos 1 categoría activa */}
                 {categorias.length > 0 && (
                   <Link to="/productos/todos">Todos los productos</Link>
                 )}
-
                 {categorias.length > 0 ? (
                   categorias.map((cat) => (
                     <Link
@@ -160,7 +162,7 @@ const Navbar = () => {
                   </>
                 )}
 
-                {esAdmin && (
+                {tienePermisoAdmin && (
                   <FaTachometerAlt
                     size={22}
                     title="Ir al panel"

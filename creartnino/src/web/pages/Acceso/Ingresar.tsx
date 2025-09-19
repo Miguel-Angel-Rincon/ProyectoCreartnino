@@ -75,41 +75,48 @@ const Ingresar = () => {
   };
 
   const handleValidarCodigo = async () => {
-    if (!codigo.trim()) {
-      return showAlert("Campo vacío", "Ingresa el código de verificación.", "warning");
-    }
-    setLoading(true);
-    try {
-      const resp = await fetch(`${API}/LoginPaso2`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, codigo }),
-      });
+  if (!codigo.trim()) {
+    return showAlert("Campo vacío", "Ingresa el código de verificación.", "warning");
+  }
 
-      const data = await resp.json();
+  setLoading(true);
+  try {
+    const resp = await fetch(`${API}/LoginPaso2`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correo, codigo }),
+    });
 
-      if (resp.ok) {
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("idRol", data.idRol);
-  localStorage.setItem("correo", correo);
-  localStorage.setItem("NumDocumento", data.usuario.numDocumento ?? "");
+    const data = await resp.json();
+    if (resp.ok) {
+      // Guardar datos en localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("idRol", data.idRol);
+      localStorage.setItem("correo", correo);
+      localStorage.setItem("NumDocumento", data.usuario.numDocumento ?? "");
 
-  // Ojo: mapeamos idRol → IdRol
-  iniciarSesion({ ...data.usuario, IdRol: data.idRol }, data.token);
+      // 🔑 Pasamos usuario + token al AuthContext
+      iniciarSesion({ ...data.usuario, IdRol: data.idRol }, data.token);
 
-  showAlert("✅ Sesión iniciada", "Bienvenido", "success");
+      showAlert("✅ Sesión iniciada", "Bienvenido", "success");
 
-  if (data.idRol === 1) navigate("/dashboard");
-  else if (data.idRol === 4) navigate("/");
-  else showAlert("⚠️ Rol no reconocido", "", "warning");
-}else {
-        showAlert("Error", data.mensaje || "Código inválido", "error");
+      // 🚀 Redirección
+      if (data.idRol === 4) {
+        // Cliente (rol estético)
+        navigate("/");
+      } else {
+        // Cualquier otro rol → Dashboard
+        navigate("/dashboard");
       }
-    } catch {
-      showAlert("Error", "No se pudo validar el código", "error");
+    } else {
+      showAlert("Error", data.mensaje || "Código inválido", "error");
     }
-    setLoading(false);
-  };
+  } catch {
+    showAlert("Error", "No se pudo validar el código", "error");
+  }
+  setLoading(false);
+};
+
 
   const handleReenviarCodigo = async () => {
     setLoading(true);

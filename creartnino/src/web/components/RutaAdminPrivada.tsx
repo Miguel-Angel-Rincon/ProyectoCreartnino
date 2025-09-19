@@ -1,21 +1,30 @@
-// src/web/components/RutaAdminPrivada.tsx
+// src/web/components/RutaPrivada.tsx
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import type { JSX } from "react";
 
-const RutaAdminPrivada = ({ children }: { children: JSX.Element }) => {
-  const { usuario, isAuthenticated } = useAuth();
+interface RutaPrivadaProps {
+  children: JSX.Element;
+  permisosRequeridos: string[]; // 🔑 ahora acepta varios permisos
+}
+
+const RutaPrivada = ({ children, permisosRequeridos }: RutaPrivadaProps) => {
+  const { isAuthenticated, permisos } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/Ingresar" />;
   }
 
-  // Solo admin (idRol === 1) puede entrar
-  if (usuario?.IdRol !== 1) {
-    return <Navigate to="/" />; // si es cliente lo mandamos al inicio
+  // ✅ Verifica si el usuario tiene al menos un permiso válido
+  const tienePermiso = permisosRequeridos.some((permiso) =>
+    permisos.includes(permiso)
+  );
+
+  if (!tienePermiso) {
+    return <Navigate to="/" />;
   }
 
   return children;
 };
 
-export default RutaAdminPrivada;
+export default RutaPrivada;
