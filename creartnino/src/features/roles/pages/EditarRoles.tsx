@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import "../style/acciones.css";
 import type { IRol, IPermiso, IRolPermiso } from "../../interfaces/IRoles";
+import { useAuth } from "../../../context/AuthContext"; // 👈 importamos contexto
 
 interface Props {
   rol: IRol;
@@ -17,6 +18,8 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<IPermiso[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [cargandoPermisos, setCargandoPermisos] = useState<boolean>(true);
+
+  const { refrescarUsuario, usuario } = useAuth(); // 👈 usamos contexto
 
   useEffect(() => {
     const fetchRolCompleto = async () => {
@@ -44,13 +47,29 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
 
         setNombre(rolData.Rol ?? "");
         setDescripcion(rolData.Descripcion ?? "");
-        setPermisosDisponibles(permisosData);
+
+        // 🚫 Permisos que no deben mostrarse
+        const permisosOcultos = [
+          "Ver productos",
+          "Realizar pedidos",
+          "Ver historial de pedidos",
+          "Editar perfil",
+        ];
+
+        // ✅ Filtrar antes de guardarlos en estado
+        const permisosFiltrados = permisosData.filter(
+          (p) => !permisosOcultos.includes(p.RolPermisos)
+        );
+
+        setPermisosDisponibles(permisosFiltrados);
 
         const permisosIdsAsignados = new Set(
           rolPermisosData.filter((rp) => rp.IdRol === rol.IdRol).map((rp) => rp.IdPermisos)
         );
 
-        const permisosRol = permisosData.filter((p) => permisosIdsAsignados.has(p.IdPermisos));
+        const permisosRol = permisosFiltrados.filter((p) =>
+          permisosIdsAsignados.has(p.IdPermisos)
+        );
         setPermisosSeleccionados(permisosRol);
       } catch (error) {
         console.error("❌ Error al traer rol/permisos:", error);
@@ -119,7 +138,12 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
       // 3) Todo OK → Swal éxito
       await Swal.fire("Éxito", "Rol actualizado correctamente", "success");
 
-      // 4) Actualizar lista en padre
+      // 4) Si el usuario actual tiene este rol → refrescar sus permisos
+      if (usuario?.IdRol === rol.IdRol) {
+        await refrescarUsuario();
+      }
+
+      // 5) Actualizar lista en padre
       onEditar({
         ...rol,
         Rol: nombre,

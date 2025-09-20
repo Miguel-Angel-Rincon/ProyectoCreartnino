@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import "../style/acciones.css";
 import type { IUsuarios } from "../../interfaces/IUsuarios";
+import { useAuth } from "../../../context/AuthContext"; 
 
 interface Props {
   usuario: IUsuarios; // Usuario a editar
@@ -26,6 +27,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
 
   const navigate = useNavigate();
+   const { refrescarUsuario } = useAuth(); // 🔑 USAR CONTEXTO PARA REFRESCAR
 
   // 🔹 Cargar roles desde la API
   useEffect(() => {
@@ -123,6 +125,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
       if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
         onEditar(actualizado);
+        await refrescarUsuario(); 
         navigate("/usuario");
       }
     } catch (err) {

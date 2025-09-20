@@ -1,9 +1,11 @@
-// src/web/components/Navbar.tsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCarrito } from "../../context/CarritoContext";
 import { useCompras } from "../../context/CompraContext";
+import { menuItems } from "../../shared/config/menuConfig"; // 👈 importar
+
+
 import "../styles/Navbar.css";
 import {
   FaShoppingCart,
@@ -22,7 +24,7 @@ const Navbar = () => {
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { usuario, isAuthenticated, cerrarSesion, permisos } = useAuth();
+  const { usuario, isAuthenticated, cerrarSesion, permisos, refrescarUsuario } = useAuth();
   const { carrito } = useCarrito();
   const { compras } = useCompras();
   const navigate = useNavigate();
@@ -30,10 +32,9 @@ const Navbar = () => {
   // ✅ Cliente se sigue manejando por IdRol estético
   const esCliente = usuario?.IdRol === 4;
 
-  // ✅ Admin ahora depende de permisos
-  const tienePermisoAdmin = permisos.some(
-    (p) => p === "Dashboard" || p === "Admin"
-  );
+ 
+
+
 
   const comprasActivas = compras.filter((c) => c.estado !== "anulado").length;
 
@@ -49,6 +50,7 @@ const Navbar = () => {
     navigate("/ingresar");
   };
 
+  // 🔄 Cargar categorías
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -67,6 +69,33 @@ const Navbar = () => {
     fetchCategorias();
   }, []);
 
+  
+// 🔎 Busca la primera ruta válida de los permisos del usuario
+const findPathByPermiso = (items: typeof menuItems, permisos: string[]): string | undefined => {
+  for (const item of items) {
+    if (item.permiso && permisos.includes(item.permiso)) {
+      return item.path;
+    }
+    if (item.children) {
+      const childPath = findPathByPermiso(item.children, permisos);
+      if (childPath) return childPath;
+    }
+  }
+  return undefined;
+};
+
+// ✅ Calcular primera ruta y permiso admin
+const firstPath = findPathByPermiso(menuItems, permisos);
+const tienePermisoAdmin = !!firstPath;
+
+  // 🔄 Refrescar usuario/rol al montar Navbar
+  useEffect(() => {
+    if (isAuthenticated) {
+      refrescarUsuario();
+    }
+  }, [isAuthenticated]);
+
+  // 🔄 Cerrar menú usuario al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -163,14 +192,18 @@ const Navbar = () => {
                 )}
 
                 {tienePermisoAdmin && (
-                  <FaTachometerAlt
-                    size={22}
-                    title="Ir al panel"
-                    className="icono-nav"
-                    style={{ cursor: "pointer", marginRight: "8px" }}
-                    onClick={() => navigate("/dashboard")}
-                  />
-                )}
+  <FaTachometerAlt
+    size={22}
+    title="Ir al panel"
+    className="icono-nav"
+    style={{ cursor: "pointer", marginRight: "8px" }}
+    onClick={() => {
+      const firstPath = findPathByPermiso(menuItems, permisos);
+      navigate(firstPath || "/");
+    }}
+  />
+)}
+
 
                 <FaUserCircle
                   size={28}

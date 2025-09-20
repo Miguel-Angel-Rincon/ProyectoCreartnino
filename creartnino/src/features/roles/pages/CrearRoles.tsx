@@ -26,27 +26,40 @@ const CrearRolModal: React.FC<Props> = ({ onClose,}) => {
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
 
   // ✅ Traer permisos desde la API
-  useEffect(() => {
-    const fetchPermisos = async () => {
-      try {
-        const response = await fetch("https://apicreartnino.somee.com/api/permisos/Lista");
-        if (!response.ok) throw new Error("Error al obtener permisos");
+  // ✅ Traer permisos desde la API
+useEffect(() => {
+  const fetchPermisos = async () => {
+    try {
+      const response = await fetch("https://apicreartnino.somee.com/api/permisos/Lista");
+      if (!response.ok) throw new Error("Error al obtener permisos");
 
-        const data = await response.json();
-        const permisosApi = data.map((p: any) => ({
+      const data = await response.json();
+
+      // 🚫 Lista de permisos que NO deben aparecer
+      const permisosOcultos = [
+        "Ver productos",
+        "Realizar pedidos",
+        "Ver historial de pedidos",
+        "Editar perfil"
+      ];
+
+      const permisosApi = data
+        .map((p: any) => ({
           id: p.IdPermisos,
           nombre: p.RolPermisos
-        }));
+        }))
+        // ✅ Filtramos los que NO queremos mostrar
+        .filter((p: any) => !permisosOcultos.includes(p.nombre));
 
-        setPermisosDisponibles(permisosApi);
-      } catch (error) {
-        console.error(error);
-        Swal.fire("Error", "No se pudieron cargar los permisos", "error");
-      }
-    };
+      setPermisosDisponibles(permisosApi);
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudieron cargar los permisos", "error");
+    }
+  };
 
-    fetchPermisos();
-  }, []);
+  fetchPermisos();
+}, []);
 
   const togglePermiso = (idPermiso: number) => {
     setPermisosSeleccionados((prev) =>

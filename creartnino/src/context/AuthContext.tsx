@@ -6,76 +6,93 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import avatarImg from "../assets/Imagenes/avatar-default.png";
+import Swal from "sweetalert2"; // 👈 Importamos Swal
 import type { IUsuarios } from "../features/interfaces/IUsuarios";
 
 interface AuthContextType {
   usuario: IUsuarios | null;
   token: string | null;
   isAuthenticated: boolean;
-  iniciarSesion: (datos: IUsuarios, token: string) => void;
+  iniciarSesion: (datos: IUsuarios, token: string) => Promise<void>;
   cerrarSesion: () => void;
-  avatar: string;
-  setAvatar: (nuevoAvatar: string) => void;
   permisos: string[];
   cargarPermisos: (idRol: number) => Promise<void>;
+  refrescarUsuario: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   usuario: null,
   token: null,
   isAuthenticated: false,
-  iniciarSesion: () => {},
+  iniciarSesion: async () => {},
   cerrarSesion: () => {},
-  avatar: avatarImg,
-  setAvatar: () => {},
   permisos: [],
   cargarPermisos: async () => {},
+  refrescarUsuario: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [usuario, setUsuario] = useState<IUsuarios | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<string>(avatarImg);
   const [permisos, setPermisos] = useState<string[]>([]);
 
-  // 🔑 Inicia sesión y guarda usuario + token + permisos
-  const iniciarSesion = (datos: IUsuarios, token: string) => {
-    const nuevoUsuario = { ...datos };
+  // -------------------
+  // 🟢 INICIAR SESIÓN
+  // -------------------
+  const iniciarSesion = async (datos: IUsuarios, token: string) => {
+    let usuarioConId = datos;
 
-    setUsuario(nuevoUsuario);
-    localStorage.setItem("usuario", JSON.stringify(nuevoUsuario));
+    if (!datos.IdUsuarios && datos.NumDocumento) {
+      try {
+        const res = await fetch(
+          `https://www.apicreartnino.somee.com/api/Usuarios/Lista`
+        );
+        if (res.ok) {
+          const listaUsuarios: IUsuarios[] = await res.json();
+          const encontrado = listaUsuarios.find(
+            (u) => u.NumDocumento === datos.NumDocumento
+          );
+          if (encontrado) usuarioConId = encontrado;
+        }
+      } catch (error) {
+        console.error("Error buscando usuario:", error);
+      }
+    }
 
+    if (!usuarioConId.IdUsuarios) {
+      console.error("⚠️ No se pudo obtener IdUsuarios", usuarioConId);
+      return;
+    }
+
+    setUsuario(usuarioConId);
+    localStorage.setItem("usuario", JSON.stringify(usuarioConId));
     setToken(token);
     localStorage.setItem("token", token);
 
-    if (datos.IdRolNavigation?.Rol) {
-      localStorage.setItem("rolUsuario", datos.IdRolNavigation.Rol);
-    }
-
-    if (datos.IdRol) {
-      cargarPermisos(datos.IdRol);
-    }
+    await refrescarUsuario();
   };
 
-  // 🔑 Cierra sesión y limpia todo
+  // -------------------
+  // 🔴 CERRAR SESIÓN
+  // -------------------
   const cerrarSesion = () => {
     setUsuario(null);
     setToken(null);
     setPermisos([]);
-    setAvatar(avatarImg);
 
     localStorage.removeItem("usuario");
     localStorage.removeItem("token");
-    localStorage.removeItem("avatarPerfil");
     localStorage.removeItem("rolUsuario");
     localStorage.removeItem("permisos");
+
+    window.location.href = "/ingresar";
   };
 
-  // 🔑 Carga permisos de la API
+  // -------------------
+  // 🔑 CARGAR PERMISOS
+  // -------------------
   const cargarPermisos = async (idRol: number) => {
     try {
-      // 1️⃣ Obtenemos TODA la lista de permisos
       const permisosRes = await fetch(
         "https://www.apicreartnino.somee.com/api/Permisos/Lista"
       );
@@ -83,7 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const permisosData: { IdPermisos: number; RolPermisos: string }[] =
         await permisosRes.json();
 
-      // 2️⃣ Obtenemos qué permisos tiene el rol
       const rolPermisosRes = await fetch(
         "https://www.apicreartnino.somee.com/api/RolPermisos/Lista"
       );
@@ -91,7 +107,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const rolPermisosData: { IdRol: number; IdPermisos: number }[] =
         await rolPermisosRes.json();
 
-      // 3️⃣ Filtramos permisos por el rol actual
       const idsPermisosRol = rolPermisosData
         .filter((rp) => rp.IdRol === idRol)
         .map((rp) => rp.IdPermisos);
@@ -107,17 +122,105 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 🔄 Recupera datos guardados en localStorage al recargar
+  // -------------------
+  // 🔄 REFRESCAR USUARIO
+  // -------------------
+  const refrescarUsuario = async () => {
+    if (!usuario && !localStorage.getItem("usuario")) return;
+
+    try {
+      const res = await fetch(
+        "https://www.apicreartnino.somee.com/api/Usuarios/Lista"
+      );
+      if (res.ok) {
+        const lista: IUsuarios[] = await res.json();
+        const userId =
+          usuario?.IdUsuarios ||
+          JSON.parse(localStorage.getItem("usuario") || "{}")?.IdUsuarios;
+
+        const usuarioRefrescado = lista.find((u) => u.IdUsuarios === userId);
+
+        if (usuarioRefrescado) {
+          setUsuario(usuarioRefrescado);
+          localStorage.setItem("usuario", JSON.stringify(usuarioRefrescado));
+
+          if (usuarioRefrescado.IdRol) {
+            await cargarPermisos(usuarioRefrescado.IdRol);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error refrescando usuario:", error);
+    }
+  };
+
+  // -------------------
+  // ⏱️ AUTO-LOGOUT CON ADVERTENCIA
+  // -------------------
+  useEffect(() => {
+    if (!token) return;
+
+    let logoutTimer: ReturnType<typeof setTimeout>;
+let warningTimer: ReturnType<typeof setTimeout>;
+
+    const iniciarContadores = () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warningTimer);
+
+      // ⏳ Mostrar advertencia 1 minuto antes (a los 9 min)
+      warningTimer = setTimeout(() => {
+        Swal.fire({
+          title: "¿Sigues allí?",
+          text: "Tu sesión se cerrará en 1 minuto por inactividad.",
+          icon: "warning",
+          confirmButtonText: "Continuar",
+          showCancelButton: true,
+          cancelButtonText: "Cerrar sesión",
+          confirmButtonColor: "#7d3cf0",
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            iniciarContadores(); // 👈 reinicia el tiempo
+          } else {
+            cerrarSesion();
+          }
+        });
+      }, 9 * 60 * 1000); // 9 minutos
+
+      // 🔴 Logout automático a los 10 min
+      logoutTimer = setTimeout(() => {
+        cerrarSesion();
+      }, 10 * 60 * 1000);
+    };
+
+    const resetTimer = () => iniciarContadores();
+
+    const eventos = ["mousemove", "keydown", "click", "scroll"];
+    eventos.forEach((e) => window.addEventListener(e, resetTimer));
+
+    iniciarContadores();
+
+    return () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warningTimer);
+      eventos.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [token]);
+
+  // -------------------
+  // ♻️ RECUPERAR ESTADO AL RECARGAR
+  // -------------------
   useEffect(() => {
     const almacenado = localStorage.getItem("usuario");
     const tokenStored = localStorage.getItem("token");
-    const avatarStored = localStorage.getItem("avatarPerfil");
-    const permisosStored = localStorage.getItem("permisos");
 
-    if (almacenado) setUsuario(JSON.parse(almacenado));
+    if (almacenado) {
+      const user = JSON.parse(almacenado);
+      setUsuario(user);
+      if (user?.IdRol) cargarPermisos(user.IdRol);
+    }
+
     if (tokenStored) setToken(tokenStored);
-    if (avatarStored) setAvatar(avatarStored);
-    if (permisosStored) setPermisos(JSON.parse(permisosStored));
   }, []);
 
   return (
@@ -128,10 +231,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         iniciarSesion,
         cerrarSesion,
         isAuthenticated: !!usuario && !!token,
-        avatar,
-        setAvatar,
         permisos,
         cargarPermisos,
+        refrescarUsuario,
       }}
     >
       {children}

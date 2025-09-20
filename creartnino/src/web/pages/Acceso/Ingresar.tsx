@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../../styles/acceso.css";
 import ImagenIngresar from "../../../assets/Imagenes/imagen-ingresar.png";
 import { useAuth } from "../../../context/AuthContext";
+import { menuItems } from "../../../shared/config/menuConfig"; // 👈 importar
 
 const API = "http://www.apicreartnino.somee.com/api/Auth";
 
@@ -74,6 +75,21 @@ const Ingresar = () => {
     setLoading(false);
   };
 
+  
+// 🔎 Busca la primera ruta válida de los permisos del usuario
+const findPathByPermiso = (items: typeof menuItems, permisos: string[]): string | undefined => {
+  for (const item of items) {
+    if (item.permiso && permisos.includes(item.permiso)) {
+      return item.path;
+    }
+    if (item.children) {
+      const childPath = findPathByPermiso(item.children, permisos);
+      if (childPath) return childPath;
+    }
+  }
+  return undefined;
+};
+
   const handleValidarCodigo = async () => {
   if (!codigo.trim()) {
     return showAlert("Campo vacío", "Ingresa el código de verificación.", "warning");
@@ -89,24 +105,24 @@ const Ingresar = () => {
 
     const data = await resp.json();
     if (resp.ok) {
-      // Guardar datos en localStorage
+      // Guarda datos mínimos en localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("idRol", data.idRol);
       localStorage.setItem("correo", correo);
       localStorage.setItem("NumDocumento", data.usuario.numDocumento ?? "");
 
-      // 🔑 Pasamos usuario + token al AuthContext
-      iniciarSesion({ ...data.usuario, IdRol: data.idRol }, data.token);
+      // ✅ Espera a que iniciarSesion termine de refrescar usuario y cargar permisos
+      await iniciarSesion({ ...data.usuario, IdRol: data.idRol }, data.token);
 
       showAlert("✅ Sesión iniciada", "Bienvenido", "success");
 
-      // 🚀 Redirección
       if (data.idRol === 4) {
-        // Cliente (rol estético)
         navigate("/");
       } else {
-        // Cualquier otro rol → Dashboard
-        navigate("/dashboard");
+        // 🔄 Vuelve a leer permisos ya actualizados desde localStorage
+        const permisos = JSON.parse(localStorage.getItem("permisos") || "[]");
+        const firstPath = findPathByPermiso(menuItems, permisos);
+        navigate(firstPath || "/");
       }
     } else {
       showAlert("Error", data.mensaje || "Código inválido", "error");
@@ -116,6 +132,7 @@ const Ingresar = () => {
   }
   setLoading(false);
 };
+
 
 
   const handleReenviarCodigo = async () => {
