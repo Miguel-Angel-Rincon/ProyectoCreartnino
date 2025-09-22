@@ -9,6 +9,14 @@
   z-index: 999;
 }
 
+.input-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #000; /* negro */
+}
+
+
 /* Contenedor del modal */
 .modal-finalizar {
   position: relative;
@@ -211,4 +219,154 @@
   max-height: 90%;
   border-radius: 1rem;
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+/* Tooltip base */
+.input-icono {
+  position: relative;
+}
+
+/* Tooltip cuando pasas el mouse */
+.input-icono[data-label]:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 115%; /* aparece arriba del input */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d14fa2;
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  animation: fadeTooltip 0.3s forwards;
+  z-index: 10;
+}
+
+/* Flechita */
+.input-icono[data-label]:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #d14fa2 transparent;
+  opacity: 0;
+  animation: fadeTooltip 0.3s forwards;
+}
+
+/* Animación */
+@keyframes fadeTooltip {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Contenedor de botones */
+.acciones {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Botón Confirmar */
+.btn-confirmar {
+  background: #d14fa2;
+  color: white;
+  font-weight: bold;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.btn-confirmar:hover {
+  background: #b73a93;
+}
+
+/* Botón Cancelar */
+.btn-cancelar {
+  background: #f3f3f3;
+  color: #555;
+  font-weight: bold;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.btn-cancelar:hover {
+  background: #ffeaf6;
+  color: #d14fa2;
+}
+
+/* === SUBMODAL === */
+
+/* Fondo oscuro del submodal */
+.overlay-submodal {
+  position: fixed;
+  inset: 0; /* cubre toda la pantalla */
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500; /* encima del modal principal */
+  animation: fadeIn 0.3s ease;
+}
+
+/* Caja del submodal */
+.submodal {
+  position: relative;
+  background: #fff8fc; /* pastel claro */
+  padding: 1.8rem;
+  border-radius: 1.5rem;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Título del submodal */
+.submodal h3 {
+  color: #d14fa2;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+
+/* Texto dentro del submodal */
+.submodal p {
+  margin: 0.4rem 0;
+  color: #444;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* Botones en el submodal */
+.submodal .acciones {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

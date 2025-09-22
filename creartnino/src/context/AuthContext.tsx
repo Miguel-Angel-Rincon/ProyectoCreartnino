@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [usuario, setUsuario] = useState<IUsuarios | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [permisos, setPermisos] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true); // 🟢 NUEVO
 
   // -------------------
   // 🟢 INICIAR SESIÓN
@@ -75,18 +76,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // -------------------
   // 🔴 CERRAR SESIÓN
   // -------------------
-  const cerrarSesion = () => {
-    setUsuario(null);
-    setToken(null);
-    setPermisos([]);
+  // 🔴 CERRAR SESIÓN
+const cerrarSesion = (porInactividad: boolean = false) => {
+  setUsuario(null);
+  setToken(null);
+  setPermisos([]);
 
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("token");
-    localStorage.removeItem("rolUsuario");
-    localStorage.removeItem("permisos");
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("token");
+  localStorage.removeItem("rolUsuario");
+  localStorage.removeItem("permisos");
 
+  if (porInactividad) {
+    // 🔔 Mostrar aviso rápido (sin bloquear)
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: "info",
+      title: "Sesión cerrada por inactividad",
+      showConfirmButton: false,
+      timer: 5000,
+      timerProgressBar: true,
+    }).then(() => {
+      window.location.href = "/ingresar";
+    });
+  } else {
     window.location.href = "/ingresar";
-  };
+  }
+};
+
 
   // -------------------
   // 🔑 CARGAR PERMISOS
@@ -189,7 +207,8 @@ let warningTimer: ReturnType<typeof setTimeout>;
 
       // 🔴 Logout automático a los 10 min
       logoutTimer = setTimeout(() => {
-        cerrarSesion();
+        cerrarSesion(true); // 
+        
       }, 10 * 60 * 1000);
     };
 
@@ -210,6 +229,7 @@ let warningTimer: ReturnType<typeof setTimeout>;
   // -------------------
   // ♻️ RECUPERAR ESTADO AL RECARGAR
   // -------------------
+   // ♻️ RECUPERAR ESTADO AL RECARGAR
   useEffect(() => {
     const almacenado = localStorage.getItem("usuario");
     const tokenStored = localStorage.getItem("token");
@@ -221,6 +241,8 @@ let warningTimer: ReturnType<typeof setTimeout>;
     }
 
     if (tokenStored) setToken(tokenStored);
+
+    setLoading(false); // ✅ Termina carga
   }, []);
 
   return (
@@ -236,7 +258,8 @@ let warningTimer: ReturnType<typeof setTimeout>;
         refrescarUsuario,
       }}
     >
-      {children}
+      {/* ⏳ Mientras carga, puedes mostrar un spinner o nada */}
+      {loading ? <div>Cargando...</div> : children}
     </AuthContext.Provider>
   );
 };
