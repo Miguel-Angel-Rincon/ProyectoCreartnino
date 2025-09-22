@@ -187,18 +187,27 @@ input:checked + .slider:before {
   display: none;
 }
 
-/* Estados de Producción */
-.estado-compra-en-proceso {
-  background-color: #fff2cc !important;
+.estado-select {
+  font-weight: bold;
+  color: #000 !important; /* letras negras */
 }
 
-.estado-compra-completado {
-  background-color: #d9f9d9 !important;
+.estado-solicitada {
+  background-color: #fdf6b2 !important; /* amarillo pastel */
 }
 
-.estado-compra-anulado {
-  background-color: #f8cccc !important;
+.estado-anulado {
+  background-color: #f8d7da !important; /* rojo claro */
 }
+
+.estado-recibida {
+  background-color: #d4edda !important; /* verde claro */
+}
+
+.estado-completado {
+  background-color: #cce5ff !important; /* azul claro */
+}
+
 
 /* Ocultar flecha en navegadores antiguos */
 .estado-select::-ms-expand { display: none; }

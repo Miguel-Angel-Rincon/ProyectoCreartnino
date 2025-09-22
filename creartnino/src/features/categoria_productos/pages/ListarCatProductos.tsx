@@ -248,19 +248,45 @@ const ListarCatProductos: React.FC = () => {
           </tbody>
         </table>
 
-        <div className="paginacion text-end">
-          {[...Array(totalPaginas)].map((_, i) => (
-            <button
-              key={i}
-              className={`btn me-2 ${
-                paginaActual === i + 1 ? "btn-pink" : "btn-light"
-              }`}
-              onClick={() => setPaginaActual(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
+        <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
+              <button
+                className="btn btn-light me-2"
+                onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+                disabled={paginaActual === 1}
+              >
+                «
+              </button>
+
+              {paginaActual > 1 && (
+                <button
+                  className="btn btn-light me-2"
+                  onClick={() => setPaginaActual(paginaActual - 1)}
+                >
+                  {paginaActual - 1}
+                </button>
+              )}
+
+              <button className="btn btn-pink me-2">{paginaActual}</button>
+
+              {paginaActual < totalPaginas && (
+                <button
+                  className="btn btn-light me-2"
+                  onClick={() => setPaginaActual(paginaActual + 1)}
+                >
+                  {paginaActual + 1}
+                </button>
+              )}
+
+              <button
+                className="btn btn-light"
+                onClick={() =>
+                  setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
+                }
+                disabled={paginaActual === totalPaginas}
+              >
+                »
+              </button>
+            </div>
       </div>
 
       {/* Modal Crear */}
