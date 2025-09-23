@@ -1,148 +1,218 @@
-import React from 'react';
-import { FaCalculator, FaWallet, FaCoins } from 'react-icons/fa';
-import '../styles/acciones.css';
-
-interface PedidoDetalle {
-  producto: string;
-  cantidad: number;
-  precio: number;
-}
-
-interface Pedido {
-  Cliente: string;
-  Direccion: string;
-  MetodoPago: string;
-  FechaPedido: string;
-  FechaEntrega: string;
-  Descripcion: string;
-  ValorInicial: number;
-  ValorRestante: number;
-  TotalPedido: number;
-  Estado: string;
-  ComprobantePago?: string;
-  detallePedido: PedidoDetalle[];
-}
+import React, { useEffect, useState } from "react";
+import { FaCalculator, FaWallet, FaCoins } from "react-icons/fa";
+import "../styles/acciones.css";
+import type { IPedido, detallePedido } from "../../interfaces/IPedidos";
 
 interface VerPedidoProps {
-  pedido: Pedido;
+  pedido: IPedido;
   onVolver: () => void;
 }
 
+interface ICliente {
+  IdCliente: number;
+  NombreCompleto: string;
+  Direccion: string;
+}
+
+interface IProducto {
+  IdProducto: number;
+  Nombre: string;
+  Precio: number;
+}
+
 const VerPedido: React.FC<VerPedidoProps> = ({ pedido, onVolver }) => {
+  const [clienteNombre, setClienteNombre] = useState<string>("");
+  const [clienteDireccion, setClienteDireccion] = useState<string>("");
+  const [detallesConInfo, setDetallesConInfo] = useState<
+    (detallePedido & { NombreProducto?: string; Precio?: number; Subtotal?: number })[]
+  >([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1) Obtener clientes
+        const rClientes = await fetch("https://apicreartnino.somee.com/api/Clientes/Lista");
+        const clientes: ICliente[] = await rClientes.json();
+        const cliente = clientes.find((c) => c.IdCliente === pedido.IdCliente);
+        if (cliente) {
+          setClienteNombre(cliente.NombreCompleto);
+          setClienteDireccion(cliente.Direccion);
+        }
+
+        // 2) Obtener productos
+        const rProductos = await fetch("https://apicreartnino.somee.com/api/Productos/Lista");
+        const productos: IProducto[] = await rProductos.json();
+
+        // 3) Obtener detalles del pedido
+        const rDetalles = await fetch("https://apicreartnino.somee.com/api/Detalles_Pedido/Lista");
+        const detalles: detallePedido[] = await rDetalles.json();
+        const detallesPedido = detalles.filter((d) => d.IdPedido === pedido.IdPedido);
+
+        // 4) Mapear detalles con nombre y precio
+        const detallesFinal = detallesPedido.map((det) => {
+          const producto = productos.find((p) => p.IdProducto === det.IdProducto);
+          return {
+            ...det,
+            NombreProducto: producto?.Nombre || `ID ${det.IdProducto}`,
+            Precio: producto?.Precio || 0,
+            Subtotal: (det.Cantidad ?? 0) * (producto?.Precio ?? 0),
+          };
+        });
+
+        setDetallesConInfo(detallesFinal);
+      } catch (err) {
+        console.error("Error cargando cliente/productos/detalles", err);
+      }
+    };
+
+    fetchData();
+  }, [pedido]);
+
   return (
-    <div className="container py-4">
-      <h4 className="mb-4">📄 Detalles del Pedido</h4>
-      <div className="row g-4 mb-3">
+    <div className="container-fluid pastel-contenido">
+      <h2 className="titulo mb-4">Visualizar el Pedido</h2>
+
+      {/* Cliente, Método de Pago, Fechas */}
+      <div className="row mb-3">
         <div className="col-md-3">
           <label className="form-label">👤 Cliente</label>
-          <input type="text" className="form-control" value={pedido.Cliente} readOnly />
+          <input className="form-control" value={clienteNombre} disabled />
         </div>
         <div className="col-md-3">
           <label className="form-label">💳 Método de Pago</label>
-          <input type="text" className="form-control" value={pedido.MetodoPago} readOnly />
+          <input className="form-control" value={pedido.MetodoPago || ""} disabled />
         </div>
         <div className="col-md-3">
-          <label className="form-label">📅 Fecha del Pedido</label>
-          <input type="date" className="form-control" value={pedido.FechaPedido} readOnly />
+          <label className="form-label">📅 Fecha Pedido</label>
+          <input
+            className="form-control"
+            value={
+              pedido.FechaPedido
+                ? new Date(pedido.FechaPedido).toLocaleDateString("es-CO")
+                : ""
+            }
+            disabled
+          />
         </div>
         <div className="col-md-3">
-          <label className="form-label">📦 Fecha de Entrega</label>
-          <input type="date" className="form-control" value={pedido.FechaEntrega} readOnly />
+          <label className="form-label">📦 Fecha Entrega</label>
+          <input
+            className="form-control"
+            value={
+              pedido.FechaEntrega
+                ? new Date(pedido.FechaEntrega).toLocaleDateString("es-CO")
+                : ""
+            }
+            disabled
+          />
         </div>
       </div>
 
-      
+      {/* Detalles */}
+      <div className="mb-3">
+        <h5 className="mb-3">🧾 Detalle del Pedido</h5>
+        {detallesConInfo.length > 0 ? (
+          <>
+            <div className="row fw-bold text-secondary mb-1">
+              <div className="col-md-4">Producto</div>
+              <div className="col-md-2">Cantidad</div>
+              <div className="col-md-3">Precio</div>
+              <div className="col-md-3">Subtotal</div>
+            </div>
 
-      <div className="col-12 mt-4">
-        <h6 className="text-muted">🧾 Detalle del Pedido</h6>
-        <div className="row fw-bold mb-2">
-          <div className="col-md-4">Producto</div>
-          <div className="col-md-2">Cantidad</div>
-          <div className="col-md-2">Precio</div>
-          <div className="col-md-4">Subtotal</div>
-        </div>
-        {pedido.detallePedido.map((item, index) => (
-          <div key={index} className="row mb-2 align-items-center">
-            <div className="col-md-4">
-              <input type="text" className="form-control" value={item.producto} readOnly />
-            </div>
-            <div className="col-md-2">
-              <input type="number" className="form-control" value={item.cantidad} readOnly />
-            </div>
-            <div className="col-md-2">
-              <input type="text" className="form-control" value={`$${item.precio.toLocaleString()}`} readOnly />
-            </div>
-            <div className="col-md-4">
-              <input
-                type="text"
-                className="form-control"
-                value={`$${(item.cantidad * item.precio).toLocaleString()}`}
-                readOnly
-              />
-            </div>
-          </div>
-        ))}
+            {detallesConInfo.map((item, index) => (
+              <div key={index} className="row align-items-center mb-2">
+                <div className="col-md-4">
+                  <input
+                    className="form-control form-control-sm"
+                    value={item.NombreProducto || ""}
+                    disabled
+                  />
+                </div>
+                <div className="col-md-2">
+                  <input
+                    className="form-control form-control-sm"
+                    value={item.Cantidad ?? ""}
+                    disabled
+                  />
+                </div>
+                <div className="col-md-3">
+                  <input
+                    className="form-control form-control-sm"
+                    value={`$${(item.Precio ?? 0).toLocaleString("es-CO")}`}
+                    disabled
+                  />
+                </div>
+                <div className="col-md-3">
+                  <input
+                    className="form-control form-control-sm"
+                    value={`$${(item.Subtotal ?? 0).toLocaleString("es-CO")}`}
+                    disabled
+                  />
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <p>No hay detalles para este pedido.</p>
+        )}
       </div>
 
-      <div className="row g-4">
+      {/* Personalización y Dirección */}
+      <div className="row mb-3">
         <div className="col-md-6">
           <label className="form-label">🎨 Personalización</label>
-          <textarea className="form-control" rows={2} value={pedido.Descripcion} readOnly />
+          <textarea
+            className="form-control"
+            rows={2}
+            value={pedido.Descripcion || ""}
+            disabled
+          />
         </div>
         <div className="col-md-6">
           <label className="form-label">📍 Dirección del Cliente</label>
-          <input type="text" className="form-control" value={pedido.Direccion} readOnly />
+          <input className="form-control" value={clienteDireccion} disabled />
         </div>
       </div>
 
-      {pedido.MetodoPago === 'Transferencia' && pedido.ComprobantePago && (
-        <div className="col-md-6 mt-4">
+      {/* Comprobante si aplica */}
+      {pedido.MetodoPago === "Transferencia" && pedido.ComprobantePago && (
+        <div className="col-md-6 mb-4">
           <label className="form-label">📎 Comprobante de Pago</label>
-          <input type="text" className="form-control" value={pedido.ComprobantePago} readOnly />
+          <input className="form-control" value={pedido.ComprobantePago} disabled />
         </div>
       )}
 
-      <div className="col-12 mt-4">
-        <h6 className="text-muted mb-2">📊 Resumen del Pedido</h6>
-        <div className="row g-2">
-          <div className="col-md-4">
-            <div className="card pastel-card p-1">
-              <div className="d-flex align-items-center gap-1">
-                <FaWallet size={16} className="text-info" />
-                <div>
-                  <div className="fw-semibold fs-7">Valor Inicial</div>
-                  <div className="text-muted fw-bold fs-7">${pedido.ValorInicial.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
+      {/* Totales */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="pastel-card text-center">
+            <FaWallet size={18} className="mb-1 text-info" />
+            <small className="d-block">Valor Inicial</small>
+            <small>${(pedido.ValorInicial ?? 0).toLocaleString("es-CO")}</small>
           </div>
-          <div className="col-md-4">
-            <div className="card pastel-card p-1">
-              <div className="d-flex align-items-center gap-1">
-                <FaCoins size={16} className="text-danger" />
-                <div>
-                  <div className="fw-semibold fs-7">Valor Restante</div>
-                  <div className="text-muted fw-bold fs-7">${pedido.ValorRestante.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
+        </div>
+        <div className="col-md-4">
+          <div className="pastel-card text-center">
+            <FaCoins size={18} className="mb-1 text-danger" />
+            <small className="d-block">Valor Restante</small>
+            <small>${(pedido.ValorRestante ?? 0).toLocaleString("es-CO")}</small>
           </div>
-          <div className="col-md-4">
-            <div className="card pastel-card p-1">
-              <div className="d-flex align-items-center gap-1">
-                <FaCalculator size={16} className="text-primary" />
-                <div>
-                  <div className="fw-semibold fs-7">Total</div>
-                  <div className="text-muted fw-bold fs-7">${pedido.TotalPedido.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
+        </div>
+        <div className="col-md-4">
+          <div className="pastel-card text-center">
+            <FaCalculator size={18} className="mb-1 text-primary" />
+            <small className="d-block">Total</small>
+            <small>${(pedido.TotalPedido ?? 0).toLocaleString("es-CO")}</small>
           </div>
         </div>
       </div>
 
-      <div className="text-end mt-4">
-        <button className="btn pastel-btn-secondary" onClick={onVolver}>Volver</button>
+      {/* Botón */}
+      <div className="text-end">
+        <button className="btn pastel-btn-secondary" onClick={onVolver}>
+          Volver
+        </button>
       </div>
     </div>
   );

@@ -91,9 +91,10 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Validaciones
+  // ✅ tus validaciones aquí...
+   // Validaciones
     if (!formData.NombreCompleto.trim()) {
       return Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'El nombre completo es obligatorio.', confirmButtonColor: '#e83e8c' });
     }
@@ -119,43 +120,66 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
       return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
     }
 
-    try {
-      const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
+
+  try {
+    // Crear usuario
+    const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    // 👇 AQUÍ MISMO validamos si el rol es 4
+    if (formData.IdRol === 4) {
+      const clientePayload = {
+        NombreCompleto: formData.NombreCompleto,
+        TipoDocumento: formData.TipoDocumento,
+        NumDocumento: formData.NumDocumento,
+        Correo: formData.Correo,
+        Celular: formData.Celular,
+        Departamento: formData.Departamento,
+        Ciudad: formData.Ciudad,
+        Direccion: formData.Direccion,
+        Estado: true,
+      };
+
+      const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(clientePayload),
       });
 
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      await Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "El Usuario fue creado correctamente",
-        confirmButtonColor: "#e83e8c",
-        timer: 3000,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-      });
-
-      onClose();
-      navigate("/usuario");
-
-      // Si prefieres actualizar la lista sin navegar, puedes llamar onCrear aquí con la respuesta de la API.
-      // const creado = await resp.json();
-      // onCrear(creado);
-
-    } catch (err) {
-      console.error("crearUsuario:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo crear el usuario.",
-        confirmButtonColor: "#e83e8c",
-      });
+      if (!clienteResp.ok) throw new Error("Error al crear el cliente");
     }
-  };
+
+    // ✅ mensaje de éxito
+    await Swal.fire({
+      icon: "success",
+      title: "Éxito",
+      text: "El Usuario fue creado correctamente",
+      confirmButtonColor: "#e83e8c",
+      timer: 3000,
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+
+    onClose();
+    navigate("/usuario");
+
+  } catch (err) {
+    console.error("crearUsuario:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo crear el usuario/cliente.",
+      confirmButtonColor: "#e83e8c",
+    });
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>

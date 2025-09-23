@@ -107,119 +107,159 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
     setShowDireccionModal(false);
   };
 
-  // 🔹 Validaciones + POST
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const generarPasswordAleatoria = (longitud = 12) => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=<>?";
+  let pass = "";
+  for (let i = 0; i < longitud; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+};
 
-    if (isSubmitting) return;
-    setIsSubmitting(true);
 
-    try {
-      // ✅ Campos obligatorios
-      const camposObligatorios = [
-        "TipoDocumento",
-        "NumDocumento",
-        "NombreCompleto",
-        "Correo",
-        "Celular",
-        "Departamento",
-        "Ciudad",
-        "Direccion",
-      ];
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-      for (const campo of camposObligatorios) {
-        if (
-          !formData[campo as keyof typeof formData] ||
-          (formData[campo as keyof typeof formData] as string).trim() === ""
-        ) {
-          Swal.fire({
-            icon: "warning",
-            title: "Campo obligatorio faltante",
-            text: `Por favor completa el campo: ${campo}.`,
-            confirmButtonColor: "#f78fb3",
-          });
-          return;
-        }
-      }
+  if (isSubmitting) return;
+  setIsSubmitting(true);
 
-      // ✅ Validaciones adicionales
-      if (!/^\d{10}$/.test(formData.Celular)) {
+  try {
+    // ✅ Validaciones obligatorias
+    const camposObligatorios = [
+      "TipoDocumento",
+      "NumDocumento",
+      "NombreCompleto",
+      "Correo",
+      "Celular",
+      "Departamento",
+      "Ciudad",
+      "Direccion",
+    ];
+
+    for (const campo of camposObligatorios) {
+      if (
+        !formData[campo as keyof typeof formData] ||
+        (formData[campo as keyof typeof formData] as string).trim() === ""
+      ) {
         Swal.fire({
-          icon: "error",
-          title: "Celular inválido",
-          text: "Debe contener exactamente 10 dígitos numéricos.",
+          icon: "warning",
+          title: "Campo obligatorio faltante",
+          text: `Por favor completa el campo: ${campo}.`,
           confirmButtonColor: "#f78fb3",
         });
         return;
       }
+    }
 
-      if (!/^\d{6,15}$/.test(formData.NumDocumento)) {
-        Swal.fire({
-          icon: "error",
-          title: "Documento inválido",
-          text: "Debe tener entre 6 y 15 dígitos.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+    // ✅ Buscar usuario en la lista
+    const listaResp = await fetch(`${APP_SETTINGS.apiUrl}Usuarios/Lista`);
+    if (!listaResp.ok) throw new Error("No se pudo obtener la lista de usuarios");
 
-      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.NombreCompleto)) {
-        Swal.fire({
-          icon: "error",
-          title: "Nombre inválido",
-          text: "Solo letras y espacios.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+    const usuarios = await listaResp.json();
+    const usuarioExiste = usuarios.find(
+      (u: any) =>
+        u.Correo.toLowerCase() === formData.Correo.toLowerCase() ||
+        u.NumDocumento === formData.NumDocumento
+    );
 
-      const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!correoRegex.test(formData.Correo)) {
-        Swal.fire({
-          icon: "error",
-          title: "Correo inválido",
-          text: "Ingrese un correo electrónico válido.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+    let clientePayload;
 
-      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.Ciudad)) {
-        Swal.fire({
-          icon: "error",
-          title: "Ciudad inválida",
-          text: "Solo letras.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+    if (!usuarioExiste) {
+      // 🚀 Usuario no existe → crear usuario con contraseña random
+      const usuarioPayload = {
+        TipoDocumento: formData.TipoDocumento,
+        NumDocumento: formData.NumDocumento,
+        NombreCompleto: formData.NombreCompleto,
+        Celular: formData.Celular,
+        Departamento: formData.Departamento,
+        Ciudad: formData.Ciudad,
+        Direccion: formData.Direccion,
+        Correo: formData.Correo,
+        Contrasena: generarPasswordAleatoria(12),
+        Estado: true,
+        IdRol: 4,
+      };
 
-      // ✅ Dirección debe tener 3 partes
-      const partesDireccion = formData.Direccion.split(",").map((p) => p.trim()).filter(Boolean);
-      if (partesDireccion.length < 3) {
-        Swal.fire({
-          icon: "error",
-          title: "Dirección inválida",
-          text: "Ingresa la dirección desde el submodal (Municipio, Barrio y Calle/Carrera).",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
-
-      // POST al backend
-      const resp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Crear`, {
+      const crearUsuarioResp = await fetch(`${APP_SETTINGS.apiUrl}Usuarios/Crear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(usuarioPayload),
       });
 
-      if (resp.ok) {
-        const creado = await resp.json().catch(() => null);
-        onCrear(creado ?? (formData as IClientes));
+      if (!crearUsuarioResp.ok) {
+        const msg = await crearUsuarioResp.text();
+        throw new Error(msg || "No se pudo crear el usuario");
+      }
+
+      clientePayload = { ...usuarioPayload };
+    } else {
+      // 🚀 Usuario ya existe → actualizar datos (mantener contraseña)
+      const usuarioActualizado = {
+        ...usuarioExiste,
+        TipoDocumento: formData.TipoDocumento,
+        NumDocumento: formData.NumDocumento,
+        NombreCompleto: formData.NombreCompleto,
+        Celular: formData.Celular,
+        Departamento: formData.Departamento,
+        Ciudad: formData.Ciudad,
+        Direccion: formData.Direccion,
+        Correo: formData.Correo,
+        Contrasena: usuarioExiste.Contrasena,
+        Estado: true,
+        IdRol: 4,
+      };
+
+      const actualizarUsuarioResp = await fetch(
+        `${APP_SETTINGS.apiUrl}Usuarios/Actualizar/${usuarioExiste.IdUsuarios}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(usuarioActualizado),
+        }
+      );
+
+      if (!actualizarUsuarioResp.ok) {
+        const msg = await actualizarUsuarioResp.text();
+        throw new Error(msg || "No se pudo actualizar el usuario");
+      }
+
+      clientePayload = { ...usuarioActualizado };
+    }
+
+    // ✅ Antes de crear cliente → validar si ya existe
+    const listaClientesResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`);
+    if (!listaClientesResp.ok) throw new Error("No se pudo obtener la lista de clientes");
+
+    const clientes = await listaClientesResp.json();
+    const clienteExiste = clientes.find(
+      (c: any) =>
+        c.Correo.toLowerCase() === clientePayload.Correo.toLowerCase() ||
+        c.NumDocumento === clientePayload.NumDocumento
+    );
+
+    if (clienteExiste) {
+      Swal.fire({
+        icon: "info",
+        title: "Cliente ya registrado",
+        text: "El cliente ya existe en el sistema, no es necesario crearlo de nuevo.",
+        confirmButtonColor: "#f78fb3",
+      });
+    } else {
+      // 🚀 Crear cliente
+      const clienteResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Crear`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clientePayload),
+      });
+
+      if (clienteResp.ok) {
+        const creado = await clienteResp.json().catch(() => null);
+        onCrear(creado ?? (clientePayload as IClientes));
         onClose();
         navigate("/clientes");
       } else {
-        const msg = await resp.text();
+        const msg = await clienteResp.text();
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -227,17 +267,19 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
           confirmButtonColor: "#f78fb3",
         });
       }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error de conexión",
-        text: "No se pudo conectar con el servidor.",
-        confirmButtonColor: "#f78fb3",
-      });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  } catch (err: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: err.message || "No se pudo completar la operación.",
+      confirmButtonColor: "#f78fb3",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
