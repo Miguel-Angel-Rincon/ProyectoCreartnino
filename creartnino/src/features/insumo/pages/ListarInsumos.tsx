@@ -157,6 +157,17 @@ const ListarInsumos: React.FC = () => {
       });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       await obtenerInsumos();
+
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
+                      
+                    
+        confirmButtonColor: "#f78fb3",
+
+      });
+
     } catch (err) {
       console.error("actualizarEstado:", err);
       Swal.fire({
@@ -213,7 +224,7 @@ const ListarInsumos: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Insumos</h2>
+        <h2 className="titulo">Insumos Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
           Crear Insumo
         </button>

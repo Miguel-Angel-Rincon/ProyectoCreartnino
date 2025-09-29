@@ -394,13 +394,13 @@ const handleAnularProduccion = (p: IProduccion) => {
   if (p.IdEstado === idAnulado) return;
 
   Swal.fire({
-    title: "¿Anular producción?",
+    title: "¿Estás Seguro?",
     text: "Se marcará como 'Anulada', devolviendo insumos y restando productos creados.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#aaa",
-    confirmButtonText: "Sí, anular",
+    confirmButtonText: "Sí, Anular",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
     if (!result.isConfirmed) return;
@@ -630,7 +630,7 @@ const handleAnularProduccion = (p: IProduccion) => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Producciones</h2>
+        <h2 className="titulo">Producciones Registradas</h2>
         <button className="btn btn-pink" onClick={() => setMostrarCrearVista(true)}>
           Crear Producción
         </button>

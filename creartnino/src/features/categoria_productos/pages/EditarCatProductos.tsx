@@ -64,8 +64,8 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
 
       await Swal.fire({
         icon: "success",
-        title: "Categoría actualizada",
-        text: "Los cambios se han guardado correctamente.",
+        title: "Éxito",
+        text: "Categoría actualizada correctamente.",
         confirmButtonColor: "#f78fb3",
       });
 

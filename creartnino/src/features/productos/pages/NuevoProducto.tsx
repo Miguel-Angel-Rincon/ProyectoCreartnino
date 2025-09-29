@@ -212,7 +212,8 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
       Swal.fire({
         icon: "success",
-        title: "Producto creado con éxito",
+        title: "Éxito",
+        text: "Producto creado correctamente",
         
       });
 

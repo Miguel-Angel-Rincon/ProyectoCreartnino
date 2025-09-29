@@ -228,8 +228,8 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
     );
     Swal.fire({
       icon: "success",
-      title: "Producto actualizado correctamente",
-      
+      title: "Éxito",
+      text: "Producto actualizado correctamente.",
     });
     onEditar(productoEditado);
     onClose();

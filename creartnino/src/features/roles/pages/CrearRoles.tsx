@@ -118,7 +118,7 @@ useEffect(() => {
       });
     }
 
-    Swal.fire("Éxito", `Rol "${rol}" creado con permisos`, "success");
+    Swal.fire("Éxito", `Rol creado con sus respectivos permisos`, "success");
     form.reset();
     setPermisosSeleccionados([]);
     onClose();

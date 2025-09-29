@@ -143,8 +143,8 @@ const ListarUsuarios: React.FC = () => {
 
       Swal.fire({
         icon: "success",
-        title: "Estado actualizado",
-        text: `El usuario ${actualizado.NombreCompleto} ahora está ${actualizado.Estado ? "activo" : "inactivo"}.`,
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
         confirmButtonColor: "#e83e8c",
       });
     } catch (err) {
@@ -206,7 +206,7 @@ const ListarUsuarios: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Usuarios</h2>
+        <h2 className="titulo">Usuarios Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>Crear Usuario</button>
       </div>
 

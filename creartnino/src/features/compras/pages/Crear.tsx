@@ -241,7 +241,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
       }
 
       Swal.fire(
-        "✅ Éxito",
+        "Éxito",
         "La compra y el stock de insumos se actualizaron correctamente.",
         "success"
       );

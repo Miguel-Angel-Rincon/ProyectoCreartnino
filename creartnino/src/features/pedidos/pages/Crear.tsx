@@ -329,8 +329,8 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 
       await Swal.fire({
         icon: "success",
-        title: "Pedido creado",
-        text: "El pedido ha sido creado exitosamente.",
+        title: "Éxito",
+        text: "Pedido creado correctamente.",
       });
       onCrear(nuevoPedido);
       onClose();
@@ -341,7 +341,8 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   };
 
     return (
-    <div className="container py-4">
+    <div className="container-fluid pastel-contenido">
+      <h2 className="titulo mb-4">Crear Pedido</h2>
       <form onSubmit={handleSubmit}>
         {/* Cliente, método de pago, fechas */}
         <div className="row g-4 mb-3">
@@ -614,7 +615,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             Cancelar
           </button>
           <button type="submit" className="btn pastel-btn-primary">
-            Guardar Pedido
+            Crear
           </button>
         </div>
       </form>

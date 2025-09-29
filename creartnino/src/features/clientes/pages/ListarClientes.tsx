@@ -132,6 +132,17 @@ const ListarClientes: React.FC = () => {
       });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       await obtenerClientes();
+
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
+                
+              
+      confirmButtonColor: "#f78fb3",
+
+      });
+
     } catch (err) {
       console.error("actualizarEstado:", err);
       Swal.fire({
@@ -185,7 +196,7 @@ const ListarClientes: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Clientes</h2>
+        <h2 className="titulo">Clientes Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
           Crear Cliente
         </button>
@@ -324,7 +335,8 @@ const ListarClientes: React.FC = () => {
   setMostrarModal(false);
   Swal.fire({
     icon: "success",
-    title: "Cliente creado correctamente",
+    title: "Éxito",
+    text: "Cliente creado correctamente",
     confirmButtonColor: "#e83e8c",
   });
 }}
@@ -342,7 +354,8 @@ const ListarClientes: React.FC = () => {
             setMostrarEditarModal(false);
             Swal.fire({
               icon: "success",
-              title: "Cliente actualizado correctamente",
+              title: "Éxito",
+              text: "Cliente actualizado correctamente",
               confirmButtonColor: "#e83e8c",
             });
           }}

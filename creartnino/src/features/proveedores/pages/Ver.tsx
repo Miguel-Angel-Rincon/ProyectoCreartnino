@@ -136,7 +136,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
                   <div className="modal-footer pastel-footer">
                     <button
                       type="button"
-                      className="btn pastel-btn-primary"
+                      className="btn pastel-btn-secondary"
                       onClick={() => setShowDireccionModal(false)}
                     >
                       Cerrar

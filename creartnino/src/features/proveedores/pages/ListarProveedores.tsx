@@ -130,6 +130,17 @@ const ListarProveedores: React.FC = () => {
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       // sincronizar con servidor en caso de diferencias de formato
       await obtenerProveedores();
+
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
+
+        
+        confirmButtonColor: "#f78fb3",
+
+      });
+
     } catch (err) {
       console.error("actualizarEstado:", err);
       Swal.fire({
@@ -177,7 +188,7 @@ const ListarProveedores: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Proveedores</h2>
+        <h2 className="titulo">Proveedores Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
           Crear Proveedor
         </button>
@@ -311,7 +322,7 @@ const ListarProveedores: React.FC = () => {
                 await obtenerProveedores();
               }
               setMostrarModal(false);
-              Swal.fire({ icon: "success", title: "Proveedor creado correctamente", confirmButtonColor: "#e83e8c" });
+              Swal.fire({ icon: "success", title: "Éxito", text: "Proveedor creado correctamente", confirmButtonColor: "#e83e8c" });
             } catch (err) {
               console.error("onCrear:", err);
             }
@@ -336,7 +347,8 @@ const ListarProveedores: React.FC = () => {
               setMostrarEditarModal(false);
               Swal.fire({
                 icon: "success",
-                title: "Proveedor actualizado correctamente",
+                title: "Éxito",
+                text: "Proveedor actualizado correctamente",
                 confirmButtonColor: "#e83e8c",
               });
             } catch (err) {

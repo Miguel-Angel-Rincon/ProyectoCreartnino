@@ -9,7 +9,7 @@ import VerCompra from "./Ver";
 import "../styles/style.css";
 import { APP_SETTINGS } from "../../../settings/appsettings";
 
-import type { ICompras, IDetalleCompra } from "../../interfaces/Icompras";
+import type { ICompras, IDetalleCompra } from "../../interfaces/ICompras";
 import type { IProveedores } from "../../interfaces/IProveedores";
 import type { IInsumos } from "../../interfaces/IInsumos";
 
@@ -129,7 +129,7 @@ const ListarCompras: React.FC = () => {
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#aaa",
-      confirmButtonText: "Sí, anular",
+      confirmButtonText: "Sí, Anular",
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (!result.isConfirmed) return;
@@ -229,7 +229,7 @@ const ListarCompras: React.FC = () => {
 
       Swal.fire(
         "Actualizado",
-        `La compra ahora está en estado: ${nuevoEstadoNombre}`,
+        `Estado actualizado correctamente`,
         "success"
       );
     } catch (err) {
@@ -415,7 +415,7 @@ const generarPDF = async (
       ) : (
         <>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="titulo">Compras</h2>
+            <h2 className="titulo">Compras Registradas</h2>
             <button className="btn btn-pink" onClick={() => setMostrarCrear(true)}>
               Crear Compra
             </button>

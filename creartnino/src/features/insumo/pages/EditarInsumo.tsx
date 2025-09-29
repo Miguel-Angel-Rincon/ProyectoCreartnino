@@ -135,7 +135,8 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
       Swal.fire({
         icon: "success",
-        title: "✅ Insumo actualizado correctamente",
+        title: "Éxito",
+        text: "Insumo actualizado correctamente.",
         confirmButtonColor: "#f78fb3",
       });
 

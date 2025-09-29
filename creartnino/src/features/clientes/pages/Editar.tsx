@@ -305,7 +305,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 Cancelar
               </button>
               <button type="submit" className="btn pastel-btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Actualizar"}
+                {isSubmitting ? "Guardando..." : "Guardar Cambios"}
               </button>
             </div>
           </form>

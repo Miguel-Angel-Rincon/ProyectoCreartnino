@@ -126,7 +126,8 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
       Swal.fire({
         icon: "success",
-        title: "✅ Insumo creado correctamente",
+        title: "Éxito",
+        text: "Insumo creado correctamente",
         confirmButtonColor: "#f78fb3",
       });
 

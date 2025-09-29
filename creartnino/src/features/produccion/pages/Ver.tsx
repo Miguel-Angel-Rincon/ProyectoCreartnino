@@ -282,7 +282,7 @@ const VerProduccionVista: React.FC<Props> = ({ idProduccion, onClose }) => {
       {/* Botón volver */}
       <div className="text-end mt-4">
         <button className="btn pastel-btn-secondary" onClick={onClose}>
-          Volver
+          Cerrar
         </button>
       </div>
     </div>

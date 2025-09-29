@@ -128,10 +128,10 @@ const ListarRoles: React.FC = () => {
 
       Swal.fire({
         icon: "success",
-        title: "Estado actualizado",
-        text: `El rol ${actualizado.Rol} ahora está ${
-          actualizado.Estado ? "activo" : "inactivo"
-        }.`,
+        title: "Actualizado",
+        text: `Estado Actualizado correctamente`,
+          
+        
         confirmButtonColor: "#f78fb3",
       });
     } catch (err) {
@@ -196,7 +196,7 @@ const ListarRoles: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Roles</h2>
+        <h2 className="titulo">Roles Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
           Crear Rol
         </button>

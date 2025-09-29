@@ -158,9 +158,8 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
     await Swal.fire({
       icon: "success",
       title: "Éxito",
-      text: "El Usuario fue creado correctamente",
+      text: "Usuario creado correctamente",
       confirmButtonColor: "#e83e8c",
-      timer: 3000,
       timerProgressBar: true,
       allowOutsideClick: false,
       allowEscapeKey: false,

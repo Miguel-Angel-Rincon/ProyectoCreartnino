@@ -75,7 +75,7 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
 
       if (!resp.ok) throw new Error("No se pudo actualizar");
 
-      Swal.fire("✅ Actualizado", "La producción fue editada.", "success");
+      Swal.fire("Éxito", "Producción actualizada correctamente.", "success");
       onEdit(produccion);
       onClose();
     } catch (err) {
@@ -207,7 +207,7 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
           Cancelar
         </button>
         <button className="btn pastel-btn-primary" onClick={handleSave}>
-          Guardar
+          Guardar Cambios
         </button>
       </div>
     </div>

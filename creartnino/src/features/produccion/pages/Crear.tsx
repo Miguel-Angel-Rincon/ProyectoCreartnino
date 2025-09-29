@@ -596,7 +596,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
     // ✅ 6. Confirmación
     onCrear(produccionCreada);
-    Swal.fire("Producción creada", "Se guardó correctamente.", "success");
+    Swal.fire("Éxito", "Producción creada correctamente.", "success");
 
     // 🟢 Cerrar modal automáticamente
     if (typeof onClose === "function") {
@@ -636,7 +636,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
     return (
     <div className="container-fluid pastel-contenido">
-      <h2 className="titulo mb-4">🛠️ Crear Producción</h2>
+      <h2 className="titulo mb-4">Crear Producción</h2>
 
       
 

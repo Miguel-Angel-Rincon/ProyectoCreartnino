@@ -51,7 +51,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear }) => {
       Swal.fire({
         icon: "success",
         title: "Éxito",
-        text: "La categoría fue creada correctamente",
+        text: "Categoría creada correctamente",
         confirmButtonColor: "#e83e8c",
       });
 

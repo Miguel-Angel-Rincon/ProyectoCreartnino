@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { FaEye, FaFilePdf, FaBan, FaShoppingCart } from "react-icons/fa";
+import { FaEye, FaFilePdf, FaBan } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import CrearPedido from "./Crear";
@@ -212,7 +212,7 @@ const ListarPedidos: React.FC = () => {
       Swal.fire({
         icon: "success",
         title: "Actualizado",
-        text: "El estado del pedido fue actualizado correctamente",
+        text: "Estado actualizado correctamente",
         confirmButtonColor: "#e83e8c",
       });
     } catch (error) {
@@ -469,9 +469,6 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
     return (
       <div className="container-fluid main-content">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="titulo">
-            <FaShoppingCart className="text-primary" /> Crear Pedido
-          </h2>
         </div>
         <CrearPedido onClose={() => setModoCrear(false)} onCrear={handleCrearPedido} />
       </div>
@@ -481,7 +478,7 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Pedidos</h2>
+        <h2 className="titulo">Pedidos Registrados</h2>
         <button className="btn btn-pink" onClick={() => setModoCrear(true)}>
           Crear Pedido
         </button>

@@ -1,6 +1,6 @@
 import React from "react";
 import { FaMoneyBillWave, FaPercent, FaCalculator } from "react-icons/fa";
-import type { ICompras, IDetalleCompra } from "../../interfaces/Icompras";
+import type { ICompras, IDetalleCompra } from "../../interfaces/ICompras";
 import type { IProveedores } from "../../interfaces/IProveedores";
 import type { IInsumos } from "../../interfaces/IInsumos";
 import "../styles/style.css";
@@ -157,7 +157,7 @@ const VerCompra: React.FC<Props> = ({
       {/* Botón */}
       <div className="text-end">
         <button className="btn pastel-btn-secondary" onClick={onClose}>
-          Volver
+          Cerrar
         </button>
       </div>
     </div>

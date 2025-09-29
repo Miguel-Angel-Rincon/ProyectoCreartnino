@@ -211,7 +211,7 @@ const VerPedido: React.FC<VerPedidoProps> = ({ pedido, onVolver }) => {
       {/* Botón */}
       <div className="text-end">
         <button className="btn pastel-btn-secondary" onClick={onVolver}>
-          Volver
+          Cerrar
         </button>
       </div>
     </div>

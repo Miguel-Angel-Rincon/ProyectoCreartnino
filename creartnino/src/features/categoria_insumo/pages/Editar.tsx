@@ -59,7 +59,7 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
       Swal.fire({
         icon: "success",
         title: "Éxito",
-        text: "La categoría fue actualizada correctamente",
+        text: "Categoría actualizada correctamente",
         confirmButtonColor: "#e83e8c",
       });
 

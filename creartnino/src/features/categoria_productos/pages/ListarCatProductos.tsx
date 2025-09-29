@@ -118,6 +118,16 @@ const ListarCatProductos: React.FC = () => {
       );
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       await obtenerCategorias();
+
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
+
+        confirmButtonColor: "#f78fb3",
+
+      });
+
     } catch (err) {
       console.error("Error al actualizar estado:", err);
       Swal.fire(
@@ -169,7 +179,7 @@ const ListarCatProductos: React.FC = () => {
   return (
     <div className="container-fluid main-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="titulo">Categorías de Productos</h2>
+        <h2 className="titulo">Categorías de Productos Registrados</h2>
         <button className="btn btn-pink" onClick={() => setMostrarModal(true)}>
           Crear Categoría
         </button>
