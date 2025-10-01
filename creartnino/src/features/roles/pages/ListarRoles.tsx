@@ -41,7 +41,10 @@ const ListarRoles: React.FC = () => {
         Rol: r.Rol || "Sin nombre",
       }));
 
-      setRoles(rolesNormalizados);
+      setRoles(
+  rolesNormalizados.sort((a, b) => (b.IdRol ?? 0) - (a.IdRol ?? 0))
+);
+
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudieron cargar los roles", "error");
@@ -130,8 +133,6 @@ const ListarRoles: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado Actualizado correctamente`,
-          
-        
         confirmButtonColor: "#f78fb3",
       });
     } catch (err) {
@@ -153,7 +154,7 @@ const ListarRoles: React.FC = () => {
       return;
     }
 
-    const rolConNombre = { ...nuevoRol, Rol: nuevoRol.Rol || "Sin nombre" };
+    const rolConNombre = { ...nuevoRol, Rol: nuevoRol.Rol.trim() || "Sin nombre" };
 
     setRoles((prev) => [...prev, rolConNombre]);
     setMostrarModal(false);
@@ -183,7 +184,7 @@ const ListarRoles: React.FC = () => {
     setMostrarVerModal(true);
   };
 
-  // ✅ Búsqueda
+  // ✅ Búsqueda (con validación de espacios)
   const rolesFiltrados = roles.filter((r) =>
     `${r.Rol} ${r.Descripcion}`.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -208,9 +209,9 @@ const ListarRoles: React.FC = () => {
         className="form-control mb-3 buscador"
         value={busqueda}
         onChange={(e) => {
-            const value = e.target.value;
-            if (value.trim() === "" && value !== "") return;
-            setBusqueda(value);
+          const value = e.target.value;
+          if (value.trim() === "" && value !== "") return;
+          setBusqueda(value.trimStart()); // evita espacios al inicio
           setPaginaActual(1);
         }}
       />
@@ -281,45 +282,46 @@ const ListarRoles: React.FC = () => {
           </tbody>
         </table>
 
+        {/* ✅ Paginación */}
         <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
-              <button
-                className="btn btn-light me-2"
-                onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
-                disabled={paginaActual === 1}
-              >
-                «
-              </button>
+          <button
+            className="btn btn-light me-2"
+            onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+            disabled={paginaActual === 1}
+          >
+            «
+          </button>
 
-              {paginaActual > 1 && (
-                <button
-                  className="btn btn-light me-2"
-                  onClick={() => setPaginaActual(paginaActual - 1)}
-                >
-                  {paginaActual - 1}
-                </button>
-              )}
+          {paginaActual > 1 && (
+            <button
+              className="btn btn-light me-2"
+              onClick={() => setPaginaActual(paginaActual - 1)}
+            >
+              {paginaActual - 1}
+            </button>
+          )}
 
-              <button className="btn btn-pink me-2">{paginaActual}</button>
+          <button className="btn btn-pink me-2">{paginaActual}</button>
 
-              {paginaActual < totalPaginas && (
-                <button
-                  className="btn btn-light me-2"
-                  onClick={() => setPaginaActual(paginaActual + 1)}
-                >
-                  {paginaActual + 1}
-                </button>
-              )}
+          {paginaActual < totalPaginas && (
+            <button
+              className="btn btn-light me-2"
+              onClick={() => setPaginaActual(paginaActual + 1)}
+            >
+              {paginaActual + 1}
+            </button>
+          )}
 
-              <button
-                className="btn btn-light"
-                onClick={() =>
-                  setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
-                }
-                disabled={paginaActual === totalPaginas}
-              >
-                »
-              </button>
-            </div>
+          <button
+            className="btn btn-light"
+            onClick={() =>
+              setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
+            }
+            disabled={paginaActual === totalPaginas}
+          >
+            »
+          </button>
+        </div>
       </div>
 
       {/* Modales */}

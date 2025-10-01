@@ -43,7 +43,12 @@ const ListarCatInsumos: React.FC = () => {
       const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data: ICatInsumos[] = await resp.json();
-      setCategorias(Array.isArray(data) ? data : []);
+      setCategorias(
+  Array.isArray(data)
+    ? data.sort((a, b) => (b.IdCatInsumo ?? 0) - (a.IdCatInsumo ?? 0))
+    : []
+);
+
     } catch (err) {
       console.error("obtenerCategorias:", err);
       Swal.fire({

@@ -175,10 +175,10 @@ const MisCompras: React.FC = () => {
     });
 
     return list.sort(
-      (a: any, b: any) =>
-        new Date(b.FechaPedido ?? b.fechaPedido ?? 0).getTime() -
-        new Date(a.FechaPedido ?? a.fechaPedido ?? 0).getTime()
-    );
+  (a: any, b: any) =>
+    Number(b.IdPedido ?? b.idPedido ?? 0) -
+    Number(a.IdPedido ?? a.idPedido ?? 0)
+);
   }, [pedidosDelCliente, desde, hasta]);
 
   const totalPaginas = Math.max(

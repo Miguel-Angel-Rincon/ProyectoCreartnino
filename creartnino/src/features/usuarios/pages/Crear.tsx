@@ -91,10 +91,9 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // ✅ tus validaciones aquí...
-   // Validaciones
+    // ✅ Validaciones
     if (!formData.NombreCompleto.trim()) {
       return Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'El nombre completo es obligatorio.', confirmButtonColor: '#e83e8c' });
     }
@@ -113,6 +112,18 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
     if (!formData.Contrasena.trim()) {
       return Swal.fire({ icon: 'error', title: 'Contraseña requerida', text: 'La contraseña es obligatoria.', confirmButtonColor: '#e83e8c' });
     }
+
+    // 🔒 Validación de contraseña segura
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(formData.Contrasena)) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Contraseña inválida',
+        html: 'La contraseña debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial',
+        confirmButtonColor: '#e83e8c'
+      });
+    }
+
     if (!formData.IdRol) {
       return Swal.fire({ icon: 'error', title: 'Rol requerido', text: 'Selecciona un rol.', confirmButtonColor: '#e83e8c' });
     }
@@ -120,65 +131,63 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
       return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
     }
 
-
-  try {
-    // Crear usuario
-    const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-    // 👇 AQUÍ MISMO validamos si el rol es 4
-    if (formData.IdRol === 4) {
-      const clientePayload = {
-        NombreCompleto: formData.NombreCompleto,
-        TipoDocumento: formData.TipoDocumento,
-        NumDocumento: formData.NumDocumento,
-        Correo: formData.Correo,
-        Celular: formData.Celular,
-        Departamento: formData.Departamento,
-        Ciudad: formData.Ciudad,
-        Direccion: formData.Direccion,
-        Estado: true,
-      };
-
-      const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
+    try {
+      // Crear usuario
+      const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(clientePayload),
+        body: JSON.stringify(formData),
       });
 
-      if (!clienteResp.ok) throw new Error("Error al crear el cliente");
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      // 👇 Si el rol es 4 también se crea cliente
+      if (formData.IdRol === 4) {
+        const clientePayload = {
+          NombreCompleto: formData.NombreCompleto,
+          TipoDocumento: formData.TipoDocumento,
+          NumDocumento: formData.NumDocumento,
+          Correo: formData.Correo,
+          Celular: formData.Celular,
+          Departamento: formData.Departamento,
+          Ciudad: formData.Ciudad,
+          Direccion: formData.Direccion,
+          Estado: true,
+        };
+
+        const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(clientePayload),
+        });
+
+        if (!clienteResp.ok) throw new Error("Error al crear el cliente");
+      }
+
+      // ✅ mensaje de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "Usuario creado correctamente",
+        confirmButtonColor: "#e83e8c",
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
+
+      onClose();
+      navigate("/usuario");
+
+    } catch (err) {
+      console.error("crearUsuario:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear el usuario/cliente.",
+        confirmButtonColor: "#e83e8c",
+      });
     }
-
-    // ✅ mensaje de éxito
-    await Swal.fire({
-      icon: "success",
-      title: "Éxito",
-      text: "Usuario creado correctamente",
-      confirmButtonColor: "#e83e8c",
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-    });
-
-    onClose();
-    navigate("/usuario");
-
-  } catch (err) {
-    console.error("crearUsuario:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo crear el usuario/cliente.",
-      confirmButtonColor: "#e83e8c",
-    });
-  }
-};
-
+  };
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -213,11 +222,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="NumDocumento"
                     className="form-control"
                     value={formData.NumDocumento}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                     maxLength={11}
                   />
                 </div>
@@ -228,11 +233,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="NombreCompleto"
                     className="form-control"
                     value={formData.NombreCompleto}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -242,11 +243,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                     maxLength={11}
                   />
                 </div>
@@ -258,11 +255,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Correo"
                     className="form-control"
                     value={formData.Correo}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -274,11 +267,8 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       name="Contrasena"
                       className="form-control"
                       value={formData.Contrasena}
-                      onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                      onChange={handleChange}
+                      placeholder="Mín. 8 caracteres, mayúscula, número y símbolo"
                     />
                     <button
                       type="button"
@@ -286,7 +276,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       tabIndex={-1}
                       onClick={() => setShowPassword(prev => !prev)}
                     >
-                      {showPassword ? "" : "👁️"}
+                      {showPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
                 </div>
@@ -378,7 +368,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -386,7 +376,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))}
                       />
                     </div>
                     <div className="mb-3">
@@ -394,7 +384,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value }))}
                       />
                     </div>
                   </div>

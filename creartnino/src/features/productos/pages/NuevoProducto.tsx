@@ -143,25 +143,31 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
       // Subir imagen local a Cloudinary
       if (imagenLocal) {
-        const formData = new FormData();
-        formData.append("file", imagenLocal);
-        formData.append("upload_preset", "Creartnino");
+  const formData = new FormData();
+  formData.append("file", imagenLocal);
+  formData.append("upload_preset", "CreartNino");
 
-        try {
-          const resCloud = await axios.post(
-            "https://api.cloudinary.com/v1_1/angelr10/image/upload",
-            formData
-          );
-          urlImagen = resCloud.data.secure_url;
-        } catch {
-          Swal.fire({
-            icon: "error",
-            title: "Error al subir imagen",
-            text: "No se pudo subir la imagen a Cloudinary",
-          });
-          return;
-        }
-      }
+  // 👇 aquí especificas la carpeta
+  formData.append("folder", "Productos");
+
+  try {
+    const resCloud = await axios.post(
+      "https://api.cloudinary.com/v1_1/creartnino/image/upload",
+      formData
+    );
+
+    urlImagen = resCloud.data.secure_url; // URL de la imagen subida
+    console.log("Imagen subida:", urlImagen);
+  } catch {
+    Swal.fire({
+      icon: "error",
+      title: "Error al subir imagen",
+      text: "No se pudo subir la imagen a Cloudinary",
+    });
+    return;
+  }
+}
+
 
       if (!urlImagen) {
         Swal.fire({

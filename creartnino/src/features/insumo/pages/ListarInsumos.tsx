@@ -55,7 +55,9 @@ const ListarInsumos: React.FC = () => {
       const resp = await fetch(buildUrl("Insumos/Lista"));
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data: IInsumos[] = await resp.json();
-      setInsumos(Array.isArray(data) ? data : []);
+      setInsumos(Array.isArray(data)
+    ? data.sort((a, b) => (b.IdInsumo ?? 0) - (a.IdInsumo ?? 0))
+    : []);
     } catch (err) {
       console.error("obtenerInsumos:", err);
       Swal.fire({

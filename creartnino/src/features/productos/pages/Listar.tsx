@@ -34,7 +34,12 @@ const ListarProductos: React.FC = () => {
       const response = await fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`);
       if (response.ok) {
         const data = await response.json();
-        setProductos(data);
+setProductos(
+  Array.isArray(data)
+    ? data.sort((a, b) => (b.IdProducto ?? 0) - (a.IdProducto ?? 0))
+    : []
+);
+
       }
     } catch (error) {
       console.error("Error cargando productos", error);

@@ -50,7 +50,9 @@ const ListarProveedores: React.FC = () => {
       const resp = await fetch(buildUrl("Proveedores/Lista"));
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data: IProveedores[] = await resp.json();
-      setProveedores(Array.isArray(data) ? data : []);
+      setProveedores(Array.isArray(data)
+    ? data.sort((a, b) => (b.IdProveedor ?? 0) - (a.IdProveedor ?? 0))
+    : []);
     } catch (err) {
       console.error("obtenerProveedores:", err);
       Swal.fire({

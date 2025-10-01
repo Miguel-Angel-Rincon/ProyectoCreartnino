@@ -126,13 +126,16 @@ export default function Sidebar() {
           </div>
 
           <div
-            className="sidebar-logout"
-            onClick={handleCerrarSesion}
-            title="Cerrar sesión"
-            style={{ cursor: "pointer", color: "#ff0000ff" }}
-          >
-            <FaSignOutAlt size={22} />
-          </div>
+  className="sidebar-logout"
+  onClick={handleCerrarSesion}
+  style={{ cursor: "pointer", color: "#fa80deff", position: "relative" }}
+>
+  <FaSignOutAlt size={22} />
+
+  {/* Tooltip pastel */}
+  <span className="tooltip">Cerrar sesión</span>
+</div>
+
         </div>
       </aside>
     </>

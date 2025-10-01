@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import "../style/acciones.css";
 import type { IUsuarios } from "../../interfaces/IUsuarios";
-import { useAuth } from "../../../context/AuthContext"; 
+import { useAuth } from "../../../context/AuthContext";
 
 interface Props {
   usuario: IUsuarios; // Usuario a editar
@@ -15,19 +15,19 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const [formData, setFormData] = useState<IUsuarios>(usuario);
   const [showPassword, setShowPassword] = useState(false);
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
-    const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
+  const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({
-      municipio: "",
-      barrio: "",
-      calle: "",
-    });
+    municipio: "",
+    barrio: "",
+    calle: "",
+  });
 
   // 🔹 Estado para roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
 
   const navigate = useNavigate();
-   const { refrescarUsuario } = useAuth(); // 🔑 USAR CONTEXTO PARA REFRESCAR
+  const { refrescarUsuario } = useAuth(); // 🔑 USAR CONTEXTO PARA REFRESCAR
 
   // 🔹 Cargar roles desde la API
   useEffect(() => {
@@ -37,12 +37,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
       .catch(console.error);
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const checked =
-      type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+    const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+
     setFormData((prev: any) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -50,42 +48,49 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   };
 
   useEffect(() => {
-      fetch("https://api-colombia.com/api/v1/Department")
-        .then((res) => res.json())
-        .then((data: { id: number; name: string }[]) =>
-          setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name)))
-        )
-        .catch(console.error);
-    }, []);
-  
-    // 🔹 Cargar ciudades según departamento
-    useEffect(() => {
-      if (!formData.Departamento) {
-        setCiudades([]);
-        return;
-      }
-      const dep = departamentos.find((d) => d.name === formData.Departamento);
-      if (!dep) return;
-  
-      fetch("https://api-colombia.com/api/v1/City/pagedList?page=1&pageSize=1000")
-        .then((res) => res.json())
-        .then((res: { data: { id: number; name: string; departmentId: number }[] }) => {
+    fetch("https://api-colombia.com/api/v1/Department")
+      .then((res) => res.json())
+      .then((data: { id: number; name: string }[]) =>
+        setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name)))
+      )
+      .catch(console.error);
+  }, []);
+
+  // 🔹 Cargar ciudades según departamento
+  useEffect(() => {
+    if (!formData.Departamento) {
+      setCiudades([]);
+      return;
+    }
+    const dep = departamentos.find((d) => d.name === formData.Departamento);
+    if (!dep) return;
+
+    fetch("https://api-colombia.com/api/v1/City/pagedList?page=1&pageSize=1000")
+      .then((res) => res.json())
+      .then(
+        (res: { data: { id: number; name: string; departmentId: number }[] }) => {
           const cityList = res.data
             .filter((c) => c.departmentId === dep.id)
             .map((c) => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
           setCiudades(cityList);
-        })
-        .catch(console.error);
-    }, [formData.Departamento, departamentos]);
-  
-    // 🔹 Manejo de inputs
-    
+        }
+      )
+      .catch(console.error);
+  }, [formData.Departamento, departamentos]);
 
+  // 🔹 Guardar dirección
   const handleDireccionModalSave = () => {
     const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.municipio}`;
     setFormData((prev: any) => ({ ...prev, Direccion: full }));
     setShowDireccionModal(false);
+  };
+
+  // 🔹 Validar contraseña
+  const validarContrasena = (password: string) => {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]:;"'<>,.?/~`-]).{8,}$/;
+    return regex.test(password);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,6 +101,15 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
         icon: "error",
         title: "Nombre requerido",
         text: "El nombre completo es obligatorio.",
+        confirmButtonColor: "#e83e8c",
+      });
+    }
+
+    if (!validarContrasena(formData.Contrasena)) {
+      return Swal.fire({
+        icon: "error",
+        title: "Contraseña inválida",
+        text: "Debe tener mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y carácter especial.",
         confirmButtonColor: "#e83e8c",
       });
     }
@@ -125,7 +139,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
       if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
         onEditar(actualizado);
-        await refrescarUsuario(); 
+        await refrescarUsuario();
         navigate("/usuario");
       }
     } catch (err) {
@@ -146,11 +160,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
               <h5 className="modal-title">✏️ Editar Usuario</h5>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={onClose}
-              ></button>
+              <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
 
             <div className="modal-body px-4 py-3">
@@ -177,11 +187,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="NumDocumento"
                     className="form-control"
                     value={formData.NumDocumento}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                     maxLength={11}
                   />
                 </div>
@@ -193,11 +199,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="NombreCompleto"
                     className="form-control"
                     value={formData.NombreCompleto}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -208,11 +210,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                     maxLength={11}
                   />
                 </div>
@@ -225,15 +223,9 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="Correo"
                     className="form-control"
                     value={formData.Correo}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                    onChange={handleChange}
                   />
                 </div>
-
-                
 
                 {/* Contraseña */}
                 <div className="col-md-6">
@@ -244,11 +236,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       name="Contrasena"
                       className="form-control"
                       value={formData.Contrasena}
-                      onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+                      onChange={handleChange}
                     />
                     <button
                       type="button"
@@ -261,6 +249,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   </div>
                 </div>
 
+                {/* Departamento */}
                 <div className="col-md-6">
                   <label className="form-label">🏞️ Departamento</label>
                   <select
@@ -277,6 +266,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                   </select>
                 </div>
 
+                {/* Ciudad */}
                 <div className="col-md-6">
                   <label className="form-label">🏙️ Ciudad</label>
                   <select
@@ -346,7 +336,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                 <div className="modal-content pastel-modal shadow">
                   <div className="modal-header pastel-header">
                     <h5 className="modal-title">🏠 Información de Dirección</h5>
-                    <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
+                    <button
+                      className="btn-close"
+                      onClick={() => setShowDireccionModal(false)}
+                    ></button>
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
@@ -354,7 +347,12 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) =>
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            municipio: e.target.value.trimStart(),
+                          }))
+                        }
                       />
                     </div>
                     <div className="mb-3">
@@ -362,7 +360,12 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) =>
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            barrio: e.target.value.trimStart(),
+                          }))
+                        }
                       />
                     </div>
                     <div className="mb-3">
@@ -370,13 +373,28 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) =>
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            calle: e.target.value.trimStart(),
+                          }))
+                        }
                       />
                     </div>
                   </div>
                   <div className="modal-footer pastel-footer">
-                    <button className="btn pastel-btn-secondary" onClick={() => setShowDireccionModal(false)}>Cancelar</button>
-                    <button className="btn pastel-btn-primary" onClick={handleDireccionModalSave}>Guardar Dirección</button>
+                    <button
+                      className="btn pastel-btn-secondary"
+                      onClick={() => setShowDireccionModal(false)}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className="btn pastel-btn-primary"
+                      onClick={handleDireccionModalSave}
+                    >
+                      Guardar Dirección
+                    </button>
                   </div>
                 </div>
               </div>

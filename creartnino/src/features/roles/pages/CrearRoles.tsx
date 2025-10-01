@@ -8,12 +8,13 @@ export interface Rol {
   Rol: string;
   Descripcion: string;
   Estado: boolean;
-  Usuarios: any[];         // si luego defines IUsuario lo reemplazas
+  Usuarios: any[];
   RolPermisos: IRolPermiso[];
 }
+
 interface Props {
   onClose: () => void;
-  onCrear: (nuevoRol: Rol) => void;
+  onCrear: (nuevoRol: Rol) => void; // ✅ se usará al crear
 }
 
 interface Permiso {
@@ -21,45 +22,41 @@ interface Permiso {
   nombre: string;
 }
 
-const CrearRolModal: React.FC<Props> = ({ onClose,}) => {
+const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [permisosDisponibles, setPermisosDisponibles] = useState<Permiso[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
 
-  // ✅ Traer permisos desde la API
-  // ✅ Traer permisos desde la API
-useEffect(() => {
-  const fetchPermisos = async () => {
-    try {
-      const response = await fetch("https://apicreartnino.somee.com/api/permisos/Lista");
-      if (!response.ok) throw new Error("Error al obtener permisos");
+  useEffect(() => {
+    const fetchPermisos = async () => {
+      try {
+        const response = await fetch("https://apicreartnino.somee.com/api/permisos/Lista");
+        if (!response.ok) throw new Error("Error al obtener permisos");
 
-      const data = await response.json();
+        const data = await response.json();
 
-      // 🚫 Lista de permisos que NO deben aparecer
-      const permisosOcultos = [
-        "Ver productos",
-        "Realizar pedidos",
-        "Ver historial de pedidos",
-        "Editar perfil"
-      ];
+        const permisosOcultos = [
+          "Ver productos",
+          "Realizar pedidos",
+          "Ver historial de pedidos",
+          "Editar perfil"
+        ];
 
-      const permisosApi = data
-        .map((p: any) => ({
-          id: p.IdPermisos,
-          nombre: p.RolPermisos
-        }))
-        // ✅ Filtramos los que NO queremos mostrar
-        .filter((p: any) => !permisosOcultos.includes(p.nombre));
+        const permisosApi = data
+          .map((p: any) => ({
+            id: p.IdPermisos,
+            nombre: p.RolPermisos
+          }))
+          .filter((p: any) => !permisosOcultos.includes(p.nombre));
 
-      setPermisosDisponibles(permisosApi);
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "No se pudieron cargar los permisos", "error");
-    }
-  };
+        setPermisosDisponibles(permisosApi);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "No se pudieron cargar los permisos", "error");
+      }
+    };
 
-  fetchPermisos();
-}, []);
+    fetchPermisos();
+  }, []);
 
   const togglePermiso = (idPermiso: number) => {
     setPermisosSeleccionados((prev) =>
@@ -70,65 +67,71 @@ useEffect(() => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const form = e.currentTarget;
+    e.preventDefault();
+    const form = e.currentTarget;
 
-  const rol = (form.nombre as HTMLInputElement).value.trim();
-  const descripcion = (form.descripcion as HTMLInputElement).value.trim();
+    const rol = (form.nombre as HTMLInputElement).value.trim();
+    const descripcion = (form.descripcion as HTMLInputElement).value.trim();
 
-  if (!rol) {
-    Swal.fire("Error", "El nombre del rol es obligatorio", "error");
-    return;
-  }
+    if (!rol) {
+      Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+      return;
+    }
 
-  if (permisosSeleccionados.length === 0) {
-    Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
-    return;
-  }
+    if (permisosSeleccionados.length === 0) {
+      Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+      return;
+    }
 
-  try {
-    // ✅ Crear rol en la API
-    const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        IdRol: 0, // 👈 importante: inicializar en 0 para que lo cree
-        Rol: rol,
-        Descripcion: descripcion || "",
-        Estado: true
-      }),
-    });
-
-    if (!response.ok) throw new Error("Error al crear rol");
-
-    const rolCreado = await response.json();
-
-    // ✅ Asegurar que obtenemos el IdRol correctamente (la API puede devolver IdRol o idRol)
-    const nuevoId = rolCreado.IdRol || rolCreado.idRol;
-
-    // ✅ Asociar permisos seleccionados
-    for (const idPermiso of permisosSeleccionados) {
-      await fetch("https://apicreartnino.somee.com/api/Rolpermisos/Crear", {
+    try {
+      const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          IdRol: nuevoId,
-          IdPermisos: idPermiso
+          IdRol: 0,
+          Rol: rol,
+          Descripcion: descripcion || "",
+          Estado: true
         }),
       });
+
+      if (!response.ok) throw new Error("Error al crear rol");
+
+      const rolCreado = await response.json();
+      const nuevoId = rolCreado.IdRol || rolCreado.idRol;
+
+      for (const idPermiso of permisosSeleccionados) {
+        await fetch("https://apicreartnino.somee.com/api/Rolpermisos/Crear", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            IdRol: nuevoId,
+            IdPermisos: idPermiso
+          }),
+        });
+      }
+
+      Swal.fire("Éxito", `Rol creado con sus respectivos permisos`, "success");
+      form.reset();
+      setPermisosSeleccionados([]);
+
+      // ✅ Notificar al padre para refrescar lista
+      onCrear({
+        IdRol: nuevoId,
+        Rol: rol,
+        Descripcion: descripcion,
+        Estado: true,
+        Usuarios: [],
+        RolPermisos: [] // se pueden volver a cargar luego
+      });
+
+      onClose();
+
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudo crear el rol", "error");
     }
-
-    Swal.fire("Éxito", `Rol creado con sus respectivos permisos`, "success");
-    form.reset();
-    setPermisosSeleccionados([]);
-    onClose();
-
-  } catch (error) {
-    console.error(error);
-    Swal.fire("Error", "No se pudo crear el rol", "error");
-  }
-};
-
+  };
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>

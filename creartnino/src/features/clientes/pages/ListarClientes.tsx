@@ -52,7 +52,12 @@ const ListarClientes: React.FC = () => {
       const resp = await fetch(buildUrl("Clientes/Lista"));
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data: IClientes[] = await resp.json();
-      setClientes(Array.isArray(data) ? data : []);
+      setClientes(
+  Array.isArray(data)
+    ? data.sort((a, b) => (b.IdCliente ?? 0) - (a.IdCliente ?? 0))
+    : []
+);
+
     } catch (err) {
       console.error("obtenerClientes:", err);
       Swal.fire({

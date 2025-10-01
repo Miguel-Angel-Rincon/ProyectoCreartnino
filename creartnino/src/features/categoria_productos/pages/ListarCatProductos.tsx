@@ -34,9 +34,13 @@ const ListarCatProductos: React.FC = () => {
       const data = await res.json();
 
       if (Array.isArray(data)) {
-        setCategorias(data);
-      } else if (Array.isArray(data.data)) {
-        setCategorias(data.data);
+        setCategorias(
+    data.sort((a, b) => (b.IdCategoriaProducto ?? 0) - (a.IdCategoriaProducto ?? 0))
+  );
+} else if (Array.isArray(data.data)) {
+  setCategorias(
+    data.data.sort((a: { IdCategoriaProducto: any; }, b: { IdCategoriaProducto: any; }) => (b.IdCategoriaProducto ?? 0) - (a.IdCategoriaProducto ?? 0))
+  );
       } else {
         throw new Error("Formato inesperado en la API");
       }

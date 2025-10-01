@@ -161,27 +161,30 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
 
   // Subir imagen local a Cloudinary
   if (imagenLocal) {
-    const formData = new FormData();
-    formData.append("file", imagenLocal);
-    formData.append("upload_preset", "Creartnino");
+  const formData = new FormData();
+  formData.append("file", imagenLocal);
+  formData.append("upload_preset", "CreartNino");
 
-    try {
-      const resCloud = await axios.post(
-        "https://api.cloudinary.com/v1_1/angelr10/image/upload",
-        formData
-      );
-      urlImagen = resCloud.data.secure_url;
-    } catch {
-      Swal.fire({
-        icon: "error",
-        title: "Error al subir imagen",
-        text: "No se pudo subir la imagen a Cloudinary",
-      });
-      return;
-    }
-  } else if (imagenPersonalURL) {
-    urlImagen = imagenPersonalURL;
+  // 👇 aquí especificas la carpeta
+  formData.append("folder", "Productos");
+
+  try {
+    const resCloud = await axios.post(
+      "https://api.cloudinary.com/v1_1/creartnino/image/upload",
+      formData
+    );
+
+    urlImagen = resCloud.data.secure_url; // URL de la imagen subida
+    console.log("Imagen subida:", urlImagen);
+  } catch {
+    Swal.fire({
+      icon: "error",
+      title: "Error al subir imagen",
+      text: "No se pudo subir la imagen a Cloudinary",
+    });
+    return;
   }
+}
 
   // ✅ Si cambió la imagen, actualizar en tabla Imagenes_Productos (PUT)
   if (urlImagen !== imagenActualURL) {

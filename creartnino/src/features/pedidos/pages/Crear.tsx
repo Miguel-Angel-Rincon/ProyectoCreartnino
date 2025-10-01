@@ -186,26 +186,30 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const calcularValorRestante = () => calcularTotal() - calcularValorInicial();
 
   const subirImagenACloudinary = async (file: File) => {
-    const url = "https://api.cloudinary.com/v1_1/angelr10/image/upload";
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "Creartnino");
+  const url = "https://api.cloudinary.com/v1_1/creartnino/image/upload";
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "CreartNino");
 
-    try {
-      const res = await fetch(url, { method: "POST", body: formData });
-      const data = await res.json();
+  // 👇 Guardar la imagen en la carpeta Productos
+  formData.append("folder", "Comprobantes");
 
-      if (res.ok) {
-        setComprobantePago(data.secure_url);
-        Swal.fire("✅ Éxito", "Imagen subida correctamente", "success");
-      } else {
-        Swal.fire("❌ Error", "No se pudo subir la imagen", "error");
-      }
-    } catch (error) {
-      console.error("Error al subir imagen", error);
-      Swal.fire("❌ Error", "Error al conectar con Cloudinary", "error");
+  try {
+    const res = await fetch(url, { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (res.ok) {
+      setComprobantePago(data.secure_url); // URL final de la imagen
+      Swal.fire("✅ Éxito", "Imagen subida correctamente", "success");
+    } else {
+      Swal.fire("❌ Error", "No se pudo subir la imagen", "error");
     }
-  };
+  } catch (error) {
+    console.error("Error al subir imagen", error);
+    Swal.fire("❌ Error", "Error al conectar con Cloudinary", "error");
+  }
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

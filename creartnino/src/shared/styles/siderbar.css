@@ -26,12 +26,16 @@
 }
 
 .sidebar .logo {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
+  width: 100px;           /* más grande */
+  height: 100px;
+  border-radius: 50%;    /* lo vuelve circular */
+  object-fit: cover;     /* que no se deforme */
   display: block;
   margin: 0 auto;
+  border: 3px solid #f8bbd0; /* opcional: borde pastel */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* opcional: sombra suave */
 }
+
 
 .sidebar-header {
   margin-bottom: 1.5rem;
@@ -161,5 +165,36 @@
 
 .sidebar-user-menu p:hover {
   color: #7d3cf0;
+}
+
+
+.sidebar-logout {
+  position: relative;
+  display: inline-block;
+}
+
+.sidebar-logout .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  width: max-content;
+  background-color: #ffe6f0; /* fondo pastel rosado */
+  color: #d14fa2;           /* texto rosa fuerte */
+  text-align: center;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  position: absolute;
+  bottom: 125%; /* aparece arriba del icono */
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease-in-out;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.sidebar-logout:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 

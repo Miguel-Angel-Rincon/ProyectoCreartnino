@@ -88,15 +88,12 @@ const cerrarSesion = (porInactividad: boolean = false) => {
   localStorage.removeItem("permisos");
 
   if (porInactividad) {
-    // 🔔 Mostrar aviso rápido (sin bloquear)
     Swal.fire({
-      toast: true,
-      position: "top-end",
       icon: "info",
-      title: "Sesión cerrada por inactividad",
-      showConfirmButton: false,
-      timer: 5000,
-      timerProgressBar: true,
+      title: "Sesión cerrada",
+      text: "Tu sesión se cerró automáticamente por inactividad.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#df64b2ff",
     }).then(() => {
       window.location.href = "/ingresar";
     });
@@ -104,6 +101,7 @@ const cerrarSesion = (porInactividad: boolean = false) => {
     window.location.href = "/ingresar";
   }
 };
+
 
 
   // -------------------
@@ -175,56 +173,57 @@ const cerrarSesion = (porInactividad: boolean = false) => {
   // -------------------
   // ⏱️ AUTO-LOGOUT CON ADVERTENCIA
   // -------------------
-  useEffect(() => {
-    if (!token) return;
+  // ⏱️ AUTO-LOGOUT CON ADVERTENCIA
+useEffect(() => {
+  if (!token) return;
 
-    let logoutTimer: ReturnType<typeof setTimeout>;
-let warningTimer: ReturnType<typeof setTimeout>;
+  let logoutTimer: ReturnType<typeof setTimeout>;
+  let warningTimer: ReturnType<typeof setTimeout>;
 
-    const iniciarContadores = () => {
-      clearTimeout(logoutTimer);
-      clearTimeout(warningTimer);
+  const iniciarContadores = () => {
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
 
-      // ⏳ Mostrar advertencia 1 minuto antes (a los 9 min)
-      warningTimer = setTimeout(() => {
-        Swal.fire({
-          title: "¿Sigues allí?",
-          text: "Tu sesión se cerrará en 1 minuto por inactividad.",
-          icon: "warning",
-          confirmButtonText: "Continuar",
-          showCancelButton: true,
-          cancelButtonText: "Cerrar sesión",
-          confirmButtonColor: "#7d3cf0",
-          reverseButtons: true,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            iniciarContadores(); // 👈 reinicia el tiempo
-          } else {
-            cerrarSesion();
-          }
-        });
-      }, 9 * 60 * 1000); // 9 minutos
+    // ⏳ Mostrar advertencia 1 minuto antes (a los 29 min)
+    warningTimer = setTimeout(() => {
+      Swal.fire({
+        title: "¿Sigues allí?",
+        text: "Tu sesión se cerrará en 1 minuto por inactividad.",
+        icon: "warning",
+        confirmButtonText: "Continuar",
+        showCancelButton: true,
+        cancelButtonText: "Cerrar sesión",
+        confirmButtonColor: "#e47cedff",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          iniciarContadores(); // 👈 reinicia el tiempo
+        } else {
+          cerrarSesion();
+        }
+      });
+    }, 29 * 60 * 1000); // 29 minutos
 
-      // 🔴 Logout automático a los 10 min
-      logoutTimer = setTimeout(() => {
-        cerrarSesion(true); // 
-        
-      }, 10 * 60 * 1000);
-    };
+    // 🔴 Logout automático a los 30 min
+    logoutTimer = setTimeout(() => {
+      cerrarSesion(true);
+    }, 30 * 60 * 1000);
+  };
 
-    const resetTimer = () => iniciarContadores();
+  const resetTimer = () => iniciarContadores();
 
-    const eventos = ["mousemove", "keydown", "click", "scroll"];
-    eventos.forEach((e) => window.addEventListener(e, resetTimer));
+  const eventos = ["mousemove", "keydown", "click", "scroll"];
+  eventos.forEach((e) => window.addEventListener(e, resetTimer));
 
-    iniciarContadores();
+  iniciarContadores();
 
-    return () => {
-      clearTimeout(logoutTimer);
-      clearTimeout(warningTimer);
-      eventos.forEach((e) => window.removeEventListener(e, resetTimer));
-    };
-  }, [token]);
+  return () => {
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    eventos.forEach((e) => window.removeEventListener(e, resetTimer));
+  };
+}, [token]);
+
 
   // -------------------
   // ♻️ RECUPERAR ESTADO AL RECARGAR
