@@ -319,6 +319,7 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
     className={`form-control ${!precioValido ? "is-invalid" : ""}`}
     value={precio}
     onChange={handlePrecioChange}
+    maxLength={8}
     required
   />
   <div className="form-text">Máximo 7 dígitos</div>

@@ -422,7 +422,9 @@ for (const item of carrito) {
     <FaFileUpload className="icono" />
     <label className="subir-label">
       Seleccionar archivo
-      <input type="file" onChange={handleFileChange} />
+      <input type="file"
+      accept='image/*'
+      onChange={handleFileChange} />
     </label>
   </div>
         </div>

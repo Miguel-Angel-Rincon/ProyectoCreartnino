@@ -553,6 +553,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
               <input
                 type="file"
                 className="form-control"
+                accept="image/*"
                 onChange={(e) => {
                   if (e.target.files?.length) {
                     subirImagenACloudinary(e.target.files[0]);
