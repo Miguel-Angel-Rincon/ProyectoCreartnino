@@ -15,6 +15,7 @@ export interface Rol {
 interface Props {
   onClose: () => void;
   onCrear: (nuevoRol: Rol) => void; // ✅ se usará al crear
+  rolesExistentes: Rol[]; 
 }
 
 interface Permiso {
@@ -22,7 +23,7 @@ interface Permiso {
   nombre: string;
 }
 
-const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
+const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) => {
   const [permisosDisponibles, setPermisosDisponibles] = useState<Permiso[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
 
@@ -67,71 +68,150 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
+  e.preventDefault();
+  const form = e.currentTarget;
 
-    const rol = (form.nombre as HTMLInputElement).value.trim();
-    const descripcion = (form.descripcion as HTMLInputElement).value.trim();
+  const rol = (form.nombre as HTMLInputElement).value.trim();
+  const descripcion = (form.descripcion as HTMLInputElement).value.trim();
 
-    if (!rol) {
-      Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+  // ---------- Reglas básicas ----------
+  if (!rol) {
+    Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+    return;
+  }
+
+  // longitud
+  if (rol.length < 3 || rol.length > 50) {
+    Swal.fire("Error", "El rol debe tener entre 3 y 50 caracteres", "error");
+    return;
+  }
+
+  // no permitir un solo carácter
+  if (rol.length === 1) {
+    Swal.fire("Error", "El nombre del rol no puede ser un solo carácter", "error");
+    return;
+  }
+
+  // regex: sólo letras, números y espacios (acentos y ñ permitidos)
+  const regex = /^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/;
+  if (!regex.test(rol)) {
+    Swal.fire("Error", "El rol solo puede contener letras, números y espacios", "error");
+    return;
+  }
+
+  // ---------- Reglas anti-abuso / basura ----------
+  // 1) No puede ser sólo números (ej: "123456")
+  const regexSoloNumeros = /^\d+$/;
+  if (regexSoloNumeros.test(rol)) {
+    Swal.fire("Error", "El nombre del rol no puede ser solo números", "error");
+    return;
+  }
+
+  // 2) No puede ser sólo caracteres especiales (ej: "+++","@@@")
+  const regexSoloEspeciales = /^[^a-zA-Z0-9]+$/;
+  if (regexSoloEspeciales.test(rol)) {
+    Swal.fire("Error", "El nombre del rol no puede ser solo caracteres especiales", "error");
+    return;
+  }
+
+  // 3) No puede ser todo el mismo carácter repetido (ej: "aaaaaaaa","11111111","+++++")
+  const regexMismoCaracterRepetido = /^(.)(\1)+$/; // coincide si toda la cadena es el mismo carácter repetido al menos 2 veces
+  if (regexMismoCaracterRepetido.test(rol)) {
+    Swal.fire("Error", "El nombre del rol no puede estar formado por el mismo carácter repetido", "error");
+    return;
+  }
+
+  // ---------- Validaciones para descripción (si fue escrita) ----------
+  if (descripcion) {
+    if (descripcion.length < 5) {
+      Swal.fire("Error", "La descripción debe tener al menos 5 caracteres", "error");
       return;
     }
 
-    if (permisosSeleccionados.length === 0) {
-      Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+    // no permitir un solo carácter especial en descripción
+    if (descripcion.trim().length === 1 && regexSoloEspeciales.test(descripcion.trim())) {
+      Swal.fire("Error", "La descripción no puede ser un solo carácter especial", "error");
       return;
     }
 
-    try {
-      const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
+    // no permitir descripción solo números
+    if (regexSoloNumeros.test(descripcion)) {
+      Swal.fire("Error", "La descripción no puede ser solo números", "error");
+      return;
+    }
+
+    // no permitir descripción formada por el mismo carácter repetido
+    if (regexMismoCaracterRepetido.test(descripcion)) {
+      Swal.fire("Error", "La descripción no puede estar formada por el mismo carácter repetido", "error");
+      return;
+    }
+  }
+
+  // ---------- Permisos ----------
+  if (permisosSeleccionados.length === 0) {
+    Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+    return;
+  }
+
+  // ---------- Duplicados ----------
+  const existe = rolesExistentes.some(
+    (r) => r.Rol.trim().toLowerCase() === rol.toLowerCase()
+  );
+  if (existe) {
+    Swal.fire("Error", `El rol "${rol}" ya existe`, "error");
+    return;
+  }
+
+  // ---------- Si pasa todo: envío al backend ----------
+  try {
+    const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        IdRol: 0,
+        Rol: rol,
+        Descripcion: descripcion || "",
+        Estado: true
+      }),
+    });
+
+    if (!response.ok) throw new Error("Error al crear rol");
+
+    const rolCreado = await response.json();
+    const nuevoId = rolCreado.IdRol || rolCreado.idRol;
+
+    for (const idPermiso of permisosSeleccionados) {
+      await fetch("https://apicreartnino.somee.com/api/Rolpermisos/Crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          IdRol: 0,
-          Rol: rol,
-          Descripcion: descripcion || "",
-          Estado: true
+          IdRol: nuevoId,
+          IdPermisos: idPermiso
         }),
       });
-
-      if (!response.ok) throw new Error("Error al crear rol");
-
-      const rolCreado = await response.json();
-      const nuevoId = rolCreado.IdRol || rolCreado.idRol;
-
-      for (const idPermiso of permisosSeleccionados) {
-        await fetch("https://apicreartnino.somee.com/api/Rolpermisos/Crear", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            IdRol: nuevoId,
-            IdPermisos: idPermiso
-          }),
-        });
-      }
-
-      Swal.fire("Éxito", `Rol creado con sus respectivos permisos`, "success");
-      form.reset();
-      setPermisosSeleccionados([]);
-
-      // ✅ Notificar al padre para refrescar lista
-      onCrear({
-        IdRol: nuevoId,
-        Rol: rol,
-        Descripcion: descripcion,
-        Estado: true,
-        Usuarios: [],
-        RolPermisos: [] // se pueden volver a cargar luego
-      });
-
-      onClose();
-
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "No se pudo crear el rol", "error");
     }
-  };
+
+    
+    form.reset();
+    setPermisosSeleccionados([]);
+
+    onCrear({
+      IdRol: nuevoId,
+      Rol: rol,
+      Descripcion: descripcion,
+      Estado: true,
+      Usuarios: [],
+      RolPermisos: []
+    });
+
+    onClose();
+
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error", "No se pudo crear el rol", "error");
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -149,12 +229,16 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear }) => {
                   <label className="form-label">
                     🏷️ Nombre del Rol <span className="text-danger">*</span>
                   </label>
-                  <input className="form-control" name="nombre" required />
+                  <input className="form-control" name="nombre" required  onInput={(e) => {
+    e.currentTarget.value = e.currentTarget.value.trimStart();
+  }} />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">🧾 Descripción</label>
-                  <input className="form-control" name="descripcion" />
+                  <input className="form-control" name="descripcion"  onInput={(e) => {
+    e.currentTarget.value = e.currentTarget.value.trimStart();
+  }} />
                 </div>
 
                 <div className="col-md-12">

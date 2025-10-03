@@ -121,14 +121,7 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
                 <label className="form-label">🏷️ Marca</label>
                 <input className="form-control" value={producto.Marca ?? ""} disabled />
               </div>
-              <div className="col-md-6">
-                <label className="form-label">📌 Estado</label>
-                <input
-                  className="form-control"
-                  value={producto.Estado ? "Activo ✅" : "Inactivo ❌"}
-                  disabled
-                />
-              </div>
+              
 
               {/* Imagen */}
               <div className="col-md-12">

@@ -9,9 +9,10 @@ interface Props {
   rol: IRol;
   onClose: () => void;
   onEditar: (rolActualizado: IRol) => void;
+  rolesExistentes: IRol[]; // ✅ lista de roles para validación
 }
 
-const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
+const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistentes }) => {
   const [nombre, setNombre] = useState<string>(rol.Rol ?? "");
   const [descripcion, setDescripcion] = useState<string>(rol.Descripcion ?? "");
   const [permisosDisponibles, setPermisosDisponibles] = useState<IPermiso[]>([]);
@@ -91,77 +92,152 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!nombre.trim()) {
-      await Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+  const nombreTrim = nombre.trim();
+  const descripcionTrim = descripcion?.trim() ?? "";
+
+  // ---------- Reglas Nombre ----------
+  if (!nombreTrim) {
+    await Swal.fire("Error", "El nombre del rol es obligatorio", "error");
+    return;
+  }
+
+  if (nombreTrim.length < 3 || nombreTrim.length > 50) {
+    await Swal.fire("Error", "El rol debe tener entre 3 y 50 caracteres", "error");
+    return;
+  }
+
+  if (nombreTrim.length === 1) {
+    await Swal.fire("Error", "El nombre del rol no puede ser un solo carácter", "error");
+    return;
+  }
+
+  // solo caracteres especiales
+  const regexSoloEspeciales = /^[^a-zA-Z0-9]+$/;
+  if (regexSoloEspeciales.test(nombreTrim)) {
+    await Swal.fire("Error", "El nombre del rol no puede ser solo caracteres especiales", "error");
+    return;
+  }
+
+  // solo números
+  if (/^\d+$/.test(nombreTrim)) {
+    await Swal.fire("Error", "El nombre del rol no puede ser solo números", "error");
+    return;
+  }
+
+  // mismo carácter repetido (letras, números o símbolos)
+  const regexMismoCaracterRepetido = /^(.)(\1)+$/;
+  if (regexMismoCaracterRepetido.test(nombreTrim)) {
+    await Swal.fire("Error", "El nombre del rol no puede estar formado por el mismo carácter repetido", "error");
+    return;
+  }
+
+  // regex caracteres permitidos
+  const regex = /^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/;
+  if (!regex.test(nombreTrim)) {
+    await Swal.fire("Error", "El rol solo puede contener letras, números y espacios", "error");
+    return;
+  }
+
+  // duplicado
+  const existe = rolesExistentes.some(
+    (r) => r.Rol.trim().toLowerCase() === nombreTrim.toLowerCase() && r.IdRol !== rol.IdRol
+  );
+  if (existe) {
+    await Swal.fire("Error", `El rol "${nombreTrim}" ya existe`, "error");
+    return;
+  }
+
+  // ---------- Reglas Descripción ----------
+  if (descripcionTrim) {
+    if (descripcionTrim.length < 5) {
+      await Swal.fire("Error", "La descripción debe tener al menos 5 caracteres", "error");
       return;
     }
 
-    if (permisosSeleccionados.length === 0) {
-      await Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+    if (regexSoloEspeciales.test(descripcionTrim) && descripcionTrim.length === 1) {
+      await Swal.fire("Error", "La descripción no puede ser un solo carácter especial", "error");
       return;
     }
 
-    setLoading(true);
-    try {
-      // 1) Actualizar rol
-      const rolBody = {
-        IdRol: rol.IdRol,
-        Rol: nombre,
-        Descripcion: descripcion ?? "",
-        Estado: true,
-      };
+    if (/^\d+$/.test(descripcionTrim)) {
+      await Swal.fire("Error", "La descripción no puede ser solo números", "error");
+      return;
+    }
 
-      const resRol = await fetch(
-        `https://apicreartnino.somee.com/api/Roles/Actualizar/${rol.IdRol}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(rolBody),
-        }
-      );
-      if (!resRol.ok) throw new Error("Error al actualizar el rol");
+    if (regexMismoCaracterRepetido.test(descripcionTrim)) {
+      await Swal.fire("Error", "La descripción no puede estar formada por un mismo carácter repetido", "error");
+      return;
+    }
+  }
 
-      // 2) Reemplazar permisos
-      const permisosIds = permisosSeleccionados.map((p) => p.IdPermisos);
-      const resPermisos = await fetch(
-        `https://apicreartnino.somee.com/api/RolPermisos/ReemplazarPermisos/${rol.IdRol}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(permisosIds),
-        }
-      );
-      if (!resPermisos.ok) throw new Error("Error al reemplazar permisos");
+  // ---------- Reglas Permisos ----------
+  if (permisosSeleccionados.length === 0) {
+    await Swal.fire("Advertencia", "Debe seleccionar al menos un permiso", "warning");
+    return;
+  }
 
-      // 3) Todo OK → Swal éxito
-      await Swal.fire("Éxito", "Rol actualizado correctamente", "success");
+  setLoading(true);
+  try {
+    // 1) Actualizar rol
+    const rolBody = {
+      IdRol: rol.IdRol,
+      Rol: nombreTrim,
+      Descripcion: descripcionTrim,
+      Estado: true,
+    };
 
-      // 4) Si el usuario actual tiene este rol → refrescar sus permisos
-      if (usuario?.IdRol === rol.IdRol) {
-        await refrescarUsuario();
+    const resRol = await fetch(
+      `https://apicreartnino.somee.com/api/Roles/Actualizar/${rol.IdRol}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rolBody),
       }
+    );
+    if (!resRol.ok) throw new Error("Error al actualizar el rol");
 
-      // 5) Actualizar lista en padre
-      onEditar({
-        ...rol,
-        Rol: nombre,
-        Descripcion: descripcion ?? "",
-        RolPermisos: permisosSeleccionados.map((p) => ({
-          IdRol: rol.IdRol,
-          IdPermisos: p.IdPermisos,
-        })),
-      });
+    // 2) Reemplazar permisos
+    const permisosIds = permisosSeleccionados.map((p) => p.IdPermisos);
+    const resPermisos = await fetch(
+      `https://apicreartnino.somee.com/api/RolPermisos/ReemplazarPermisos/${rol.IdRol}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(permisosIds),
+      }
+    );
+    if (!resPermisos.ok) throw new Error("Error al reemplazar permisos");
 
-      onClose();
-    } catch (err: any) {
-      console.error("❌ Error en actualización:", err);
-      await Swal.fire("Error", err?.message ?? "No se pudo actualizar el rol", "error");
-    } finally {
-      setLoading(false);
+    // 3) Éxito
+    await Swal.fire("Éxito", "Rol actualizado correctamente", "success");
+
+    // 4) Refrescar permisos si aplica
+    if (usuario?.IdRol === rol.IdRol) {
+      await refrescarUsuario();
     }
-  };
+
+    // 5) Actualizar lista en padre
+    onEditar({
+      ...rol,
+      Rol: nombreTrim,
+      Descripcion: descripcionTrim,
+      RolPermisos: permisosSeleccionados.map((p) => ({
+        IdRol: rol.IdRol,
+        IdPermisos: p.IdPermisos,
+      })),
+    });
+
+    onClose();
+  } catch (err: any) {
+    console.error("❌ Error en actualización:", err);
+    await Swal.fire("Error", err?.message ?? "No se pudo actualizar el rol", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -181,7 +257,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
                   <input
                     className="form-control"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
+                    onChange={(e) => setNombre(e.target.value.replace(/^\s+$/, ""))}
                     disabled={loading || cargandoPermisos}
                   />
                 </div>
@@ -191,7 +267,8 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar }) => {
                   <input
                     className="form-control"
                     value={descripcion ?? ""}
-                    onChange={(e) => setDescripcion(e.target.value)}
+                    onChange={(e) => setDescripcion(e.target.value.replace(/^\s+$/, ""))}
+
                     disabled={loading || cargandoPermisos}
                   />
                 </div>

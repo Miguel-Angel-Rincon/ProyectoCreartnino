@@ -127,33 +127,53 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   };
 
   const actualizarDetalle = (
-    index: number,
-    campo: keyof PedidoDetalle,
-    valor: string | number
-  ) => {
-    const copia = [...detallePedido];
-    if (!copia[index]) return;
+  index: number,
+  campo: keyof PedidoDetalle,
+  valor: string | number
+) => {
+  const copia = [...detallePedido];
+  if (!copia[index]) return;
 
-    if (campo === "producto") {
-      const prod = productosApi.find((p) => p.Nombre === valor);
-      copia[index].producto = prod?.Nombre || (valor as string);
-      copia[index].precio = prod?.Precio ?? copia[index].precio;
-      copia[index].idProducto = prod?.IdProducto;
-      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
-      setProductoQuery((prev) => {
-        const copy = [...prev];
-        copy[index] = "";
-        return copy;
+  if (campo === "producto") {
+    const prod = productosApi.find((p) => p.Nombre === valor);
+    copia[index].producto = prod?.Nombre || (valor as string);
+    copia[index].precio = prod?.Precio ?? copia[index].precio;
+    copia[index].idProducto = prod?.IdProducto;
+    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+    setProductoQuery((prev) => {
+      const copy = [...prev];
+      copy[index] = "";
+      return copy;
+    });
+  } else if (campo === "cantidad") {
+    const cantidad = Number(valor) || 0;
+    if (cantidad > 9999999) {
+      Swal.fire({
+        icon: "warning",
+        title: "Cantidad no válida",
+        text: "La cantidad no puede tener más de 7 cifras.",
       });
-    } else if (campo === "cantidad") {
-      copia[index].cantidad = Number(valor) || 0;
-      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
-    } else if (campo === "precio") {
-      copia[index].precio = Number(valor) || 0;
-      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+      return;
     }
-    setDetallePedido(copia);
-  };
+    copia[index].cantidad = cantidad;
+    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+  } else if (campo === "precio") {
+    const precio = Number(valor) || 0;
+    if (precio > 9999999) {
+      Swal.fire({
+        icon: "warning",
+        title: "Precio no válido",
+        text: "El precio no puede tener más de 7 cifras.",
+      });
+      return;
+    }
+    copia[index].precio = precio;
+    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+  }
+
+  setDetallePedido(copia);
+};
+
 
   const seleccionarProducto = (index: number, nombre: string) => {
     const prod = productosApi.find((p) => p.Nombre === nombre);
@@ -475,6 +495,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
                     type="number"
                     className="form-control"
                     min={1}
+                    max={8}
                     value={item.cantidad}
                     onChange={(e) => actualizarDetalle(index, "cantidad", e.target.value)}
                   />
@@ -483,6 +504,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
                   <input
                     type="text"
                     className="form-control"
+                    max={8}
                     value={item.precio > 0 ? item.precio.toLocaleString("es-CO") : ""}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/\./g, "").replace(/,/g, "");

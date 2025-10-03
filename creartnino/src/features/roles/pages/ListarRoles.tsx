@@ -106,64 +106,83 @@ const ListarRoles: React.FC = () => {
 
   // =================== CAMBIO DE ESTADO ===================
   const handleEstadoChange = async (id: number, nombre: string) => {
-    if (esProtegido(nombre)) return;
+  if (esProtegido(nombre)) return;
 
-    const target = roles.find((r) => r.IdRol === id);
-    if (!target) return;
+  
 
-    const actualizado: IRol = { ...target, Estado: !target.Estado };
+  const target = roles.find((r) => r.IdRol === id);
+  if (!target) return;
 
-    setRoles((prev) => prev.map((r) => (r.IdRol === id ? actualizado : r)));
+  
 
-    try {
-      const resp = await fetch(
-        `https://apicreartnino.somee.com/api/Roles/Actualizar/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(actualizado),
-        }
-      );
+  const actualizado: IRol = { ...target, Estado: !target.Estado };
+  
 
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  // ✅ Actualiza en memoria
+  setRoles((prev) => prev.map((r) => (r.IdRol === id ? actualizado : r)));
 
-      await fetchRoles();
+  try {
+    const resp = await fetch(
+      `https://apicreartnino.somee.com/api/Roles/Actualizar/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(actualizado),
+      }
+    );
 
-      Swal.fire({
-        icon: "success",
-        title: "Actualizado",
-        text: `Estado Actualizado correctamente`,
-        confirmButtonColor: "#f78fb3",
-      });
-    } catch (err) {
-      console.error("actualizarEstado:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo actualizar el estado del rol.",
-        confirmButtonColor: "#f78fb3",
-      });
 
-      setRoles((prev) => prev.map((r) => (r.IdRol === id ? target : r)));
-    }
-  };
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    
 
-  const handleCrearRol = (nuevoRol: IRol) => {
-    if (!nuevoRol.Rol) {
-      Swal.fire("Error", "El rol debe tener un nombre", "error");
-      return;
-    }
+    // ❌ Ya no sobreescribimos con fetchRoles() aquí
+    // ✅ dejamos el cambio local, que ya refleja el estado
+    Swal.fire({
+      icon: "success",
+      title: "Actualizado",
+      text: `Estado Actualizado correctamente`,
+      confirmButtonColor: "#f78fb3",
+    });
+  } catch (err) {
+    console.error("actualizarEstado:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo actualizar el estado del rol.",
+      confirmButtonColor: "#f78fb3",
+    });
 
-    const rolConNombre = { ...nuevoRol, Rol: nuevoRol.Rol.trim() || "Sin nombre" };
+    // ✅ Si falla, volvemos atrás
+    setRoles((prev) => prev.map((r) => (r.IdRol === id ? target : r)));
+  }
+};
 
-    setRoles((prev) => [...prev, rolConNombre]);
+
+  
+
+  const handleCrearRol = async (nuevoRol: IRol) => {
+  try {
+    const rolConNombre = { 
+      ...nuevoRol, 
+      Rol: nuevoRol.Rol.trim() || "Sin nombre" 
+    };
+
+    // ✅ Vuelve a traer la lista completa desde la API
+    await fetchRoles();
+
     setMostrarModal(false);
+
     Swal.fire({
       icon: "success",
       title: `Rol "${rolConNombre.Rol}" creado correctamente`,
       confirmButtonColor: "#f78fb3",
     });
-  };
+  } catch (error) {
+    console.error("Error refrescando roles:", error);
+    Swal.fire("Error", "No se pudieron refrescar los roles", "error");
+  }
+};
+
 
   const handleEditarRol = (rol: IRol) => {
     if (esProtegido(rol.Rol)) return;
@@ -326,19 +345,23 @@ const ListarRoles: React.FC = () => {
 
       {/* Modales */}
       {mostrarModal && (
-        <CrearRolModal
-          onClose={() => setMostrarModal(false)}
-          onCrear={handleCrearRol}
-        />
-      )}
+  <CrearRolModal
+    onClose={() => setMostrarModal(false)}
+    onCrear={handleCrearRol}
+    rolesExistentes={roles} // 👈 pasa tu lista de roles actual
+  />
+)}
+
 
       {mostrarEditarModal && rolEditar && (
-        <EditarRolModal
-          rol={rolEditar}
-          onClose={() => setMostrarEditarModal(false)}
-          onEditar={handleActualizarRol}
-        />
-      )}
+  <EditarRolModal
+    rol={rolEditar}
+    rolesExistentes={roles}   // ✅ aquí le pasamos la lista
+    onEditar={handleActualizarRol}
+    onClose={() => setMostrarEditarModal(false)}
+  />
+)}
+
 
       {mostrarVerModal && rolVer && (
         <VerRolModal rol={rolVer} onClose={() => setMostrarVerModal(false)} />
