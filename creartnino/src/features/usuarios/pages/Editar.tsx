@@ -86,72 +86,163 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
     setShowDireccionModal(false);
   };
 
-  // 🔹 Validar contraseña
-  const validarContrasena = (password: string) => {
-    const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]:;"'<>,.?/~`-]).{8,}$/;
-    return regex.test(password);
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
+
+  // 🔹 Funciones de validación reutilizables
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.6) => {
+    const specialCount = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specialCount / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => {
+    const uniqueChars = new Set(s).size;
+    return uniqueChars < minUnique;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ Nombre
+  const nombre = formData.NombreCompleto.trim();
+  const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
+  if (!nombre) {
+    return Swal.fire({ icon: "error", title: "Nombre requerido", text: "El nombre completo es obligatorio.", confirmButtonColor: "#e83e8c" });
+  }
+  if (!nombreRegex.test(nombre)) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre solo puede contener letras y espacios.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(nombre) || hasLongRepeatSequence(nombre) || isOnlySpecialChars(nombre) || hasTooManySpecialChars(nombre) || hasLowVariety(nombre)) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre no puede ser repetitivo, de baja variedad ni solo caracteres especiales.", confirmButtonColor: "#e83e8c" });
+  }
+  if (nombre.length < 3 || nombre.length > 100) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
+  }
 
-    if (!formData.NombreCompleto.trim()) {
+  // ✅ Tipo documento
+  if (!formData.TipoDocumento) {
+    return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Documento
+  const numDoc = formData.NumDocumento.trim();
+  if (!/^\d+$/.test(numDoc)) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
+  }
+  if (numDoc.length < 8 || numDoc.length > 12) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "Debe tener entre 8 y 11 dígitos.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(numDoc) || hasLongRepeatSequence(numDoc) || hasLowVariety(numDoc)) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Celular
+  const celular = formData.Celular.trim();
+  if (!/^\d+$/.test(celular)) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
+  }
+  if (celular.length !== 10) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "Debe tener 10 dígitos.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(celular) || hasLongRepeatSequence(celular) || hasLowVariety(celular)) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Correo
+  const correo = formData.Correo.trim();
+  const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!correoRegex.test(correo)) {
+    return Swal.fire({ icon: "error", title: "Correo inválido", text: "Por favor ingresa un correo válido.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(correo) || hasLongRepeatSequence(correo) || isOnlySpecialChars(correo) || hasTooManySpecialChars(correo) || hasLowVariety(correo)) {
+    return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Dirección
+  const direccion = formData.Direccion?.trim() || "";
+  if (!direccion) {
+    return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#e83e8c" });
+  }
+  if (direccion.length < 5 || direccion.length > 100) {
+    return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección debe tener entre 5 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(direccion) || hasLongRepeatSequence(direccion) || isOnlySpecialChars(direccion) || hasTooManySpecialChars(direccion) || hasLowVariety(direccion)) {
+    return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Contraseña
+  const pwd = formData.Contrasena.trim();
+  if (!pwd) {
+    return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
+  }
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  if (!passwordRegex.test(pwd)) {
+    return Swal.fire({
+      icon: "error",
+      title: "Contraseña inválida",
+      html: "Debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial",
+      confirmButtonColor: "#e83e8c"
+    });
+  }
+  if (isAllSameChar(pwd) || hasLongRepeatSequence(pwd) || hasLowVariety(pwd)) {
+    return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Rol
+  if (!formData.IdRol) {
+    return Swal.fire({ icon: "error", title: "Rol requerido", text: "Selecciona un rol.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Departamento/Ciudad
+  if (formData.Departamento && ciudades.length && !formData.Ciudad) {
+    return Swal.fire({ icon: "error", title: "Ciudad no seleccionada", text: "Seleccione una ciudad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  try {
+    // Editar usuario
+    const resp = await fetch(`https://apicreartnino.somee.com/api/Usuarios/Actualizar/${formData.IdUsuarios}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await resp.json(); // 👈 capturar mensaje backend
+
+    if (!resp.ok) {
       return Swal.fire({
-        icon: "error",
-        title: "Nombre requerido",
-        text: "El nombre completo es obligatorio.",
-        confirmButtonColor: "#e83e8c",
-      });
-    }
-
-    if (!validarContrasena(formData.Contrasena)) {
-      return Swal.fire({
-        icon: "error",
-        title: "Contraseña inválida",
-        text: "Debe tener mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y carácter especial.",
-        confirmButtonColor: "#e83e8c",
-      });
-    }
-
-    try {
-      const resp = await fetch(
-        `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${formData.IdUsuarios}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      const actualizado = await resp.json();
-
-      const result = await Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "El usuario fue actualizado correctamente",
-        confirmButtonColor: "#e83e8c",
-        timer: 3000,
-        timerProgressBar: true,
-      });
-
-      if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-        onEditar(actualizado);
-        await refrescarUsuario();
-        navigate("/usuario");
-      }
-    } catch (err) {
-      console.error("editarUsuario:", err);
-      Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo actualizar el usuario.",
+        text: data.message || "No se pudo actualizar el usuario porque el numero de documento o el correo ya existen.",
         confirmButtonColor: "#e83e8c",
       });
     }
-  };
+
+    await Swal.fire({
+      icon: "success",
+      title: "Éxito",
+      text: "Usuario actualizado correctamente",
+      confirmButtonColor: "#e83e8c",
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+
+    onEditar(data);
+    await refrescarUsuario();
+    navigate("/usuario");
+
+  } catch (err) {
+    console.error("editarUsuario:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Error de conexión con el servidor.",
+      confirmButtonColor: "#e83e8c",
+    });
+  }
+};
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -182,15 +273,19 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
                 {/* Número Documento */}
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Número Documento</label>
-                  <input
-                    name="NumDocumento"
-                    className="form-control"
-                    value={formData.NumDocumento}
-                    onChange={handleChange}
-                    maxLength={11}
-                  />
-                </div>
+  <label className="form-label">🔢 Número Documento</label>
+  <input
+    name="NumDocumento"
+    className="form-control"
+    value={formData.NumDocumento}
+    maxLength={11}
+    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+  />
+</div>
 
                 {/* Nombre */}
                 <div className="col-md-12">
@@ -199,7 +294,11 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="NombreCompleto"
                     className="form-control"
                     value={formData.NombreCompleto}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -210,8 +309,12 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
-                    onChange={handleChange}
-                    maxLength={11}
+                    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+                    maxLength={10}
                   />
                 </div>
 
@@ -223,7 +326,11 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     name="Correo"
                     className="form-control"
                     value={formData.Correo}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -236,7 +343,11 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       name="Contrasena"
                       className="form-control"
                       value={formData.Contrasena}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                     />
                     <button
                       type="button"
@@ -347,12 +458,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            municipio: e.target.value.trimStart(),
-                          }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, municipio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -360,12 +469,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            barrio: e.target.value.trimStart(),
-                          }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, barrio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -373,12 +480,10 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            calle: e.target.value.trimStart(),
-                          }))
-                        }
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
                       />
                     </div>
                   </div>

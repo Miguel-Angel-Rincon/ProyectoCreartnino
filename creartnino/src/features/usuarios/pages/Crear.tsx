@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { useNavigate } from "react-router-dom";
+
 import '../style/acciones.css';
 import type { IUsuarios } from '../../interfaces/IUsuarios';
 
@@ -9,7 +9,7 @@ interface Props {
   onCrear: (nuevoUsuario: IUsuarios) => void;
 }
 
-const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
+const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   const [formData, setFormData] = useState<Omit<IUsuarios, 'IdUsuarios' | 'IdRolNavigation'>>({
     NombreCompleto: '',
     TipoDocumento: '',
@@ -33,7 +33,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
   // Roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string; Descripcion?: string }[]>([]);
 
-  const navigate = useNavigate();
+  
 
   // Departamentos
   useEffect(() => {
@@ -91,103 +91,201 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // ✅ Validaciones
-    if (!formData.NombreCompleto.trim()) {
-      return Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'El nombre completo es obligatorio.', confirmButtonColor: '#e83e8c' });
-    }
-    if (!formData.TipoDocumento) {
-      return Swal.fire({ icon: 'error', title: 'Tipo de documento', text: 'Selecciona un tipo de documento.', confirmButtonColor: '#e83e8c' });
-    }
-    if (!/^\d+$/.test(formData.NumDocumento)) {
-      return Swal.fire({ icon: 'error', title: 'Documento inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
-    }
-    if (!/^\d+$/.test(formData.Celular)) {
-      return Swal.fire({ icon: 'error', title: 'Celular inválido', text: 'Solo se permiten números.', confirmButtonColor: '#e83e8c' });
-    }
-    if (!formData.Correo.includes('@')) {
-      return Swal.fire({ icon: 'error', title: 'Correo inválido', text: 'Por favor ingresa un correo válido.', confirmButtonColor: '#e83e8c' });
-    }
-    if (!formData.Contrasena.trim()) {
-      return Swal.fire({ icon: 'error', title: 'Contraseña requerida', text: 'La contraseña es obligatoria.', confirmButtonColor: '#e83e8c' });
-    }
+  const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
 
-    // 🔒 Validación de contraseña segura
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    if (!passwordRegex.test(formData.Contrasena)) {
+  // 🔹 Funciones de validación reutilizables
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.6) => {
+    const specialCount = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specialCount / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => {
+    const uniqueChars = new Set(s).size;
+    return uniqueChars < minUnique;
+  };
+
+  // ✅ Nombre
+  const nombre = formData.NombreCompleto.trim();
+  const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
+  if (!nombre) {
+    return Swal.fire({ icon: "error", title: "Nombre requerido", text: "El nombre completo es obligatorio.", confirmButtonColor: "#e83e8c" });
+  }
+  if (!nombreRegex.test(nombre)) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre solo puede contener letras y espacios.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(nombre) || hasLongRepeatSequence(nombre) || isOnlySpecialChars(nombre) || hasTooManySpecialChars(nombre) || hasLowVariety(nombre)) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre no puede ser repetitivo, de baja variedad ni solo caracteres especiales.", confirmButtonColor: "#e83e8c" });
+  }
+  if (nombre.length < 3 || nombre.length > 100) {
+    return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Tipo documento
+  if (!formData.TipoDocumento) {
+    return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Documento
+  const numDoc = formData.NumDocumento.trim();
+  if (!/^\d+$/.test(numDoc)) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
+  }
+  if (numDoc.length < 8 || numDoc.length > 12) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "Debe tener entre 8 y 11 dígitos.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(numDoc) || hasLongRepeatSequence(numDoc) || hasLowVariety(numDoc)) {
+    return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Celular
+  const celular = formData.Celular.trim();
+  if (!/^\d+$/.test(celular)) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
+  }
+  if (celular.length !== 10) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "Debe tener 10 dígitos.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(celular) || hasLongRepeatSequence(celular) || hasLowVariety(celular)) {
+    return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Correo
+  const correo = formData.Correo.trim();
+  const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!correoRegex.test(correo)) {
+    return Swal.fire({ icon: "error", title: "Correo inválido", text: "Por favor ingresa un correo válido.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(correo) || hasLongRepeatSequence(correo) || isOnlySpecialChars(correo) || hasTooManySpecialChars(correo) || hasLowVariety(correo)) {
+    return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Dirección
+  const direccion = formData.Direccion?.trim() || "";
+  if (!direccion) {
+    return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#e83e8c" });
+  }
+  if (direccion.length < 5 || direccion.length > 100) {
+    return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección debe tener entre 5 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
+  }
+  if (isAllSameChar(direccion) || hasLongRepeatSequence(direccion) || isOnlySpecialChars(direccion) || hasTooManySpecialChars(direccion) || hasLowVariety(direccion)) {
+    return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Contraseña
+  const pwd = formData.Contrasena.trim();
+  if (!pwd) {
+    return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
+  }
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  if (!passwordRegex.test(pwd)) {
+    return Swal.fire({
+      icon: "error",
+      title: "Contraseña inválida",
+      html: "Debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial",
+      confirmButtonColor: "#e83e8c"
+    });
+  }
+  if (isAllSameChar(pwd) || hasLongRepeatSequence(pwd) || hasLowVariety(pwd)) {
+    return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Rol
+  if (!formData.IdRol) {
+    return Swal.fire({ icon: "error", title: "Rol requerido", text: "Selecciona un rol.", confirmButtonColor: "#e83e8c" });
+  }
+
+  // ✅ Departamento/Ciudad
+  if (formData.Departamento && ciudades.length && !formData.Ciudad) {
+    return Swal.fire({ icon: "error", title: "Ciudad no seleccionada", text: "Seleccione una ciudad.", confirmButtonColor: "#e83e8c" });
+  }
+
+  try {
+    // Crear usuario
+    const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await resp.json(); // 👈 para leer mensaje backend
+
+    if (!resp.ok) {
       return Swal.fire({
-        icon: 'error',
-        title: 'Contraseña inválida',
-        html: 'La contraseña debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial',
-        confirmButtonColor: '#e83e8c'
-      });
-    }
-
-    if (!formData.IdRol) {
-      return Swal.fire({ icon: 'error', title: 'Rol requerido', text: 'Selecciona un rol.', confirmButtonColor: '#e83e8c' });
-    }
-    if (formData.Departamento && ciudades.length && !formData.Ciudad) {
-      return Swal.fire({ icon: 'error', title: 'Ciudad no seleccionada', text: 'Seleccione una ciudad.', confirmButtonColor: '#e83e8c' });
-    }
-
-    try {
-      // Crear usuario
-      const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      // 👇 Si el rol es 4 también se crea cliente
-      if (formData.IdRol === 4) {
-        const clientePayload = {
-          NombreCompleto: formData.NombreCompleto,
-          TipoDocumento: formData.TipoDocumento,
-          NumDocumento: formData.NumDocumento,
-          Correo: formData.Correo,
-          Celular: formData.Celular,
-          Departamento: formData.Departamento,
-          Ciudad: formData.Ciudad,
-          Direccion: formData.Direccion,
-          Estado: true,
-        };
-
-        const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(clientePayload),
-        });
-
-        if (!clienteResp.ok) throw new Error("Error al crear el cliente");
-      }
-
-      // ✅ mensaje de éxito
-      await Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Usuario creado correctamente",
-        confirmButtonColor: "#e83e8c",
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-      });
-
-      onClose();
-      navigate("/usuario");
-
-    } catch (err) {
-      console.error("crearUsuario:", err);
-      Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo crear el usuario/cliente.",
+        text: data.message || "No se pudo crear el usuario porque el numero de documento o el correo ya existen.",
         confirmButtonColor: "#e83e8c",
       });
     }
-  };
+
+    // 👇 Si el rol es 4 también se crea cliente
+    if (formData.IdRol === 4) {
+      const clientePayload = {
+        NombreCompleto: formData.NombreCompleto,
+        TipoDocumento: formData.TipoDocumento,
+        NumDocumento: formData.NumDocumento,
+        Correo: formData.Correo,
+        Celular: formData.Celular,
+        Departamento: formData.Departamento,
+        Ciudad: formData.Ciudad,
+        Direccion: formData.Direccion,
+        Estado: true,
+      };
+
+      const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clientePayload),
+      });
+
+      const clienteData = await clienteResp.json();
+
+      if (!clienteResp.ok) {
+        return Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: clienteData.message || "No se pudo crear el cliente porque numero de documento o correo ya existe.",
+          confirmButtonColor: "#e83e8c",
+        });
+      }
+    }
+    
+
+    await Swal.fire({
+  icon: "success",
+  title: "Éxito",
+  text: "Usuario creado correctamente",
+  confirmButtonColor: "#e83e8c",
+  timerProgressBar: true,
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+});
+
+// 🔹 Notifica al padre para refrescar la lista
+onCrear(data);  
+
+// 🔹 Cierra el modal
+onClose();
+
+
+  } catch (err) {
+    console.error("crearUsuario:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Error de conexión con el servidor.",
+      confirmButtonColor: "#e83e8c",
+    });
+  }
+};
+
+
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -217,15 +315,20 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Número Documento</label>
-                  <input
-                    name="NumDocumento"
-                    className="form-control"
-                    value={formData.NumDocumento}
-                    onChange={handleChange}
-                    maxLength={11}
-                  />
-                </div>
+  <label className="form-label">🔢 Número Documento</label>
+  <input
+    name="NumDocumento"
+    className="form-control"
+    value={formData.NumDocumento}
+    maxLength={11}
+    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+  />
+</div>
+
 
                 <div className="col-md-12">
                   <label className="form-label">🙍 Nombre Completo</label>
@@ -233,7 +336,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="NombreCompleto"
                     className="form-control"
                     value={formData.NombreCompleto}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -243,8 +350,13 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
-                    onChange={handleChange}
-                    maxLength={11}
+                    max={10}
+                    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+                    maxLength={10}
                   />
                 </div>
 
@@ -255,7 +367,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                     name="Correo"
                     className="form-control"
                     value={formData.Correo}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                   />
                 </div>
 
@@ -267,7 +383,11 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       name="Contrasena"
                       className="form-control"
                       value={formData.Contrasena}
-                      onChange={handleChange}
+                     onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }}
                       placeholder="Mín. 8 caracteres, mayúscula, número y símbolo"
                     />
                     <button
@@ -368,7 +488,10 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value }))}
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, municipio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -376,7 +499,10 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value }))}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, barrio: value }));
+                      }}
                       />
                     </div>
                     <div className="mb-3">
@@ -384,7 +510,10 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose /*, onCrear*/ }) => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value }))}
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
                       />
                     </div>
                   </div>

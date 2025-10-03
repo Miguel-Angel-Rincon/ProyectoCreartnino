@@ -158,14 +158,9 @@ const ListarUsuarios: React.FC = () => {
 
   // =================== CREAR, EDITAR, VER ===================
   const handleCrear = async (_nuevoUsuario: IUsuarios) => {
-    setMostrarModal(false);
-    await obtenerUsuarios(); // 🔄 refrescar lista
-    Swal.fire({
-      icon: "success",
-      title: "Usuario creado correctamente",
-      confirmButtonColor: "#e83e8c",
-    });
-  };
+  await obtenerUsuarios(); // 🔄 refrescar
+};
+
 
   const handleVerUsuario = (usuario: IUsuarios) => {
     setUsuarioVer(usuario);
