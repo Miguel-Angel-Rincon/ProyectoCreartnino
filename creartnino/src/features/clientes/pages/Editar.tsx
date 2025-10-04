@@ -112,64 +112,138 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
 
   // 🔹 Validaciones + PUT
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+  if (isSubmitting) return;
+  setIsSubmitting(true);
 
-    try {
-      // Validaciones (idénticas al CrearClienteModal)
-      if (!/^\d{10}$/.test(formData.Celular)) {
-        Swal.fire({
-          icon: "error",
-          title: "Celular inválido",
-          text: "Debe contener exactamente 10 dígitos numéricos.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+  const REPEAT_THRESHOLD = 4;
 
-      if (!/^\d{6,15}$/.test(formData.NumDocumento)) {
-        Swal.fire({
-          icon: "error",
-          title: "Documento inválido",
-          text: "Debe tener entre 6 y 15 dígitos.",
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+  // 🔹 Funciones de validación reutilizables
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.6) => {
+    const specialCount = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specialCount / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
-      const resp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Actualizar/${formData.IdCliente}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  try {
+    // ✅ Nombre
+    const nombre = formData.NombreCompleto.trim();
+    const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
+    if (!nombre) {
+      return Swal.fire({ icon: "error", title: "Nombre requerido", text: "El nombre completo es obligatorio.", confirmButtonColor: "#f78fb3" });
+    }
+    if (!nombreRegex.test(nombre)) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre solo puede contener letras y espacios.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(nombre) || hasLongRepeatSequence(nombre) || isOnlySpecialChars(nombre) || hasTooManySpecialChars(nombre) || hasLowVariety(nombre)) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre no puede ser repetitivo, de baja variedad ni solo caracteres especiales.", confirmButtonColor: "#f78fb3" });
+    }
+    if (nombre.length < 3 || nombre.length > 100) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "Debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
+    }
 
-      if (resp.ok) {
-        const actualizado = await resp.json().catch(() => null);
-        onEditar(actualizado ?? formData);
-        onClose();
-        navigate("/clientes");
-      } else {
-        const msg = await resp.text();
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: msg || "Error al actualizar el cliente",
-          confirmButtonColor: "#f78fb3",
-        });
-      }
-    } catch (err) {
+    // ✅ Tipo documento
+    if (!formData.TipoDocumento) {
+      return Swal.fire({ icon: "error", title: "Tipo de documento requerido", text: "Selecciona un tipo de documento.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Documento
+    const numDoc = formData.NumDocumento.trim();
+    if (!/^\d+$/.test(numDoc)) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
+    }
+    if (numDoc.length < 6 || numDoc.length > 15) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "Debe tener entre 6 y 15 dígitos.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(numDoc) || hasLongRepeatSequence(numDoc) || hasLowVariety(numDoc)) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Celular
+    const celular = formData.Celular.trim();
+    if (!/^\d+$/.test(celular)) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
+    }
+    if (celular.length !== 10) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "Debe tener 10 dígitos.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(celular) || hasLongRepeatSequence(celular) || hasLowVariety(celular)) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Correo
+    const correo = formData.Correo.trim();
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoRegex.test(correo)) {
+      return Swal.fire({ icon: "error", title: "Correo inválido", text: "Por favor ingresa un correo válido.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(correo) || hasLongRepeatSequence(correo) || isOnlySpecialChars(correo) || hasTooManySpecialChars(correo) || hasLowVariety(correo)) {
+      return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Dirección
+    const direccion = formData.Direccion?.trim() || "";
+    if (!direccion) {
+      return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#f78fb3" });
+    }
+    if (direccion.length < 5 || direccion.length > 100) {
+      return Swal.fire({ icon: "error", title: "Dirección inválida", text: "Debe tener entre 5 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(direccion) || hasLongRepeatSequence(direccion) || isOnlySpecialChars(direccion) || hasTooManySpecialChars(direccion) || hasLowVariety(direccion)) {
+      return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Departamento y ciudad
+    if (!formData.Departamento) {
+      return Swal.fire({ icon: "error", title: "Departamento requerido", text: "Seleccione un departamento.", confirmButtonColor: "#f78fb3" });
+    }
+    if (!formData.Ciudad) {
+      return Swal.fire({ icon: "error", title: "Ciudad requerida", text: "Seleccione una ciudad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // 🚀 Actualizar cliente
+    const resp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Actualizar/${formData.IdCliente}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (resp.ok) {
+      const actualizado = await resp.json().catch(() => null);
       Swal.fire({
-        icon: "error",
-        title: "Error de conexión",
-        text: "No se pudo conectar con el servidor.",
+        icon: "success",
+        title: "Cliente actualizado correctamente",
         confirmButtonColor: "#f78fb3",
       });
-    } finally {
-      setIsSubmitting(false);
+      onEditar(actualizado ?? formData);
+      onClose();
+      navigate("/clientes");
+    } else {
+      const data = await resp.json().catch(() => ({}));
+      Swal.fire({
+        icon: "error",
+        title: "Error al actualizar",
+        text: data.message || "No se pudo actualizar el cliente. Verifique los datos.",
+        confirmButtonColor: "#f78fb3",
+      });
     }
-  };
+  } catch (err: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo conectar con el servidor.",
+      confirmButtonColor: "#f78fb3",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -199,18 +273,19 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🔢 Número de Documento</label>
-                  <input
-                    name="NumDocumento"
-                    className="form-control"
-                    value={formData.NumDocumento}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                  />
-                </div>
+  <label className="form-label">🔢 Número Documento</label>
+  <input
+    name="NumDocumento"
+    className="form-control"
+    value={formData.NumDocumento}
+    maxLength={11}
+    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+  />
+</div>
 
                 <div className="col-md-6">
                   <label className="form-label">🙍 Nombre Completo</label>
@@ -247,13 +322,16 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
+                    max={10}
                     onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+                    maxLength={10}
                   />
                 </div>
+
 
                 <div className="col-md-6">
                   <label className="form-label">🏞️ Departamento</label>

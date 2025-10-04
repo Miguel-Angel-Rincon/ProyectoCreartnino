@@ -120,44 +120,101 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-
   if (isSubmitting) return;
   setIsSubmitting(true);
 
-  try {
-    // ✅ Validaciones obligatorias
-    const camposObligatorios = [
-      "TipoDocumento",
-      "NumDocumento",
-      "NombreCompleto",
-      "Correo",
-      "Celular",
-      "Departamento",
-      "Ciudad",
-      "Direccion",
-    ];
+  const REPEAT_THRESHOLD = 4;
 
-    for (const campo of camposObligatorios) {
-      if (
-        !formData[campo as keyof typeof formData] ||
-        (formData[campo as keyof typeof formData] as string).trim() === ""
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Campo obligatorio faltante",
-          text: `Por favor completa el campo: ${campo}.`,
-          confirmButtonColor: "#f78fb3",
-        });
-        return;
-      }
+  // 🔹 Funciones reutilizables
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.6) => {
+    const specialCount = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specialCount / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
+
+  try {
+    // ✅ Nombre
+    const nombre = formData.NombreCompleto.trim();
+    const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
+    if (!nombre) {
+      return Swal.fire({ icon: "error", title: "Nombre requerido", text: "El nombre completo es obligatorio.", confirmButtonColor: "#f78fb3" });
+    }
+    if (!nombreRegex.test(nombre)) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre solo puede contener letras y espacios.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(nombre) || hasLongRepeatSequence(nombre) || isOnlySpecialChars(nombre) || hasTooManySpecialChars(nombre) || hasLowVariety(nombre)) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre no puede ser repetitivo, de baja variedad ni solo caracteres especiales.", confirmButtonColor: "#f78fb3" });
+    }
+    if (nombre.length < 3 || nombre.length > 100) {
+      return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Buscar usuario en la lista
-    const listaResp = await fetch(`${APP_SETTINGS.apiUrl}Usuarios/Lista`);
-    if (!listaResp.ok) throw new Error("No se pudo obtener la lista de usuarios");
+    // ✅ Tipo documento
+    if (!formData.TipoDocumento) {
+      return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#f78fb3" });
+    }
 
-    const usuarios = await listaResp.json();
-    const usuarioExiste = usuarios.find(
+    // ✅ Documento
+    const numDoc = formData.NumDocumento.trim();
+    if (!/^\d+$/.test(numDoc)) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
+    }
+    if (numDoc.length < 8 || numDoc.length > 11) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "Debe tener entre 8 y 11 dígitos.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(numDoc) || hasLongRepeatSequence(numDoc) || hasLowVariety(numDoc)) {
+      return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Celular
+    const celular = formData.Celular.trim();
+    if (!/^\d+$/.test(celular)) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
+    }
+    if (celular.length !== 10) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "Debe tener 10 dígitos.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(celular) || hasLongRepeatSequence(celular) || hasLowVariety(celular)) {
+      return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Correo
+    const correo = formData.Correo.trim();
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoRegex.test(correo)) {
+      return Swal.fire({ icon: "error", title: "Correo inválido", text: "Por favor ingresa un correo válido.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(correo) || hasLongRepeatSequence(correo) || isOnlySpecialChars(correo) || hasTooManySpecialChars(correo) || hasLowVariety(correo)) {
+      return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Dirección
+    const direccion = formData.Direccion?.trim() || "";
+    if (!direccion) {
+      return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#f78fb3" });
+    }
+    if (direccion.length < 5 || direccion.length > 100) {
+      return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección debe tener entre 5 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
+    }
+    if (isAllSameChar(direccion) || hasLongRepeatSequence(direccion) || isOnlySpecialChars(direccion) || hasTooManySpecialChars(direccion) || hasLowVariety(direccion)) {
+      return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Departamento / Ciudad
+    if (!formData.Departamento) {
+      return Swal.fire({ icon: "error", title: "Departamento requerido", text: "Seleccione un departamento.", confirmButtonColor: "#f78fb3" });
+    }
+    if (formData.Departamento && !formData.Ciudad) {
+      return Swal.fire({ icon: "error", title: "Ciudad requerida", text: "Seleccione una ciudad.", confirmButtonColor: "#f78fb3" });
+    }
+
+    // ✅ Buscar si ya existe usuario o cliente
+    const listaUsuarios = await (await fetch(`${APP_SETTINGS.apiUrl}Usuarios/Lista`)).json();
+    const usuarioExiste = listaUsuarios.find(
       (u: any) =>
         u.Correo.toLowerCase() === formData.Correo.toLowerCase() ||
         u.NumDocumento === formData.NumDocumento
@@ -166,7 +223,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     let clientePayload;
 
     if (!usuarioExiste) {
-      // 🚀 Usuario no existe → crear usuario con contraseña random
+      // 🔹 Crear usuario básico con contraseña aleatoria
       const usuarioPayload = {
         TipoDocumento: formData.TipoDocumento,
         NumDocumento: formData.NumDocumento,
@@ -188,86 +245,55 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       });
 
       if (!crearUsuarioResp.ok) {
-        const msg = await crearUsuarioResp.text();
-        throw new Error(msg || "No se pudo crear el usuario");
+        const data = await crearUsuarioResp.json().catch(() => ({}));
+        throw new Error(data.message || "No se pudo crear el usuario: el correo o documento ya existen.");
       }
 
       clientePayload = { ...usuarioPayload };
     } else {
-      // 🚀 Usuario ya existe → actualizar datos (mantener contraseña)
-      const usuarioActualizado = {
-        ...usuarioExiste,
-        TipoDocumento: formData.TipoDocumento,
-        NumDocumento: formData.NumDocumento,
-        NombreCompleto: formData.NombreCompleto,
-        Celular: formData.Celular,
-        Departamento: formData.Departamento,
-        Ciudad: formData.Ciudad,
-        Direccion: formData.Direccion,
-        Correo: formData.Correo,
-        Contrasena: usuarioExiste.Contrasena,
-        Estado: true,
-        IdRol: 4,
-      };
-
-      const actualizarUsuarioResp = await fetch(
-        `${APP_SETTINGS.apiUrl}Usuarios/Actualizar/${usuarioExiste.IdUsuarios}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(usuarioActualizado),
-        }
-      );
-
-      if (!actualizarUsuarioResp.ok) {
-        const msg = await actualizarUsuarioResp.text();
-        throw new Error(msg || "No se pudo actualizar el usuario");
-      }
-
-      clientePayload = { ...usuarioActualizado };
+      clientePayload = { ...usuarioExiste, ...formData };
     }
 
-    // ✅ Antes de crear cliente → validar si ya existe
-    const listaClientesResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`);
-    if (!listaClientesResp.ok) throw new Error("No se pudo obtener la lista de clientes");
-
-    const clientes = await listaClientesResp.json();
-    const clienteExiste = clientes.find(
+    // ✅ Validar si ya existe el cliente
+    const listaClientes = await (await fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`)).json();
+    const clienteExiste = listaClientes.find(
       (c: any) =>
         c.Correo.toLowerCase() === clientePayload.Correo.toLowerCase() ||
         c.NumDocumento === clientePayload.NumDocumento
     );
 
     if (clienteExiste) {
-      Swal.fire({
+      return Swal.fire({
         icon: "info",
         title: "Cliente ya registrado",
         text: "El cliente ya existe en el sistema, no es necesario crearlo de nuevo.",
         confirmButtonColor: "#f78fb3",
       });
-    } else {
-      // 🚀 Crear cliente
-      const clienteResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Crear`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(clientePayload),
-      });
-
-      if (clienteResp.ok) {
-        const creado = await clienteResp.json().catch(() => null);
-        onCrear(creado ?? (clientePayload as IClientes));
-        onClose();
-        navigate("/clientes");
-      } else {
-        const msg = await clienteResp.text();
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: msg || "Error al registrar el cliente",
-          confirmButtonColor: "#f78fb3",
-        });
-      }
     }
+
+    // 🚀 Crear cliente
+    const clienteResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Crear`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(clientePayload),
+    });
+
+    const clienteData = await clienteResp.json().catch(() => ({}));
+
+    if (!clienteResp.ok) {
+      throw new Error(clienteData.message || "No se pudo registrar el cliente: el correo o documento ya existen.");
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Cliente creado correctamente",
+      confirmButtonColor: "#f78fb3",
+    });
+
+    onCrear(clienteData);
+    onClose();
+    navigate("/clientes");
+
   } catch (err: any) {
     Swal.fire({
       icon: "error",
@@ -312,21 +338,19 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">
-                    🔢 Número de Documento <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    name="NumDocumento"
-                    className="form-control"
-                    value={formData.NumDocumento}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                    required
-                  />
-                </div>
+  <label className="form-label">🔢 Número Documento</label>
+  <input
+    name="NumDocumento"
+    className="form-control"
+    value={formData.NumDocumento}
+    maxLength={11}
+    onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+  />
+</div>
 
                 <div className="col-md-6">
                   <label className="form-label">
@@ -364,19 +388,18 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">
-                    📱 Celular <span className="text-danger">*</span>
-                  </label>
+                  <label className="form-label">📱 Celular</label>
                   <input
                     name="Celular"
                     className="form-control"
                     value={formData.Celular}
+                    max={10}
                     onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                    required
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }}
+                    maxLength={10}
                   />
                 </div>
 
