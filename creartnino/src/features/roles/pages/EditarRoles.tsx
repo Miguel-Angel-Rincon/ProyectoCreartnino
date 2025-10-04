@@ -253,7 +253,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
               {/* Campos de edición */}
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🏷️ Nombre del Rol *</label>
+                  <label className="form-label">🏷️ Nombre del Rol <span className="text-danger">*</span></label>
                   <input
                     className="form-control"
                     value={nombre}
@@ -274,7 +274,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
                 </div>
 
                 <div className="col-md-12">
-                  <label className="form-label">🔐 Permisos *</label>
+                  <label className="form-label">🔐 Permisos <span className="text-danger">*</span></label>
                   {cargandoPermisos ? (
                     <small className="text-muted">Cargando permisos...</small>
                   ) : (

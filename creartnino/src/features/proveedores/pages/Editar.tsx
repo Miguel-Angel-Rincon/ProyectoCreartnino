@@ -137,78 +137,173 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
   // validaciones (adaptadas: ya no se requiere CP)
   const validarCamposObligatorios = (): boolean => {
-    const camposObligatorios =
-      formData.TipoPersona === "Jurídica"
-        ? ["TipoPersona", "TipoDocumento", "NumDocumento", "NombreCompleto", "Celular", "Departamento", "Ciudad", "Direccion"]
-        : ["TipoPersona", "TipoDocumento", "NumDocumento", "NombreCompleto", "Celular", "Departamento", "Ciudad", "Direccion"];
-
-    for (const campo of camposObligatorios) {
-      const valor = (formData as any)[campo];
-      if (valor === undefined || valor === null || (typeof valor === "string" && valor.trim() === "")) {
-        Swal.fire({
-          icon: "warning",
-          title: "Campo obligatorio faltante",
-          text: `Por favor completa el campo: ${campo}.`,
-          confirmButtonColor: "#f78fb3",
-        });
-        return false;
-      }
-    }
-
-    if (!/^\d{10}$/.test(formData.Celular)) {
-      Swal.fire({
-        icon: "error",
-        title: "Celular inválido",
-        text: "Debe contener exactamente 10 dígitos numéricos.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return false;
-    }
-
-    if (!/^\d{6,15}$/.test(formData.NumDocumento)) {
-      Swal.fire({
-        icon: "error",
-        title: "Documento inválido",
-        text: "Debe tener entre 6 y 15 dígitos.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return false;
-    }
-
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.NombreCompleto)) {
-      Swal.fire({
-        icon: "error",
-        title: "Nombre inválido",
-        text: "Solo letras y espacios.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return false;
-    }
-
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(formData.Ciudad)) {
-      Swal.fire({
-        icon: "error",
-        title: "Ciudad inválida",
-        text: "Solo letras.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return false;
-    }
-
-    // La dirección debe venir del submodal (3 partes separadas por coma)
-    const partesDireccion = (formData.Direccion ?? "").split(",").map((p) => p.trim()).filter(Boolean);
-    if (partesDireccion.length < 3) {
-      Swal.fire({
-        icon: "error",
-        title: "Dirección inválida",
-        text: "Ingresa la dirección desde el submodal (Municipio, Barrio y Calle/Carrera).",
-        confirmButtonColor: "#f78fb3",
-      });
-      return false;
-    }
-
-    return true;
+  // 🔹 Funciones auxiliares de validación
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = 4) => new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.6) => {
+    const specialCount = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specialCount / s.length > maxPercent;
   };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
+
+  // 🔸 Campos obligatorios
+  const camposObligatorios =
+    formData.TipoPersona === "Jurídica"
+      ? ["TipoPersona", "TipoDocumento", "NumDocumento", "NombreCompleto", "Celular", "Departamento", "Ciudad", "Direccion"]
+      : ["TipoPersona", "TipoDocumento", "NumDocumento", "NombreCompleto", "Celular", "Departamento", "Ciudad", "Direccion"];
+
+  for (const campo of camposObligatorios) {
+    const valor = (formData as any)[campo];
+    if (valor === undefined || valor === null || (typeof valor === "string" && valor.trim() === "")) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campo obligatorio faltante",
+        text: `Por favor completa el campo: ${campo}.`,
+        confirmButtonColor: "#f78fb3",
+      });
+      return false;
+    }
+  }
+
+  // ✅ Validar celular
+  const celular = formData.Celular?.trim() ?? "";
+  if (!/^\d{10}$/.test(celular)) {
+    Swal.fire({
+      icon: "error",
+      title: "Celular inválido",
+      text: "Debe contener exactamente 10 dígitos numéricos.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+  if (isAllSameChar(celular) || hasLongRepeatSequence(celular) || hasLowVariety(celular)) {
+    Swal.fire({
+      icon: "error",
+      title: "Celular inválido",
+      text: "No puede contener dígitos repetitivos o baja variedad.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+
+  // ✅ Validar número de documento
+  const numDoc = formData.NumDocumento?.trim() ?? "";
+  if (!/^\d+$/.test(numDoc)) {
+    Swal.fire({
+      icon: "error",
+      title: "Documento inválido",
+      text: "Solo se permiten números.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+  if (
+    numDoc.length < 8 ||
+    numDoc.length > 12 ||
+    isAllSameChar(numDoc) ||
+    hasLongRepeatSequence(numDoc) ||
+    hasLowVariety(numDoc)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Documento inválido",
+      text: "Debe tener entre 8 y 11 dígitos y no ser repetitivo ni de baja variedad.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+
+  // ✅ Validar nombre completo
+  const nombre = formData.NombreCompleto?.trim() ?? "";
+  const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+  if (!nombreRegex.test(nombre)) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "Solo letras y espacios.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+  if (
+    nombre.length < 3 ||
+    nombre.length > 100 ||
+    isAllSameChar(nombre) ||
+    hasLongRepeatSequence(nombre) ||
+    isOnlySpecialChars(nombre) ||
+    hasTooManySpecialChars(nombre) ||
+    hasLowVariety(nombre)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "Debe tener entre 3 y 100 caracteres, sin repeticiones ni símbolos excesivos.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+
+  // ✅ Validar ciudad
+  const ciudad = formData.Ciudad?.trim() ?? "";
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(ciudad)) {
+    Swal.fire({
+      icon: "error",
+      title: "Ciudad inválida",
+      text: "Solo letras y espacios.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+  if (
+    ciudad.length < 2 ||
+    ciudad.length > 60 ||
+    isAllSameChar(ciudad) ||
+    hasLongRepeatSequence(ciudad) ||
+    hasLowVariety(ciudad)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Ciudad inválida",
+      text: "Debe tener entre 2 y 60 caracteres, sin repeticiones ni baja variedad.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+
+  // ✅ Validar dirección (debe venir del submodal)
+  const direccion = formData.Direccion?.trim() ?? "";
+  const partesDireccion = direccion.split(",").map((p) => p.trim()).filter(Boolean);
+  if (partesDireccion.length < 3) {
+    Swal.fire({
+      icon: "error",
+      title: "Dirección inválida",
+      text: "Ingresa la dirección desde el submodal (Municipio, Barrio y Calle/Carrera).",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+  if (
+    direccion.length < 5 ||
+    direccion.length > 100 ||
+    isAllSameChar(direccion) ||
+    hasLongRepeatSequence(direccion) ||
+    isOnlySpecialChars(direccion) ||
+    hasTooManySpecialChars(direccion) ||
+    hasLowVariety(direccion)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Dirección inválida",
+      text: "Debe tener entre 5 y 100 caracteres, sin repeticiones ni símbolos excesivos.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return false;
+  }
+
+  return true;
+};
+
 
   // submit -> PUT a Proveedores/Actualizar/{id}
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -295,17 +390,29 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
                 <div className="col-md-6">
                   <label className="form-label">{esJuridica ? "🔢 Número NIT" : "🔢 Número de Documento"} <span className="text-danger">*</span></label>
-                  <input className="form-control" name="NumDocumento" value={formData.NumDocumento} onChange={handleChange} required />
+                  <input className="form-control" name="NumDocumento" value={formData.NumDocumento} maxLength={11} onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }} required />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">{esJuridica ? "🏢 Nombre de la Empresa" : "🙍 Nombre Completo"} <span className="text-danger">*</span></label>
-                  <input className="form-control" name="NombreCompleto" value={formData.NombreCompleto} onChange={handleChange} required />
+                  <input className="form-control" name="NombreCompleto" value={formData.NombreCompleto} onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.trim() === "" && value !== "") return;
+                    handleChange(e);
+                  }} required />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
-                  <input className="form-control" name="Celular" value={formData.Celular} onChange={handleChange} required />
+                  <input className="form-control" name="Celular" value={formData.Celular} maxLength={10} onChange={(e) => {
+      // ✅ Solo números, sin espacios
+      e.target.value = e.target.value.replace(/\D/g, "");
+      handleChange(e);
+    }} required />
                 </div>
 
                 <div className="col-md-6">
@@ -358,7 +465,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio</label>
+                      <label>Municipio <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.municipio}
@@ -366,7 +473,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Barrio</label>
+                      <label>Barrio <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.barrio}
@@ -374,11 +481,14 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera</label>
+                      <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))}
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
                       />
                     </div>
                   </div>

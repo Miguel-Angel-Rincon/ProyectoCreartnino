@@ -300,7 +300,7 @@ onClose();
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label">🧾 Tipo Documento</label>
+                  <label className="form-label">🧾 Tipo Documento <span className="text-danger">*</span></label>
                   <select
                     name="TipoDocumento"
                     className="form-select"
@@ -315,7 +315,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento</label>
+  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
   <input
     name="NumDocumento"
     className="form-control"
@@ -331,7 +331,7 @@ onClose();
 
 
                 <div className="col-md-12">
-                  <label className="form-label">🙍 Nombre Completo</label>
+                  <label className="form-label">🙍 Nombre Completo <span className="text-danger">*</span></label>
                   <input
                     name="NombreCompleto"
                     className="form-control"
@@ -345,7 +345,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📱 Celular</label>
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
                   <input
                     name="Celular"
                     className="form-control"
@@ -361,7 +361,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📧 Correo</label>
+                  <label className="form-label">📧 Correo Electrónico<span className="text-danger">*</span></label>
                   <input
                     type="email"
                     name="Correo"
@@ -376,7 +376,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🔐 Contraseña</label>
+                  <label className="form-label">🔐 Contraseña <span className="text-danger">*</span></label>
                   <div className="input-group">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -402,7 +402,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏞️ Departamento</label>
+                  <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
                   <select
                     name="Departamento"
                     className="form-select"
@@ -417,7 +417,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏙️ Ciudad</label>
+                  <label className="form-label">🏙️ Ciudad <span className="text-danger">*</span></label>
                   <select
                     name="Ciudad"
                     className="form-select"
@@ -431,7 +431,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏡 Dirección</label>
+                  <label className="form-label">🏡 Dirección <span className="text-danger">*</span></label>
                   <input
                     name="Direccion"
                     className="form-control"
@@ -443,7 +443,7 @@ onClose();
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🛡️ Rol</label>
+                  <label className="form-label">🛡️ Rol <span className="text-danger">*</span></label>
                   <select
                     name="IdRol"
                     className="form-select"
@@ -484,7 +484,7 @@ onClose();
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio</label>
+                      <label>Municipio <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.municipio}
@@ -495,7 +495,7 @@ onClose();
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Barrio</label>
+                      <label>Barrio <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.barrio}
@@ -506,7 +506,7 @@ onClose();
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera</label>
+                      <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.calle}

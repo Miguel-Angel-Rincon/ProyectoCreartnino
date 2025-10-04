@@ -338,7 +338,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento</label>
+  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
   <input
     name="NumDocumento"
     className="form-control"
@@ -388,7 +388,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📱 Celular</label>
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
                   <input
                     name="Celular"
                     className="form-control"
@@ -484,7 +484,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio</label>
+                      <label>Municipio <span className="text-danger">*</span></label>
                       <input
                       className="form-control"
                       value={direccionData.municipio}
@@ -495,7 +495,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Barrio</label>
+                      <label>Barrio <span className="text-danger">*</span></label>
                       <input
                       className="form-control"
                       value={direccionData.barrio}
@@ -506,7 +506,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera</label>
+                      <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
                       className="form-control"
                       value={direccionData.calle}

@@ -259,7 +259,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
               <div className="row g-4">
                 {/* Campos iguales que en CrearClienteModal */}
                 <div className="col-md-6">
-                  <label className="form-label">🧾 Tipo de Documento</label>
+                  <label className="form-label">🧾 Tipo de Documento <span className="text-danger">*</span></label>
                   <select
                     name="TipoDocumento"
                     className="form-select"
@@ -273,7 +273,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento</label>
+  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
   <input
     name="NumDocumento"
     className="form-control"
@@ -288,7 +288,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🙍 Nombre Completo</label>
+                  <label className="form-label">🙍 Nombre Completo <span className="text-danger">*</span></label>
                   <input
                     name="NombreCompleto"
                     className="form-control"
@@ -302,7 +302,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📧 Correo Electrónico</label>
+                  <label className="form-label">📧 Correo Electrónico <span className="text-danger">*</span></label>
                   <input
                     type="email"
                     name="Correo"
@@ -317,7 +317,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">📱 Celular</label>
+                  <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
                   <input
                     name="Celular"
                     className="form-control"
@@ -334,7 +334,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
 
 
                 <div className="col-md-6">
-                  <label className="form-label">🏞️ Departamento</label>
+                  <label className="form-label">🏞️ Departamento <span className="text-danger">*</span></label>
                   <select
                     name="Departamento"
                     className="form-select"
@@ -350,7 +350,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏙️ Ciudad</label>
+                  <label className="form-label">🏙️ Ciudad <span className="text-danger">*</span></label>
                   <select
                     name="Ciudad"
                     className="form-select"
@@ -366,7 +366,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">🏡 Dirección</label>
+                  <label className="form-label">🏡 Dirección <span className="text-danger">*</span></label>
                   <input
                     name="Direccion"
                     className="form-control"
@@ -403,7 +403,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio</label>
+                      <label>Municipio <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.municipio}
@@ -413,7 +413,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Barrio</label>
+                      <label>Barrio <span className="text-danger">*</span></label>
                       <input
                       className="form-control"
                       value={direccionData.barrio}
@@ -426,7 +426,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                       />
                     </div>
                     <div className="mb-3">
-                      <label>Calle / Carrera</label>
+                      <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.calle}
