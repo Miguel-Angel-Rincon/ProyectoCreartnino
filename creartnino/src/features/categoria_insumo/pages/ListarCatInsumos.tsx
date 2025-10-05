@@ -22,6 +22,7 @@ const ListarCatInsumos: React.FC = () => {
   const [categoriaEditar, setCategoriaEditar] = useState<ICatInsumos | null>(null);
   const [mostrarVerModal, setMostrarVerModal] = useState(false);
   const [categoriaVer, setCategoriaVer] = useState<ICatInsumos | null>(null);
+  
 
   // --- Construcción de URL base ---
   const apiBaseRaw =
@@ -311,6 +312,7 @@ const ListarCatInsumos: React.FC = () => {
       {mostrarModal && (
         <CrearCategoriaModal
           onClose={() => setMostrarModal(false)}
+          categorias={categorias}
           onCrear={async (nuevaCategoria: any) => {
             try {
               if (nuevaCategoria && nuevaCategoria.IdCategoriaInsumo) {
@@ -331,6 +333,7 @@ const ListarCatInsumos: React.FC = () => {
       {mostrarEditarModal && categoriaEditar && (
         <EditarICatInsumosModal
           categoria={categoriaEditar}
+          categorias={categorias}
           onClose={() => setMostrarEditarModal(false)}
           onEditar={async (categoriaActualizada: any) => {
             try {

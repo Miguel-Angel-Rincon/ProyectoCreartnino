@@ -306,6 +306,7 @@ const ListarCatProductos: React.FC = () => {
       {/* Modal Crear */}
       {mostrarModal && (
         <CrearCategoriaModal
+          categorias={categorias} // 👈 AQUI
           onClose={() => setMostrarModal(false)}
           onCrear={handleCrear}
         />
@@ -314,6 +315,7 @@ const ListarCatProductos: React.FC = () => {
       {/* Modal Editar */}
       {mostrarEditarModal && categoriaEditar && (
         <EditarCategoriaProductoModal
+          categorias={categorias} 
           categoria={categoriaEditar}
           onClose={() => setMostrarEditarModal(false)}
           onEditar={handleActualizarCategoria}
