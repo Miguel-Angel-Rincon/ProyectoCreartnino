@@ -10,9 +10,10 @@ interface Props {
   insumo: IInsumos;
   onClose: () => void;
   onEditar: () => void; // 👈 refresca lista en el padre
+  insumos: IInsumos[]; // 👈 lista completa de insumos para validación
 }
 
-const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
+const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos }) => {
   const [formData, setFormData] = useState<IInsumos>(insumo);
   const [precioTexto, setPrecioTexto] = useState("");
   const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
@@ -91,67 +92,143 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
   // --- Editar insumo ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // ✅ Validaciones
-    if (formData.Cantidad < 0 || formData.Cantidad > 9999) {
-      Swal.fire({
-        icon: "error",
-        title: "❌ Cantidad inválida",
-        text: "La cantidad debe estar entre 0 y 9999.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return;
-    }
-
-    if (formData.PrecioUnitario <= 0 || formData.PrecioUnitario > 9999999) {
-      Swal.fire({
-        icon: "error",
-        title: "❌ Precio inválido",
-        text: "El precio debe estar entre 1 y 9.999.999.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return;
-    }
-
-    if (!formData.UnidadesMedidas) {
-      Swal.fire({
-        icon: "error",
-        title: "❌ Unidad de medida requerida",
-        text: "Debes seleccionar una unidad de medida.",
-        confirmButtonColor: "#f78fb3",
-      });
-      return;
-    }
-
-    try {
-      const resp = await fetch(buildUrl(`Insumos/Actualizar/${formData.IdInsumo}`), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Insumo actualizado correctamente.",
-        confirmButtonColor: "#f78fb3",
-      });
-
-      onEditar(); // refresca lista en el padre
-      onClose();
-    } catch (err) {
-      console.error("editarInsumo:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo editar el insumo.",
-        confirmButtonColor: "#f78fb3",
-      });
-    }
+  // 🔹 Funciones auxiliares de validación
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = 4) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.5) => {
+    const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specials / s.length > maxPercent;
   };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
+
+  const nombre = formData.Nombre?.trim() ?? "";
+
+  // ✅ Validación: campos requeridos
+  if (!nombre) {
+    Swal.fire({
+      icon: "warning",
+      title: "Nombre requerido",
+      text: "El nombre del insumo no puede estar vacío.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Validar caracteres especiales
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Validar longitud, repeticiones, variedad...
+  if (
+    nombre.length < 3 ||
+    nombre.length > 50 ||
+    isAllSameChar(nombre) ||
+    hasLongRepeatSequence(nombre) ||
+    isOnlySpecialChars(nombre) ||
+    hasTooManySpecialChars(nombre) ||
+    hasLowVariety(nombre)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "Debe tener entre 3 y 50 caracteres, sin repeticiones, sin exceso de símbolos ni baja variedad.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Validación: duplicado (ignora mayúsculas y espacios)
+  const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
+  const existeDuplicado = insumos.some(
+    (i: IInsumos) =>
+      i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado &&
+      i.IdInsumo !== formData.IdInsumo
+  );
+
+  if (existeDuplicado) {
+    Swal.fire({
+      icon: "warning",
+      title: "Duplicado",
+      text: "Ya existe un insumo con ese nombre.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Validaciones de cantidad
+  if (formData.Cantidad < 0 || formData.Cantidad > 9999) {
+    Swal.fire({
+      icon: "error",
+      title: "❌ Cantidad inválida",
+      text: "La cantidad debe estar entre 0 y 9999.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Validaciones de precio
+  if (formData.PrecioUnitario <= 0 || formData.PrecioUnitario > 9999999) {
+    Swal.fire({
+      icon: "error",
+      title: "❌ Precio inválido",
+      text: "El precio debe estar entre 1 y 9.999.999.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // ✅ Unidad de medida
+  if (!formData.UnidadesMedidas) {
+    Swal.fire({
+      icon: "error",
+      title: "❌ Unidad de medida requerida",
+      text: "Debes seleccionar una unidad de medida.",
+      confirmButtonColor: "#f78fb3",
+    });
+    return;
+  }
+
+  // 🚀 Si pasa todas las validaciones, proceder con la actualización
+  try {
+    const resp = await fetch(buildUrl(`Insumos/Actualizar/${formData.IdInsumo}`), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    Swal.fire({
+      icon: "success",
+      title: "Éxito",
+      text: "Insumo actualizado correctamente.",
+      confirmButtonColor: "#f78fb3",
+    });
+
+    onEditar();
+    onClose();
+  } catch (err) {
+    console.error("editarInsumo:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo editar el insumo.",
+      confirmButtonColor: "#f78fb3",
+    });
+  }
+};
+
 
   return (
     <div className="modal d-block pastel-overlay" tabIndex={-1}>
@@ -223,20 +300,48 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
 
                 {/* Cantidad */}
                 <div className="col-md-6">
-                  <label className="form-label">
-                    🔢 Cantidad <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="Cantidad"
-                    value={formData.Cantidad}
-                    min={0}   // ✅ ahora permite 0
-                    max={9999}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+  <label className="form-label">
+    🔢 Cantidad <span className="text-danger">*</span>
+  </label>
+  <input
+    type="number"
+    className="form-control"
+    name="Cantidad"
+    value={formData.Cantidad}
+    min={0}   // ✅ permite 0
+    max={9999}
+    required
+    onKeyDown={(e) => {
+      // 🚫 Bloquea escribir "-", "+", "e", "E"
+      if (["e", "E", "+", "-"].includes(e.key)) {
+        e.preventDefault();
+      }
+    }}
+    onPaste={(e) => {
+      // 🚫 Bloquea pegar letras, signos o espacios
+      const pastedData = e.clipboardData.getData("text");
+      if (!/^\d*$/.test(pastedData)) {
+        e.preventDefault();
+      }
+    }}
+    onInput={(e) => {
+      const input = e.currentTarget;
+      const value = parseInt(input.value, 10);
+
+      // ✅ No permitir más de 9999
+      if (value > 9999) {
+        input.value = "9999";
+      }
+
+      // ✅ Si no es número (vacío o inválido), limpiar
+      if (isNaN(value)) {
+        input.value = "";
+      }
+    }}
+    onChange={handleChange}
+  />
+</div>
+
 
                 {/* Precio Unitario */}
                 <div className="col-md-6">
@@ -250,7 +355,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar }) => {
                       inputMode="numeric"
                       className="form-control"
                       name="PrecioUnitario"
-                      placeholder="Ej: 15000"
+                      placeholder="Ej: 15.000"
                       value={precioTexto}
                       onChange={handleChange}
                       required

@@ -368,6 +368,7 @@ const ListarInsumos: React.FC = () => {
       {/* Crear */}
       {mostrarModal && (
         <CrearInsumoModal
+          insumos={insumos}
           onClose={() => setMostrarModal(false)}
           onCrear={async () => {
             await obtenerInsumos();
@@ -380,6 +381,7 @@ const ListarInsumos: React.FC = () => {
       {/* Editar */}
       {mostrarEditarModal && insumoEditar && (
         <EditarInsumoModal
+          insumos={insumos}
           insumo={insumoEditar}
           onClose={() => setMostrarEditarModal(false)}
           onEditar={async () => {
