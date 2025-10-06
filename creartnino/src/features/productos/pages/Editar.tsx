@@ -81,7 +81,22 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     return () => clearTimeout(delay);
   }, [imagenPersonalURL]);
 
-  
+  // 🔹 Mostrar precio formateado en COP al abrir el modal
+useEffect(() => {
+  if (producto?.Precio) {
+    const numero = Number(producto.Precio);
+    if (!isNaN(numero)) {
+      const formatoCOP = new Intl.NumberFormat("es-CO", {
+        style: "decimal", // 👈 solo número, sin signo de moneda
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(numero);
+      setPrecio(formatoCOP.replace(/\s/g, "")); // 👈 elimina espacios extra
+    }
+  }
+}, [producto.Precio]);
+
+
 
   const validarURLImagen = (url: string): Promise<boolean> =>
     new Promise((resolve) => {
@@ -140,11 +155,99 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
   const cantidadNum = parseInt(cantidad);
   const precioNum = parseInt(precio.replace(/[.,\s]/g, ""));
+  const nombreTrim = nombre.trim();
 
+  // ==========================
+  // 🔹 VALIDACIONES DEL NOMBRE
+  // ==========================
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = 4) =>
+    new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.5) => {
+    const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specials / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
+
+  if (!nombreTrim) {
+    Swal.fire({
+      icon: "warning",
+      title: "Nombre requerido",
+      text: "El nombre del producto no puede estar vacío.",
+    });
+    return;
+  }
+
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombreTrim)) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).",
+    });
+    return;
+  }
+
+  if (
+    nombreTrim.length < 3 ||
+    nombreTrim.length > 50 ||
+    isAllSameChar(nombreTrim) ||
+    hasLongRepeatSequence(nombreTrim) ||
+    isOnlySpecialChars(nombreTrim) ||
+    hasTooManySpecialChars(nombreTrim) ||
+    hasLowVariety(nombreTrim)
+  ) {
+    Swal.fire({
+      icon: "error",
+      title: "Nombre inválido",
+      text: "Debe tener entre 3 y 50 caracteres, sin repeticiones, sin exceso de símbolos ni baja variedad.",
+    });
+    return;
+  }
+
+  // ==================================
+  // 🔹 VALIDAR NOMBRE DUPLICADO
+  // ==================================
+  try {
+    const resp = await axios.get(
+      "https://apicreartnino.somee.com/api/Productos/Lista"
+    );
+
+    const productosExistentes = resp.data || [];
+
+    const nombreNormalizado = nombreTrim
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, ""); // elimina acentos
+
+    const existeDuplicado = productosExistentes.some(
+      (p: any) =>
+        p.IdProducto !== producto.IdProducto && // 👈 ignora el actual
+        p.Nombre &&
+        p.Nombre.toLowerCase().replace(/\s+/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+          nombreNormalizado
+    );
+
+    if (existeDuplicado) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nombre duplicado",
+        text: "Ya existe otro producto con este nombre. Por favor, elige otro.",
+      });
+      return;
+    }
+  } catch (error) {
+    console.warn("No se pudo validar duplicados:", error);
+  }
+
+  // ==========================
+  // 🔹 VALIDACIONES NUMÉRICAS
+  // ==========================
   const camposValidos =
-  nombre.trim() && categoria && cantidadNum >= 0 && precioNum > 0;
+    nombreTrim && categoria && cantidadNum >= 0 && precioNum > 0;
 
-setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
+  setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
   setPrecioValido(!isNaN(precioNum) && precioNum > 0);
 
   if (!camposValidos) {
@@ -156,43 +259,43 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
     return;
   }
 
+  // ==========================
+  // 🔹 IMAGEN Y ACTUALIZACIÓN
+  // ==========================
   let urlImagen = imagenActualURL;
   let idImagen = producto.Imagen;
 
   // Subir imagen local a Cloudinary
   if (imagenLocal) {
-  const formData = new FormData();
-  formData.append("file", imagenLocal);
-  formData.append("upload_preset", "CreartNino");
+    const formData = new FormData();
+    formData.append("file", imagenLocal);
+    formData.append("upload_preset", "CreartNino");
+    formData.append("folder", "Productos");
 
-  // 👇 aquí especificas la carpeta
-  formData.append("folder", "Productos");
-
-  try {
-    const resCloud = await axios.post(
-      "https://api.cloudinary.com/v1_1/creartnino/image/upload",
-      formData
-    );
-
-    urlImagen = resCloud.data.secure_url; // URL de la imagen subida
-    console.log("Imagen subida:", urlImagen);
-  } catch {
-    Swal.fire({
-      icon: "error",
-      title: "Error al subir imagen",
-      text: "No se pudo subir la imagen a Cloudinary",
-    });
-    return;
+    try {
+      const resCloud = await axios.post(
+        "https://api.cloudinary.com/v1_1/creartnino/image/upload",
+        formData
+      );
+      urlImagen = resCloud.data.secure_url;
+      console.log("Imagen subida:", urlImagen);
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Error al subir imagen",
+        text: "No se pudo subir la imagen a Cloudinary.",
+      });
+      return;
+    }
   }
-}
 
-  // ✅ Si cambió la imagen, actualizar en tabla Imagenes_Productos (PUT)
+  // ✅ Si cambió la imagen, actualizar en tabla Imagenes_Productos
   if (urlImagen !== imagenActualURL) {
     try {
       const imgActualizada: IImagenesProductos = {
         IdImagen: producto.Imagen,
         Url: urlImagen,
-        Descripcion: nombre,
+        Descripcion: nombreTrim,
       };
 
       await axios.put(
@@ -200,23 +303,25 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
         imgActualizada
       );
 
-      idImagen = producto.Imagen; // se mantiene el mismo Id
+      idImagen = producto.Imagen;
     } catch (err) {
       console.error("Error actualizando imagen", err);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo actualizar la imagen",
+        text: "No se pudo actualizar la imagen.",
       });
       return;
     }
   }
 
-  // Guardar cambios del producto
+  // ==========================
+  // 🔹 ACTUALIZAR PRODUCTO
+  // ==========================
   const productoEditado: IProductos = {
     ...producto,
     CategoriaProducto: Number(categoria),
-    Nombre: nombre,
+    Nombre: nombreTrim,
     Imagen: idImagen,
     Cantidad: cantidadNum,
     Marca: producto.Marca ?? "CreartNino",
@@ -229,11 +334,13 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
       `https://apicreartnino.somee.com/api/Productos/Actualizar/${producto.IdProducto}`,
       productoEditado
     );
+
     Swal.fire({
       icon: "success",
       title: "Éxito",
       text: "Producto actualizado correctamente.",
     });
+
     onEditar(productoEditado);
     onClose();
   } catch (err) {
@@ -241,10 +348,11 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "No se pudo actualizar el producto",
+      text: "No se pudo actualizar el producto.",
     });
   }
 };
+
 
 
   const vistaPrevia =
@@ -263,14 +371,20 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
               <div className="row g-4">
                 {/* Nombre */}
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre <span className="text-danger">*</span></label>
-                  <input
-                    className="form-control"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value.replace(/\s/g, ""))}
-                    required
-                  />
-                </div>
+  <label className="form-label">
+    🛍️ Nombre <span className="text-danger">*</span>
+  </label>
+  <input
+    className="form-control"
+    value={nombre}
+    onChange={(e) => {
+      const valor = e.target.value.replace(/^\s+/, ""); // 🚫 quita espacios solo al inicio
+      setNombre(valor);
+    }}
+    required
+  />
+</div>
+
 
                 {/* Categoría */}
                 <div className="col-md-6">
@@ -340,9 +454,19 @@ setCantidadValida(!isNaN(cantidadNum) && cantidadNum >= 0);
                           : imagenPersonalURL
                       }
                       onChange={(e) => {
-                        setImagenPersonalURL(e.target.value);
-                        setImagenLocal(null);
-                      }}
+  const valor = e.target.value.replace(/\s+/g, ""); // 🚫 elimina todos los espacios
+  setImagenPersonalURL(valor);
+  setImagenLocal(null);
+}}
+
+onPaste={(e) => {
+  // 🚫 evita pegar texto con espacios
+  const pastedData = e.clipboardData.getData("text");
+  if (/\s/.test(pastedData)) {
+    e.preventDefault();
+  }
+}}
+
                       disabled={!!imagenLocal}
                     />
                     <label className="btn btn-outline-secondary btn-sm mb-0">

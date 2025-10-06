@@ -115,127 +115,223 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   // 🔹 Submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (enviando) return; // ⬅️ Evita doble click
-    setEnviando(true);
-
-    try {
-      const cantidadNum = parseInt(cantidad);
-      const precioNum = parseInt(precio.replace(/[.,\s]/g, ""));
-
-      const camposValidos =
-        nombre.trim() && categoria && cantidadNum > 0 && precioNum > 0;
-
-      setCantidadValida(!isNaN(cantidadNum) && cantidadNum > 0);
-      setPrecioValido(!isNaN(precioNum) && precioNum > 0);
-
-      if (!camposValidos) {
-        Swal.fire({
-          icon: "error",
-          title: "Datos inválidos",
-          text: "Todos los campos deben estar completos y mayores a cero.",
-        });
-        return;
-      }
-
-      let urlImagen = imagenPersonalURL;
-
-      // Subir imagen local a Cloudinary
-      if (imagenLocal) {
-  const formData = new FormData();
-  formData.append("file", imagenLocal);
-  formData.append("upload_preset", "CreartNino");
-
-  // 👇 aquí especificas la carpeta
-  formData.append("folder", "Productos");
+  if (enviando) return; // ⬅️ Evita doble envío
+  setEnviando(true);
 
   try {
-    const resCloud = await axios.post(
-      "https://api.cloudinary.com/v1_1/creartnino/image/upload",
-      formData
-    );
+    const cantidadNum = parseInt(cantidad);
+    const precioNum = parseInt(precio.replace(/[.,\s]/g, ""));
+    const nombreTrim = nombre.trim();
 
-    urlImagen = resCloud.data.secure_url; // URL de la imagen subida
-    console.log("Imagen subida:", urlImagen);
-  } catch {
-    Swal.fire({
-      icon: "error",
-      title: "Error al subir imagen",
-      text: "No se pudo subir la imagen a Cloudinary",
-    });
-    return;
-  }
-}
+    // ==========================
+    // 🔹 VALIDACIONES DEL NOMBRE
+    // ==========================
+    const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+    const hasLongRepeatSequence = (s: string, n = 4) =>
+      new RegExp(`(.)\\1{${n - 1},}`).test(s);
+    const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+    const hasTooManySpecialChars = (s: string, maxPercent = 0.5) => {
+      const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+      return specials / s.length > maxPercent;
+    };
+    const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
+    if (!nombreTrim) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nombre requerido",
+        text: "El nombre del producto no puede estar vacío.",
+      });
+      setEnviando(false);
+      return;
+    }
 
-      if (!urlImagen) {
-        Swal.fire({
-          icon: "warning",
-          title: "Imagen requerida",
-          text: "Debe subir o ingresar la URL de una imagen.",
-        });
-        return;
-      }
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombreTrim)) {
+      Swal.fire({
+        icon: "error",
+        title: "Nombre inválido",
+        text: "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).",
+      });
+      setEnviando(false);
+      return;
+    }
 
-      // Guardar imagen en API
-      let idImagen = 0;
-      try {
-        const nuevaImg: IImagenesProductos = {
-          Url: urlImagen,
-          Descripcion: nombre,
-        };
-        const resImg = await axios.post(
-          "https://apicreartnino.somee.com/api/Imagenes_Productos/Crear",
-          nuevaImg
-        );
-        idImagen = resImg.data.IdImagen;
-      } catch (err) {
-        console.error("Error guardando imagen", err);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo registrar la imagen",
-        });
-        return;
-      }
+    if (
+      nombreTrim.length < 3 ||
+      nombreTrim.length > 50 ||
+      isAllSameChar(nombreTrim) ||
+      hasLongRepeatSequence(nombreTrim) ||
+      isOnlySpecialChars(nombreTrim) ||
+      hasTooManySpecialChars(nombreTrim) ||
+      hasLowVariety(nombreTrim)
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Nombre inválido",
+        text: "Debe tener entre 3 y 50 caracteres, sin repeticiones, sin exceso de símbolos ni baja variedad.",
+      });
+      setEnviando(false);
+      return;
+    }
 
-      // Guardar producto en API
-      const nuevoProducto: IProductos = {
-        CategoriaProducto: Number(categoria),
-        Nombre: nombre,
-        Imagen: idImagen,
-        Cantidad: cantidadNum,
-        Marca: "CreartNino",
-        Precio: precioNum,
-        Estado: true,
-      };
-
-      await axios.post(
-        "https://apicreartnino.somee.com/api/Productos/Crear",
-        nuevoProducto
+    // ==================================
+    // 🔹 VALIDACIÓN DE NOMBRE DUPLICADO
+    // ==================================
+    try {
+      const resp = await axios.get(
+        "https://apicreartnino.somee.com/api/Productos/Lista"
       );
 
-      Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Producto creado correctamente",
-        
-      });
+      const productosExistentes = resp.data || [];
 
-      onCrear(nuevoProducto);
-      onClose();
+      const nombreNormalizado = nombreTrim
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, ""); // elimina acentos
+
+      const existeDuplicado = productosExistentes.some(
+        (p: any) =>
+          p.Nombre &&
+          p.Nombre.toLowerCase().replace(/\s+/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+            nombreNormalizado
+      );
+
+      if (existeDuplicado) {
+        Swal.fire({
+          icon: "warning",
+          title: "Nombre duplicado",
+          text: "Ya existe un producto con este nombre. Por favor, elige otro.",
+        });
+        setEnviando(false);
+        return;
+      }
+    } catch (error) {
+      console.warn("No se pudo validar duplicados:", error);
+      // No bloquea el flujo si falla la consulta
+    }
+
+    // ===========================
+    // 🔹 VALIDACIONES NUMÉRICAS
+    // ===========================
+    const camposValidos =
+      nombreTrim && categoria && cantidadNum > 0 && precioNum > 0;
+
+    setCantidadValida(!isNaN(cantidadNum) && cantidadNum > 0);
+    setPrecioValido(!isNaN(precioNum) && precioNum > 0);
+
+    if (!camposValidos) {
+      Swal.fire({
+        icon: "error",
+        title: "Datos inválidos",
+        text: "Todos los campos deben estar completos y mayores a cero.",
+      });
+      setEnviando(false);
+      return;
+    }
+
+    let urlImagen = imagenPersonalURL;
+
+    // 🖼️ Subir imagen local a Cloudinary
+    if (imagenLocal) {
+      const formData = new FormData();
+      formData.append("file", imagenLocal);
+      formData.append("upload_preset", "CreartNino");
+      formData.append("folder", "Productos");
+
+      try {
+        const resCloud = await axios.post(
+          "https://api.cloudinary.com/v1_1/creartnino/image/upload",
+          formData
+        );
+        urlImagen = resCloud.data.secure_url;
+        console.log("Imagen subida:", urlImagen);
+      } catch {
+        Swal.fire({
+          icon: "error",
+          title: "Error al subir imagen",
+          text: "No se pudo subir la imagen a Cloudinary",
+        });
+        setEnviando(false);
+        return;
+      }
+    }
+
+    if (!urlImagen) {
+      Swal.fire({
+        icon: "warning",
+        title: "Imagen requerida",
+        text: "Debe subir o ingresar la URL de una imagen.",
+      });
+      setEnviando(false);
+      return;
+    }
+
+    // ===========================
+    // 🔹 GUARDAR IMAGEN EN API
+    // ===========================
+    let idImagen = 0;
+    try {
+      const nuevaImg: IImagenesProductos = {
+        Url: urlImagen,
+        Descripcion: nombreTrim,
+      };
+      const resImg = await axios.post(
+        "https://apicreartnino.somee.com/api/Imagenes_Productos/Crear",
+        nuevaImg
+      );
+      idImagen = resImg.data.IdImagen;
     } catch (err) {
-      console.error("Error creando producto", err);
+      console.error("Error guardando imagen", err);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo registrar el producto",
+        text: "No se pudo registrar la imagen",
       });
-    } finally {
-      setEnviando(false); // ⬅️ Volvemos a habilitar botón
+      setEnviando(false);
+      return;
     }
-  };
+
+    // ===========================
+    // 🔹 GUARDAR PRODUCTO EN API
+    // ===========================
+    const nuevoProducto: IProductos = {
+      CategoriaProducto: Number(categoria),
+      Nombre: nombreTrim,
+      Imagen: idImagen,
+      Cantidad: cantidadNum,
+      Marca: "CreartNino",
+      Precio: precioNum,
+      Estado: true,
+    };
+
+    await axios.post(
+      "https://apicreartnino.somee.com/api/Productos/Crear",
+      nuevoProducto
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Éxito",
+      text: "Producto creado correctamente",
+    });
+
+    onCrear(nuevoProducto);
+    onClose();
+  } catch (err) {
+    console.error("Error creando producto", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo registrar el producto",
+    });
+  } finally {
+    setEnviando(false);
+  }
+};
+
 
   const vistaPrevia =
     imagenLocal ? URL.createObjectURL(imagenLocal) : imagenPersonalURL;
@@ -253,14 +349,20 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               <div className="row g-4">
                 {/* Nombre */}
                 <div className="col-md-6">
-                  <label className="form-label">🛍️ Nombre <span className="text-danger">*</span></label>
-                  <input
-                    className="form-control"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value.replace(/\s/g, ""))}
-                    required
-                  />
-                </div>
+  <label className="form-label">
+    🛍️ Nombre <span className="text-danger">*</span>
+  </label>
+  <input
+    className="form-control"
+    value={nombre}
+    onChange={(e) => {
+      const valor = e.target.value.replace(/^\s+/, ""); // 🚫 quita espacios solo al inicio
+      setNombre(valor);
+    }}
+    required
+  />
+</div>
+
 
                 {/* Categoría */}
                 <div className="col-md-6">
@@ -331,9 +433,19 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                           : imagenPersonalURL
                       }
                       onChange={(e) => {
-                        setImagenPersonalURL(e.target.value);
-                        setImagenLocal(null);
-                      }}
+  const valor = e.target.value.replace(/\s+/g, ""); // 🚫 elimina todos los espacios
+  setImagenPersonalURL(valor);
+  setImagenLocal(null);
+}}
+
+onPaste={(e) => {
+  // 🚫 evita pegar texto con espacios
+  const pastedData = e.clipboardData.getData("text");
+  if (/\s/.test(pastedData)) {
+    e.preventDefault();
+  }
+}}
+
                       disabled={!!imagenLocal}
                     />
                     <label className="btn btn-outline-secondary btn-sm mb-0">
