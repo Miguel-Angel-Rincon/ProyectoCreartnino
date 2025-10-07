@@ -24,12 +24,7 @@ interface CompraDetalle {
   subtotal?: number;
 }
 
-const getToday = () => {
-  const d = new Date();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${month}-${day}`;
-};
+
 
 const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const [proveedores, setProveedores] = useState<IProveedores[]>([]);
@@ -43,36 +38,75 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const [insumoQuery, setInsumoQuery] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const fechaCompra = getToday();
+  const [fechaCompra, setFechaCompra] = useState<string>(""); // ✅ antes era getToday()
+
 
   const buildApiUrl = (path: string) => {
     const base = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
     const p = path.replace(/^\/+/, "");
     return `${base}/${p}`;
   };
-
-  const normalizarTexto = (valor: string) => valor.replace(/\s+/g, " ").trim();
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [provRes, insuRes] = await Promise.all([
-          fetch(buildApiUrl("Proveedores/Lista")),
-          fetch(buildApiUrl("Insumos/Lista")),
-        ]);
-        if (!provRes.ok) throw new Error(`Proveedor: ${provRes.status}`);
-        if (!insuRes.ok) throw new Error(`Insumo: ${insuRes.status}`);
+  const fetchData = async () => {
+    try {
+      // 🔹 Llamadas simultáneas al backend
+      const [provRes, insuRes, fechaRes] = await Promise.all([
+        fetch(buildApiUrl("Proveedores/Lista")),
+        fetch(buildApiUrl("Insumos/Lista")),
+        fetch(buildApiUrl("Utilidades/FechaServidor")), // ✅ Nueva API para la fecha
+      ]);
 
-        setProveedores(await provRes.json());
-        setInsumos(await insuRes.json());
-      } catch (err: any) {
-        console.error("❌ Error al cargar datos:", err);
-        Swal.fire("Error", "No se pudieron cargar proveedores o insumos.", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+      // 🔹 Validar todas las respuestas
+      if (!provRes.ok) throw new Error(`Proveedor: ${provRes.status}`);
+      if (!insuRes.ok) throw new Error(`Insumo: ${insuRes.status}`);
+      if (!fechaRes.ok) throw new Error(`Fecha servidor: ${fechaRes.status}`);
+
+      // 🔹 Convertir a JSON
+      const [prov, insu, fecha] = await Promise.all([
+        provRes.json(),
+        insuRes.json(),
+        fechaRes.json(),
+      ]);
+
+      // 🔹 Asignar datos
+      setProveedores(prov);
+      setInsumos(insu);
+
+      // 🔹 Extraer y formatear la fecha del servidor (YYYY-MM-DD)
+      const fechaServidor = new Date(fecha.FechaServidor);
+      const fechaISO = fechaServidor.toISOString().split("T")[0];
+      setFechaCompra(fechaISO);
+    } catch (err: any) {
+      console.error("❌ Error al cargar datos:", err);
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar proveedores, insumos o fecha del servidor.",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
+let alertaMostrada = false;
+const mostrarAlertaInvalida = () => {
+  if (!alertaMostrada) {
+    alertaMostrada = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Entrada no válida",
+      text: "Solo se permiten letras y espacios. No use números ni caracteres especiales.",
+      timer: 2500,
+      showConfirmButton: false,
+    }).then(() => {
+      alertaMostrada = false;
+    });
+  }
+};
 
   const proveedoresFiltrados = proveedorBusqueda
     ? proveedores.filter((p) =>
@@ -81,11 +115,6 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
           .includes(proveedorBusqueda.toLowerCase())
       )
     : [];
-
-  const handleProveedorSelect = (p: IProveedores) => {
-    setProveedorIdSeleccionado(p.IdProveedor!);
-    setProveedorBusqueda(p.NombreCompleto ?? "");
-  };
 
   const agregarDetalle = () => {
     setDetalleCompra((prev) => [
@@ -168,96 +197,150 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
 
   // === Guardar compra y actualizar stock de insumos ===
   const handleSubmit = async () => {
-    if (submitting) return;
-    if (!proveedorIdSeleccionado) {
-      Swal.fire("⚠ Atención", "Debes seleccionar un proveedor válido.", "warning");
-      return;
-    }
-    if (!metodoPago) {
-      Swal.fire("⚠ Atención", "Selecciona un método de pago.", "warning");
-      return;
-    }
-    if (detalleCompra.length === 0) {
-      Swal.fire("⚠ Atención", "Debes agregar al menos un insumo.", "warning");
+  if (submitting) return;
+
+  // 🧾 Validar proveedor
+  if (!proveedorIdSeleccionado) {
+    Swal.fire("⚠ Atención", "Debes seleccionar un proveedor válido.", "warning");
+    return;
+  }
+
+  // 💳 Validar método de pago
+  if (!metodoPago) {
+    Swal.fire("⚠ Atención", "Selecciona un método de pago.", "warning");
+    return;
+  }
+
+  // 📅 Validar fecha de compra
+  if (!fechaCompra) {
+    Swal.fire("⚠ Atención", "No se pudo obtener la fecha de compra.", "warning");
+    return;
+  }
+
+  // 📦 Validar detalle
+  if (detalleCompra.length === 0) {
+    Swal.fire("⚠ Atención", "Debes agregar al menos un insumo.", "warning");
+    return;
+  }
+
+  // 🔍 Validar filas del detalle
+  const nombresInsumos = new Set<number>(); // para detectar duplicados
+
+  for (let i = 0; i < detalleCompra.length; i++) {
+    const item = detalleCompra[i];
+    const insumo = insumos.find((ins) => ins.Nombre === item.insumo);
+
+    if (!insumo || !item.idInsumo) {
+      Swal.fire(
+        "⚠ Error",
+        `Fila #${i + 1}: el insumo "${item.insumo || "(vacío)"}" no es válido.`,
+        "warning"
+      );
       return;
     }
 
-    for (let i = 0; i < detalleCompra.length; i++) {
-      const item = detalleCompra[i];
-      const existe = insumos.some((ins) => ins.Nombre === item.insumo);
-      if (!item.insumo || !existe || item.cantidad <= 0 || item.precio <= 0) {
-        Swal.fire(
-          "⚠ Error",
-          `Fila #${i + 1}: debes completar insumo, cantidad y precio válidos.`,
-          "warning"
-        );
-        return;
-      }
+    if (nombresInsumos.has(item.idInsumo)) {
+      Swal.fire(
+        "⚠ Error",
+        `El insumo "${item.insumo}" está duplicado. Verifica las filas.`,
+        "warning"
+      );
+      return;
     }
 
-    const payload = {
+    nombresInsumos.add(item.idInsumo);
+
+    if (item.cantidad <= 0) {
+      Swal.fire(
+        "⚠ Error",
+        `Fila #${i + 1}: la cantidad debe ser mayor que 0.`,
+        "warning"
+      );
+      return;
+    }
+
+    if (item.precio <= 0) {
+      Swal.fire(
+        "⚠ Error",
+        `Fila #${i + 1}: el precio debe ser mayor que 0.`,
+        "warning"
+      );
+      return;
+    }
+  }
+
+  // 💰 Validar total > 0
+  const total = calcularTotal();
+  if (total <= 0) {
+    Swal.fire("⚠ Atención", "El total de la compra debe ser mayor a 0.", "warning");
+    return;
+  }
+
+  // ✅ Payload final
+  const payload = {
+    IdCompra: 0,
+    IdProveedor: proveedorIdSeleccionado,
+    MetodoPago: metodoPago,
+    FechaCompra: fechaCompra,
+    Total: total,
+    IdEstado: 1,
+    DetallesCompras: detalleCompra.map((d) => ({
+      IdDetalleCompra: 0,
       IdCompra: 0,
-      IdProveedor: proveedorIdSeleccionado,
-      MetodoPago: metodoPago,
-      FechaCompra: fechaCompra,
-      Total: calcularTotal(),
-      IdEstado: 1,
-      DetallesCompras: detalleCompra.map((d) => ({
-        IdDetalleCompra: 0,
-        IdCompra: 0,
-        IdInsumo: d.idInsumo,
-        Cantidad: d.cantidad,
-        PrecioUnitario: d.precio,
-        Subtotal: d.subtotal,
-      })),
-    };
-
-    setSubmitting(true);
-    try {
-      // Crear compra
-      const resp = await fetch(buildApiUrl("Compras/Crear"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!resp.ok) throw new Error("Error al crear la compra");
-
-      const compraCreada = await resp.json();
-
-      // Actualizar stock de insumos
-      for (let detalle of detalleCompra) {
-        if (!detalle.idInsumo) continue;
-        const insumo = insumos.find((i) => i.IdInsumo === detalle.idInsumo);
-        if (!insumo) continue;
-
-        const nuevaCantidad = (insumo.Cantidad ?? 0) + detalle.cantidad;
-
-        await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
-        });
-      }
-
-      Swal.fire(
-        "Éxito",
-        "La compra y el stock de insumos se actualizaron correctamente.",
-        "success"
-      );
-      onCrear(compraCreada);
-      onClose();
-    } catch (err: any) {
-      console.error(err);
-      Swal.fire(
-        "❌ Error",
-        err.message || "No se pudo guardar la compra.",
-        "error"
-      );
-    } finally {
-      setSubmitting(false);
-    }
+      IdInsumo: d.idInsumo,
+      Cantidad: d.cantidad,
+      PrecioUnitario: d.precio,
+      Subtotal: d.subtotal,
+    })),
   };
+
+  setSubmitting(true);
+  try {
+    // 🛰 Crear compra
+    const resp = await fetch(buildApiUrl("Compras/Crear"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) throw new Error("Error al crear la compra");
+
+    const compraCreada = await resp.json();
+
+    // 🏷 Actualizar stock de insumos
+    for (let detalle of detalleCompra) {
+      if (!detalle.idInsumo) continue;
+      const insumo = insumos.find((i) => i.IdInsumo === detalle.idInsumo);
+      if (!insumo) continue;
+
+      const nuevaCantidad = (insumo.Cantidad ?? 0) + detalle.cantidad;
+
+      await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
+      });
+    }
+
+    Swal.fire(
+      "✅ Éxito",
+      "La compra y el stock de insumos se actualizaron correctamente.",
+      "success"
+    );
+    onCrear(compraCreada);
+    onClose();
+  } catch (err: any) {
+    console.error("❌ Error al guardar la compra:", err);
+    Swal.fire(
+      "❌ Error",
+      err.message || "No se pudo guardar la compra.",
+      "error"
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <div className="container-fluid pastel-contenido">
@@ -277,34 +360,52 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             <div className="col-md-4 position-relative">
               <label className="form-label">🧑 Proveedor *</label>
               <input
-                type="text"
-                className="form-control"
-                placeholder="Buscar proveedor..."
-                value={proveedorBusqueda}
-                onChange={(e) => {
-                  setProveedorBusqueda(normalizarTexto(e.target.value));
-                  setProveedorIdSeleccionado(null);
-                }}
-              />
-              {!proveedorIdSeleccionado &&
-                proveedorBusqueda &&
-                proveedoresFiltrados.length > 0 && (
-                  <ul
-                    className="list-group position-absolute w-100"
-                    style={{ zIndex: 1000 }}
-                  >
-                    {proveedoresFiltrados.map((p) => (
-                      <li
-                        key={p.IdProveedor}
-                        className="list-group-item list-group-item-action"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleProveedorSelect(p)}
-                      >
-                        {p.NombreCompleto}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+  type="text"
+  value={proveedorBusqueda}
+  placeholder="Buscar proveedor..."
+  onChange={(e) => {
+    let valor = e.target.value;
+
+    // permitir espacios intermedios, pero no al inicio ni doble consecutivo
+    valor = valor.replace(/^\s+/, ""); // sin espacio al inicio
+    valor = valor.replace(/\s{2,}/g, " "); // máximo un espacio entre palabras
+
+    // eliminar caracteres especiales o números
+    if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+      mostrarAlertaInvalida();
+      valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+    }
+
+    // limitar repeticiones tipo eeeee
+    valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+
+    setProveedorBusqueda(valor);
+    setProveedorIdSeleccionado(null);
+  }}
+  className="form-control"
+/>
+
+
+              {/* lista de sugerencias */}
+{!proveedorIdSeleccionado &&
+  proveedorBusqueda &&
+  proveedoresFiltrados.length > 0 && (
+    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+      {proveedoresFiltrados.map((p) => (
+        <li
+          key={p.IdProveedor}
+          className="list-group-item list-group-item-action"
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            setProveedorIdSeleccionado(p.IdProveedor!);
+            setProveedorBusqueda(p.NombreCompleto ?? ""); // ✅ así se muestra el nombre
+          }}
+        >
+          {p.NombreCompleto}
+        </li>
+      ))}
+    </ul>
+  )}
             </div>
             <div className="col-md-4">
               <label className="form-label">💳 Método de Pago *</label>
@@ -342,64 +443,124 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             </div>
 
             {detalleCompra.map((item, index) => {
-              const query = insumoQuery[index] ?? "";
-              const sugerencias =
-                query.length > 0
-                  ? insumos.filter((i) =>
-                      i.Nombre.toLowerCase().includes(query.toLowerCase())
-                    )
-                  : [];
 
               return (
                 <div
                   key={index}
                   className="row align-items-center mb-2 position-relative"
                 >
-                  <div className="col-md-3">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      placeholder="Buscar insumo..."
-                      value={query !== "" ? query : item.insumo}
-                      onChange={(e) =>
-                        handleInsumoQueryChange(index,normalizarTexto (e.target.value))
-                      }
-                    />
-                    {query && sugerencias.length > 0 && (
-                      <ul
-                        className="list-group position-absolute w-100"
-                        style={{ zIndex: 1000, top: "38px" }}
-                      >
-                        {sugerencias.map((i) => (
-                          <li
-                            key={i.IdInsumo}
-                            className="list-group-item list-group-item-action"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => seleccionarInsumo(index, i.Nombre)}
-                          >
-                            {i.Nombre} - $
-                            {(
-                              (i as any).PrecioUnitario ?? (i as any).Precio
-                            ).toLocaleString("es-CO")}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  <div className="col-md-2">
-                    <input
-    type="number"
+                  <div className="col-md-3 position-relative">
+  <input
+    type="text"
     className="form-control form-control-sm"
-    min={1}
-    step={1}
-    value={item.cantidad}
-    onChange={(e) => actualizarDetalle(index, "cantidad", e.target.value)}
-    onKeyDown={(e) => {
-      if (["e", "E", "+", "-", "."].includes(e.key)) {
-        e.preventDefault();
+    placeholder="Buscar insumo..."
+    value={insumoQuery[index] || item.insumo || ""}
+    onChange={(e) => {
+      let valor = e.target.value;
+
+      // permitir espacios intermedios pero no al inicio ni dobles
+      valor = valor.replace(/^\s+/, "");
+      valor = valor.replace(/\s{2,}/g, " ");
+
+      // bloquear caracteres especiales o números
+      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+        mostrarAlertaInvalida();
+        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
       }
+
+      // limitar repeticiones tipo eeeee
+      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+
+      handleInsumoQueryChange(index, valor);
     }}
   />
+
+  {insumoQuery[index] && (
+    <ul
+      className="list-group position-absolute w-100"
+      style={{ zIndex: 1000, top: "38px" }}
+    >
+      {insumos
+        // ✅ filtrar insumos que coincidan con la búsqueda
+        .filter(
+          (i) =>
+            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
+            // ✅ evitar duplicados ya seleccionados
+            !detalleCompra.some(
+              (d, di) => d.idInsumo === i.IdInsumo && di !== index
+            )
+        )
+        .map((i) => (
+          <li
+            key={i.IdInsumo}
+            className="list-group-item list-group-item-action"
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              // ✅ aplicar selección
+              seleccionarInsumo(index, i.Nombre);
+
+              // ✅ mostrar el nombre del insumo en el input
+              setInsumoQuery((prev) => {
+                const copy = [...prev];
+                copy[index] = i.Nombre;
+                return copy;
+              });
+
+              // ✅ ocultar la lista de sugerencias
+              setTimeout(() => {
+                setInsumoQuery((prev) => {
+                  const copy = [...prev];
+                  copy[index] = ""; // limpiar búsqueda visual
+                  return copy;
+                });
+              }, 200);
+            }}
+          >
+            {i.Nombre} – $
+            {(
+              (i as any).PrecioUnitario ?? (i as any).Precio
+            ).toLocaleString("es-CO")}
+          </li>
+        ))}
+    </ul>
+  )}
+</div>
+
+                  <div className="col-md-2">
+                    <input
+  type="number"
+  className="form-control form-control-sm"
+  min={1}
+  step={1}
+  value={item.cantidad}
+  onChange={(e) => {
+    let valor = e.target.value;
+
+    // ❌ Evita más de 4 cifras
+    if (valor.length > 4) return;
+
+    // ✅ Si borra todo, se mantiene en 1
+    if (valor === "" || Number(valor) < 1) {
+      valor = "1";
+    }
+
+    actualizarDetalle(index, "cantidad", valor);
+  }}
+  onKeyDown={(e) => {
+    // ❌ Bloquea letras, signos y punto
+    if (["e", "E", "+", "-", "."].includes(e.key)) {
+      e.preventDefault();
+    }
+  }}
+  onPaste={(e) => {
+    // ❌ Bloquea pegar texto no numérico o mayor a 9999
+    const pasted = e.clipboardData.getData("Text");
+    if (!/^\d+$/.test(pasted) || Number(pasted) < 1 || pasted.length > 4) {
+      e.preventDefault();
+    }
+  }}
+/>
+
 
                   </div>
                   <div className="col-md-2">

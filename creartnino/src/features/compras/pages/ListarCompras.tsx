@@ -37,16 +37,14 @@ const ListarCompras: React.FC = () => {
   const [compras, setCompras] = useState<ICompras[]>([]);
   const [proveedores, setProveedores] = useState<IProveedores[]>([]);
   const [insumos, setInsumos] = useState<IInsumos[]>([]);
-  const [estadosCompra, setEstadosCompra] = useState<
-    { IdEstado: number; NombreEstado: string }[]
-  >([]);
+  const [estadosCompra, setEstadosCompra] = useState<{ IdEstado: number; NombreEstado: string }[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarCrear, setMostrarCrear] = useState(false);
   const [mostrarVer, setMostrarVer] = useState(false);
-  const [compraSeleccionada, setCompraSeleccionada] = useState<ICompras | null>(
-    null
-  );
+  const [compraSeleccionada, setCompraSeleccionada] = useState<ICompras | null>(null);
+  const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
+
 
   const apiBase = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
   const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
@@ -371,18 +369,23 @@ const generarPDF = async (
 
   // --- Filtrar ---
   const comprasFiltradas = compras.filter((c) => {
-    const proveedor =
-      proveedores.find((p) => p.IdProveedor === c.IdProveedor)?.NombreCompleto ||
-      "";
-    const estadoObj = estadosCompra.find((e) => e.IdEstado === c.IdEstado);
-    const nombreEstado = estadoObj ? estadoObj.NombreEstado.toLowerCase() : "";
-    return (
-      proveedor.toLowerCase().includes(busqueda.toLowerCase()) ||
-      c.MetodoPago.toLowerCase().includes(busqueda.toLowerCase()) ||
-      new Date(c.FechaCompra).toLocaleDateString().includes(busqueda) ||
-      nombreEstado.includes(busqueda.toLowerCase())
-    );
-  });
+  const proveedor =
+    proveedores.find((p) => p.IdProveedor === c.IdProveedor)?.NombreCompleto || "";
+  const estadoObj = estadosCompra.find((e) => e.IdEstado === c.IdEstado);
+  const nombreEstado = estadoObj ? estadoObj.NombreEstado.toLowerCase() : "";
+
+  const coincideBusqueda =
+    proveedor.toLowerCase().includes(busqueda.toLowerCase()) ||
+    c.MetodoPago.toLowerCase().includes(busqueda.toLowerCase()) ||
+    new Date(c.FechaCompra).toLocaleDateString().includes(busqueda) ||
+    nombreEstado.includes(busqueda.toLowerCase());
+
+  const coincideEstado =
+    filtroEstado === "Todos" || nombreEstado === filtroEstado.toLowerCase();
+
+  return coincideBusqueda && coincideEstado;
+});
+
 
   const indexInicio = (paginaActual - 1) * COMPRAS_POR_PAGINA;
   const comprasPagina = comprasFiltradas.slice(
@@ -420,19 +423,39 @@ const generarPDF = async (
               Crear Compra
             </button>
           </div>
+          
+          <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-3 filtros-container">
+  <select
+    className="form-select filtro-estado"
+    value={filtroEstado}
+    onChange={(e) => {
+      setFiltroEstado(e.target.value);
+      setPaginaActual(1);
+    }}
+  >
+    <option value="Todos">📋 Mostrar todos</option>
+    {estadosCompra.map((estado) => (
+      <option key={estado.IdEstado} value={estado.NombreEstado}>
+        {estado.NombreEstado}
+      </option>
+    ))}
+  </select>
 
-          <input
-            type="text"
-            placeholder="Buscar por proveedor, método, fecha o estado"
-            className="form-control mb-3 buscador"
-            value={busqueda}
-            onChange={(e) => {
-            const value = e.target.value;
-            if (value.trim() === "" && value !== "") return;
-            setBusqueda(value);
-          setPaginaActual(1);
-        }}
-      />
+  <input
+    type="text"
+    placeholder="🔍 Buscar por proveedor, método o fecha"
+    className="form-control buscador"
+    value={busqueda}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (value.trim() === "" && value !== "") return;
+      setBusqueda(value);
+      setPaginaActual(1);
+    }}
+  />
+</div>
+
+
 
           <div className="tabla-container">
             <table className="table tabla-proveedores">

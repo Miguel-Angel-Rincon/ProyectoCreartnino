@@ -5,6 +5,63 @@
   min-height: 100vh;
 }
 
+/* 📦 Contenedor de filtros */
+.filtros-container {
+  background: #fff;
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(255, 105, 180, 0.1);
+}
+
+/* 🔽 Estilo del select */
+.filtro-estado {
+  width: 250px;
+  border: 1.8px solid #ff69b4;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 500;
+  color: #444;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(255, 105, 180, 0.15);
+}
+
+.filtro-estado:hover {
+  border-color: #ff1493;
+}
+
+.filtro-estado:focus {
+  border-color: #ff1493;
+  box-shadow: 0 0 6px rgba(255, 20, 147, 0.4);
+  outline: none;
+}
+
+/* 🔍 Buscador */
+.buscador {
+  border: 1.5px solid #ffb6c1;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+}
+
+.buscador:focus {
+  border-color: #ff69b4;
+  box-shadow: 0 0 6px rgba(255, 105, 180, 0.3);
+  outline: none;
+}
+
+/* 💅 Responsive: apila filtros en pantallas pequeñas */
+@media (max-width: 768px) {
+  .filtro-estado {
+    width: 100%;
+  }
+
+  .buscador {
+    width: 100%;
+  }
+}
+
+
 /* Título */
 .titulo {
   font-size: 2rem;
