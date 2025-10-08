@@ -25,37 +25,83 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
   const [pedidos, setPedidos] = useState<IPedido[]>([]);
   const [clientes, setClientes] = useState<IClientes[]>([]);
   const [mostrarSubmodal, setMostrarSubmodal] = useState<number | null>(null);
+  const [fechaServidor, setFechaServidor] = useState<string>("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [respProd, respDet, respProdList, respIns, respPedidos, respClientes] = await Promise.all([
-          fetch(`${APP_SETTINGS.apiUrl}Produccion/Obtener/${idProduccion}`),
-          fetch(`${APP_SETTINGS.apiUrl}Detalles_Produccion/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`),
-        ]);
+  const fetchData = async () => {
+    try {
+      // 📦 Carga en paralelo de todos los datos requeridos
+      const [
+        respProd,
+        respDet,
+        respProdList,
+        respIns,
+        respPedidos,
+        respClientes,
+        respFecha,
+      ] = await Promise.all([
+        fetch(`${APP_SETTINGS.apiUrl}Produccion/Obtener/${idProduccion}`),
+        fetch(`${APP_SETTINGS.apiUrl}Detalles_Produccion/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Utilidades/FechaServidor`),
+      ]);
 
-        if (!respProd.ok) throw new Error("Error obteniendo producción");
-        const prod: IProduccion = await respProd.json();
-        setProduccion(prod);
+      // 🧩 Validar respuestas
+      if (!respProd.ok) throw new Error("❌ Error obteniendo producción");
+      if (!respFecha.ok) throw new Error("❌ Error obteniendo fecha del servidor");
 
-        const allDet: detalleProduccion[] = await respDet.json();
-        setDetalles(allDet.filter((d) => d.IdProduccion === idProduccion));
+      // 🧠 Convertir todas las respuestas a JSON (orden correcto)
+      const [
+        prod,
+        allDet,
+        dataProdList,
+        dataIns,
+        dataPedidos,
+        dataClientes,
+        dataFecha,
+      ] = await Promise.all([
+        respProd.json(),
+        respDet.json(),
+        respProdList.json(),
+        respIns.json(),
+        respPedidos.json(),
+        respClientes.json(),
+        respFecha.json(),
+      ]);
 
-        setProductos(await respProdList.json());
-        setInsumos(await respIns.json());
-        setPedidos(await respPedidos.json());
-        setClientes(await respClientes.json());
-      } catch (err) {
-        console.error(err);
-        Swal.fire("Error", "No se pudieron cargar los datos.", "error");
-      }
-    };
-    fetchData();
-  }, [idProduccion]);
+      // ✅ Setear producción
+      setProduccion(prod);
+
+      // ✅ Filtrar detalles asociados a esta producción
+      const detallesFiltrados = (allDet as detalleProduccion[]).filter(
+        (d: detalleProduccion) => d.IdProduccion === idProduccion
+      );
+      setDetalles(detallesFiltrados);
+
+      // ✅ Setear listas generales
+      setProductos(dataProdList || []);
+      setInsumos(dataIns || []);
+      setPedidos(dataPedidos || []);
+      setClientes(dataClientes || []);
+
+      // 🕒 Establecer fecha del servidor
+      const fechaSrv = new Date(dataFecha.FechaServidor);
+      const fechaISO = fechaSrv.toISOString().split("T")[0];
+      setFechaServidor(fechaISO);
+
+    } catch (err) {
+      console.error("⚠️ Error al cargar datos:", err);
+      Swal.fire("Error", "No se pudieron cargar los datos del servidor.", "error");
+    }
+  };
+
+  fetchData();
+}, [idProduccion]);
+
+
 
   const getClienteName = (idCliente?: number) => {
     if (!idCliente) return "";
@@ -119,19 +165,66 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
           </div>
         )}
 
-        <div className="col-md-6">
-          <label className="form-label">📅 Fecha Inicio</label>
-          <input type="date" className="form-control" value={produccion.FechaInicio ?? ""} disabled />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">📦 Fecha de Finalización</label>
-          <input
-            type="date"
-            className="form-control"
-            value={produccion.FechaFinal ?? ""}
-            onChange={(e) => setProduccion({ ...produccion, FechaFinal: e.target.value })}
-          />
-        </div>
+        {/* 📅 Fecha de Inicio */}
+<div className="col-md-6">
+  <label className="form-label">📅 Fecha de Inicio *</label>
+  <input
+    type="date"
+    className="form-control"
+    value={produccion.FechaInicio ?? ""}
+    min={fechaServidor} // 🔹 No puede ser antes de la fecha del servidor
+    
+    onChange={(e) => {
+      const nuevaFecha = e.target.value;
+
+      if (new Date(nuevaFecha) < new Date(fechaServidor)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fecha inválida",
+          text: "La fecha de inicio no puede ser anterior a hoy.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setProduccion({ ...produccion, FechaInicio: fechaServidor });
+      } else {
+        setProduccion({ ...produccion, FechaInicio: nuevaFecha });
+
+        // Si la fecha final es anterior a la nueva fecha de inicio, la ajustamos
+        if (produccion.FechaFinal && new Date(produccion.FechaFinal) < new Date(nuevaFecha)) {
+          setProduccion({ ...produccion, FechaInicio: nuevaFecha, FechaFinal: nuevaFecha });
+        }
+      }
+    }}
+  />
+</div>
+
+{/* 📦 Fecha de Finalización */}
+<div className="col-md-6">
+  <label className="form-label">📦 Fecha de Finalización *</label>
+  <input
+    type="date"
+    className="form-control"
+    value={produccion.FechaFinal ?? ""}
+    min={produccion.FechaInicio ?? fechaServidor} // 🔹 No puede ser antes de la fecha de inicio
+    onChange={(e) => {
+      const nuevaFechaFin = e.target.value;
+
+      if (new Date(nuevaFechaFin) < new Date(produccion.FechaInicio ?? fechaServidor)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fecha inválida",
+          text: "La fecha final no puede ser anterior a la fecha de inicio.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setProduccion({ ...produccion, FechaFinal: produccion.FechaInicio ?? fechaServidor });
+      } else {
+        setProduccion({ ...produccion, FechaFinal: nuevaFechaFin });
+      }
+    }}
+  />
+</div>
+
       </div>
 
       {/* Detalles */}

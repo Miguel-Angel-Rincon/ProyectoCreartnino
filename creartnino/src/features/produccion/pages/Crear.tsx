@@ -53,36 +53,54 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
   const [productoQuery, setProductoQuery] = useState<string[]>([]);
   const [insumoQuery, setInsumoQuery] = useState<{ [pIndex: number]: string[] }>({});
 
+  // --- Fecha del servidor (para validaciones de fecha) ---
+  const [fechaServidor, setFechaServidor] = useState("");
+  
+
   // --- Cargar datos iniciales ---
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [respProd, respIns, respPedidos, respClientes] = await Promise.all([
-          fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`),
-        ]);
-        if (!respProd.ok || !respIns.ok || !respPedidos.ok || !respClientes.ok) {
-          throw new Error("Error fetching lists");
-        }
-        const [dataProd, dataIns, dataPedidos, dataClientes] = await Promise.all([
-          respProd.json(),
-          respIns.json(),
-          respPedidos.json(),
-          respClientes.json(),
-        ]);
-        setProductos(dataProd || []);
-        setInsumos(dataIns || []);
-        setPedidos(dataPedidos || []);
-        setClientes(dataClientes || []);
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        Swal.fire("Error", "No se pudieron cargar los datos.", "error");
-      }
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    try {
+      const [respProd, respIns, respPedidos, respClientes, respFecha] = await Promise.all([
+        fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Utilidades/FechaServidor`),
+      ]);
+
+      if (!respFecha.ok) throw new Error(`Fecha servidor: ${respFecha.status}`);
+
+      const [dataProd, dataIns, dataPedidos, dataClientes, dataFecha] = await Promise.all([
+        respProd.json(),
+        respIns.json(),
+        respPedidos.json(),
+        respClientes.json(),
+        respFecha.json(),
+      ]);
+
+      setProductos(dataProd || []);
+      setInsumos(dataIns || []);
+      setPedidos(dataPedidos || []);
+      setClientes(dataClientes || []);
+
+      // ✅ Establecer fecha inicial
+      const fechaSrv = new Date(dataFecha.FechaServidor);
+      const fechaISO = fechaSrv.toISOString().split("T")[0];
+      setFechaServidor(fechaISO);
+      setFechaInicio(fechaISO);
+      setFechaFin(fechaISO);
+
+    } catch (error) {
+      console.error("❌ Error al cargar datos:", error);
+      Swal.fire("Error", "No se pudieron cargar los datos del servidor.", "error");
+    }
+  };
+
+  fetchData();
+}, []);
+
+
 
   useEffect(() => {
   if (tipoProduccion === "Directa") {
@@ -116,7 +134,11 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
 
 
 // Función auxiliar para normalizar espacios
-const normalizarTexto = (valor: string) => valor.replace(/\s+/g, " ").trim();
+const normalizarTexto = (valor: string) => {
+  // permite escribir espacio en medio, pero no dobles ni al inicio
+  return valor.replace(/^\s+/, "").replace(/\s{2,}/g, " ");
+};
+
 
 
 
@@ -197,7 +219,7 @@ const seleccionarPedido = async (p: IPedido) => {
   // --- Manejo detalles (producto / insumo) ---
   const agregarDetalle = () => {
     setDetalle((prev) => {
-      const next = [...prev, { producto: "", cantidad: 0, precio: 0, insumos: [] }];
+      const next = [...prev, { producto: "", cantidad: 1, precio: 0, insumos: [] }];
       // sincronizar queries
       setProductoQuery((pq) => [...pq, ""]);
       setInsumoQuery((iq) => ({ ...iq, [next.length - 1]: [] }));
@@ -282,13 +304,13 @@ const seleccionarPedido = async (p: IPedido) => {
 
     // 🚫 Evitar duplicados: si ya existe uno vacío no agregamos otro
     const yaTieneVacio = copia[index].insumos.some(
-      (ins) => ins.insumo === "" && ins.cantidadUsada === 0
+      (ins) => ins.insumo === "" && ins.cantidadUsada === 1
     );
 
     if (!yaTieneVacio) {
       copia[index].insumos.push({
         insumo: "",
-        cantidadUsada: 0,
+        cantidadUsada: 1,
         disponible: 0,
       });
     }
@@ -308,10 +330,6 @@ const seleccionarPedido = async (p: IPedido) => {
     return copia;
   });
 };
-
-
-
-
 
   const handleInsumoQueryChange = (pIndex: number, iIndex: number, value: string) => {
     value = normalizarTexto(value); // ⛔ eliminar espacios
@@ -372,7 +390,6 @@ const seleccionarInsumo = (pIndex: number, iIndex: number, ins: IInsumos) => {
     return copia;
   });
 };
-
 
   const actualizarInsumoCantidad = (pIndex: number, iIndex: number, valor: string | number) => {
     setDetalle((prev) => {
@@ -608,8 +625,6 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
   }
 };
 
-
-
   // --- Resumen de insumos (igual que antes) ---
   const resumenInsumos = (insumosG?: InsumoGasto[]) => {
     if (!insumosG || insumosG.length === 0) return null;
@@ -637,23 +652,50 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
     return (
     <div className="container-fluid pastel-contenido">
       <h2 className="titulo mb-4">Crear Producción</h2>
-
-      
-
       {/* Campos generales */}
       <div className="row g-3">
         <div className="col-md-6">
           <label className="form-label">🏷️ Nombre *</label>
           <input
-            type="text"
-            className="form-control"
-            value={nombre}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value.trim() === "" && value !== "") return;
-              setNombre(value);
-            }}
-          />
+  type="text"
+  className="form-control"
+  value={nombre}
+  onChange={(e) => {
+  let valor = e.target.value;
+
+  // ❌ Sin espacios al inicio ni dobles
+  valor = valor.replace(/^\s+/, "");
+  valor = valor.replace(/\s{2,}/g, " ");
+
+  // ❌ Bloquear caracteres especiales (permitir letras, números y espacios)
+  if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Caracter inválido",
+      text: "Solo se permiten letras, números y espacios.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+  }
+
+  // ❌ Bloquear repeticiones largas (más de 3 veces la misma letra o número)
+  if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Repetición excesiva",
+      text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+  }
+
+  setNombre(valor);
+}}
+
+/>
+
         </div>
         <div className="col-md-6">
           <label className="form-label">⚙️ Tipo de Producción *</label>
@@ -665,7 +707,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
         </div>
         {/* 🔎 Buscador Pedido (solo si es tipo Pedido) */}
 {tipoProduccion === "Pedido" && (
-  <div className="row g-3 mb-3 mt-2">
+  <div className="row g-3 mb-3 mt-2 position-relative">
     <div className="col-md-12">
       <label className="form-label">🔎 Buscar Pedido por Cliente</label>
       <input
@@ -673,10 +715,49 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
         className="form-control"
         placeholder="Escribe nombre del cliente o #pedido..."
         value={pedidoQuery}
-        onChange={(e) => handlePedidoQueryChange(normalizarTexto(e.target.value))}
+        onChange={(e) => {
+          let valor = e.target.value;
+
+          // 🚫 Sin espacios al inicio
+          valor = valor.replace(/^\s+/, "");
+
+          // ⚙️ Permitir un solo espacio intermedio
+          valor = valor.replace(/\s{2,}/g, " ");
+
+          // 🚫 Solo letras, números, # y espacios (para nombres de clientes o pedidos)
+          if (/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+            Swal.fire({
+              icon: "warning",
+              title: "Entrada inválida",
+              text: "Solo se permiten letras, números, # y espacios.",
+              timer: 1800,
+              showConfirmButton: false,
+            });
+            valor = valor.replace(/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/g, "");
+          }
+
+          // 🔁 Evitar repeticiones largas tipo 'aaaaa' o '11111'
+          if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Repetición excesiva",
+      text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+  }
+
+          handlePedidoQueryChange((valor));
+        }}
+        maxLength={50}
       />
+
       {pedidoSuggestions.length > 0 && (
-        <ul className="list-group position-absolute w-50" style={{ zIndex: 1100 }}>
+        <ul
+          className="list-group position-absolute w-50"
+          style={{ zIndex: 1100 }}
+        >
           {pedidoSuggestions.map((p) => (
             <li
               key={p.IdPedido}
@@ -693,14 +774,66 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
   </div>
 )}
 
-        <div className="col-md-6">
-          <label className="form-label">📅 Fecha de Inicio *</label>
-          <input type="date" className="form-control" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">📦 Fecha de Finalización *</label>
-          <input type="date" className="form-control" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-        </div>
+
+        {/* 📅 Fecha de Inicio */}
+<div className="col-md-6">
+  <label className="form-label">📅 Fecha de Inicio *</label>
+  <input
+    type="date"
+    className="form-control"
+    value={fechaInicio}
+    min={fechaServidor} // 🔹 No puede ser antes de la fecha del servidor
+    onChange={(e) => {
+      const nuevaFecha = e.target.value;
+
+      if (new Date(nuevaFecha) < new Date(fechaServidor)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fecha inválida",
+          text: "La fecha de inicio no puede ser anterior a hoy.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setFechaInicio(fechaServidor);
+      } else {
+        setFechaInicio(nuevaFecha);
+
+        // Si la fecha final es anterior, la ajustamos
+        if (new Date(fechaFin) < new Date(nuevaFecha)) {
+          setFechaFin(nuevaFecha);
+        }
+      }
+    }}
+  />
+</div>
+
+{/* 📦 Fecha de Finalización */}
+<div className="col-md-6">
+  <label className="form-label">📦 Fecha de Finalización *</label>
+  <input
+    type="date"
+    className="form-control"
+    value={fechaFin}
+    min={fechaInicio} // 🔹 No puede ser antes de la fecha de inicio
+    onChange={(e) => {
+      const nuevaFechaFin = e.target.value;
+
+      if (new Date(nuevaFechaFin) < new Date(fechaInicio)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fecha inválida",
+          text: "La fecha final no puede ser anterior a la fecha de inicio.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setFechaFin(fechaInicio);
+      } else {
+        setFechaFin(nuevaFechaFin);
+      }
+    }}
+  />
+</div>
+
       </div>
 
       
@@ -716,46 +849,110 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
         {detalle.map((item, index) => {
           const q = productoQuery[index] ?? "";
-          const sugerenciasProd = q.length > 0 ? productos.filter((p) => p.Nombre.toLowerCase().includes(q.toLowerCase())) : [];
+          const sugerenciasProd =
+  q.length > 0
+    ? productos.filter(
+        (p) =>
+          p.Nombre.toLowerCase().includes(q.toLowerCase()) &&
+          !detalle.some((d, di) => d.producto === p.Nombre && di !== index)
+      )
+    : [];
 
           return (
             <div key={index} className="row align-items-center mb-2 position-relative">
   {/* Buscador Producto (línea) */}
   <div className="col-md-5 position-relative">
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Buscar producto..."
-      value={q !== "" ? q : item.producto}
-      onChange={(e) => handleProductoQueryChange(index, e.target.value)}
-      disabled={tipoProduccion === "Pedido"} // 🚫 Bloquear si viene de Pedido
-    />
-    {q && sugerenciasProd.length > 0 && tipoProduccion !== "Pedido" && (
-      <ul className="list-group position-absolute w-100" style={{ zIndex: 1200, top: "38px" }}>
-        {sugerenciasProd.map((p) => (
-          <li
-            key={p.IdProducto}
-            className="list-group-item list-group-item-action"
-            style={{ cursor: "pointer" }}
-            onClick={() => seleccionarProducto(index, p.Nombre)}
-          >
-            {p.Nombre} - ${p.Precio?.toLocaleString("es-CO")}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Buscar producto..."
+    value={q !== "" ? q : item.producto}
+    onChange={(e) => {
+      let valor = e.target.value;
+
+      // 🚫 Quitar espacios al inicio
+      valor = valor.replace(/^\s+/, "");
+
+      // 🚫 No permitir más de un espacio consecutivo
+      valor = valor.replace(/\s{2,}/g, " ");
+
+      // ✅ Permitir letras, números y espacios — bloquear lo demás
+      if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Caracter inválido",
+          text: "Solo se permiten letras, números y espacios.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+      }
+
+      // 🚫 Evitar repeticiones largas tipo 'aaaaaa' o '111111'
+      if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Repetición excesiva",
+      text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+  }
+
+      handleProductoQueryChange(index, valor);
+    }}
+    disabled={tipoProduccion === "Pedido"} // 🚫 Bloquear si viene de Pedido
+  />
+
+  {q && sugerenciasProd.length > 0 && tipoProduccion !== "Pedido" && (
+    <ul
+      className="list-group position-absolute w-100"
+      style={{ zIndex: 1200, top: "38px" }}
+    >
+      {sugerenciasProd.map((p) => (
+        <li
+          key={p.IdProducto}
+          className="list-group-item list-group-item-action"
+          style={{ cursor: "pointer" }}
+          onClick={() => seleccionarProducto(index, p.Nombre)}
+        >
+          {p.Nombre} - ${p.Precio?.toLocaleString("es-CO")}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
   <div className="col-md-4">
-    <input
-      type="number"
-      className="form-control"
-      value={item.cantidad}
-      maxLength={5}
-      onChange={(e) => actualizarDetalleCantidad(index, e.target.value)}
-      disabled={tipoProduccion === "Pedido"} // 🚫 Bloquear si viene de Pedido
-    />
-  </div>
+  <input
+    type="number"
+    className="form-control"
+    value={item.cantidad}
+    min={1}
+    maxLength={5}
+    onChange={(e) => {
+      let valor = parseInt(e.target.value);
+
+      // Si el valor es menor a 1 o vacío, se restaura a 1
+      if (!valor || valor < 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Cantidad inválida",
+          text: "La cantidad mínima es 1.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        valor = 1;
+      }
+
+      actualizarDetalleCantidad(index, valor);
+    }}
+    disabled={tipoProduccion === "Pedido"} // 🚫 Bloquear si viene de Pedido
+  />
+</div>
+
 
   <div className="col-md-3 d-flex gap-2">
     <button
@@ -793,11 +990,17 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
     {item.insumos?.map((insumo, i) => {
       const qI = insumoQuery[index]?.[i] ?? "";
       const sugerenciasIns =
-        qI.length > 0
-          ? insumos.filter((ins) =>
-              ins.Nombre.toLowerCase().includes(qI.toLowerCase())
-            )
-          : [];
+  qI.length > 0
+    ? insumos.filter(
+        (ins) =>
+          ins.Nombre.toLowerCase().includes(qI.toLowerCase()) &&
+          !(item.insumos ?? []).some(
+  (iSel, ii) => iSel.insumo === ins.Nombre && ii !== i
+)
+
+      )
+    : [];
+
 
       return (
         <div
@@ -806,47 +1009,93 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
         >
           {/* 🔎 Buscador de insumos */}
           <div className="col-md-5 position-relative">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Buscar insumo..."
-              value={qI !== "" ? qI : insumo.insumo}
-              onChange={(e) =>
-                handleInsumoQueryChange(index, i, e.target.value)
-              }
-            />
-            {qI && sugerenciasIns.length > 0 && (
-              <ul
-                className="list-group position-absolute w-100"
-                style={{ zIndex: 1200, top: "38px" }}
-              >
-                {sugerenciasIns.map((ins) => (
-                  <li
-                    key={ins.IdInsumo}
-                    className="list-group-item list-group-item-action"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => seleccionarInsumo(index, i, ins)} 
-                  >
-                    {ins.Nombre} - Disponible: {ins.Cantidad}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Buscar insumo..."
+    value={qI !== "" ? qI : insumo.insumo}
+    onChange={(e) => {
+      let valor = e.target.value;
+
+      // 🧹 Limpiar espacios: sin espacio al inicio, ni dobles
+      valor = valor.replace(/^\s+/, "");
+      valor = valor.replace(/\s{2,}/g, " ");
+
+      // ⚠️ Validar caracteres inválidos (solo letras, números y espacios)
+      if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Caracter inválido",
+          text: "Solo se permiten letras, números y espacios.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+      }
+
+      // ⚠️ Limitar repeticiones de caracteres (ej: aaaa → aaa)
+      if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Repetición excesiva",
+      text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+  }
+
+      handleInsumoQueryChange(index, i, valor);
+    }}
+  />
+  {qI && sugerenciasIns.length > 0 && (
+    <ul
+      className="list-group position-absolute w-100"
+      style={{ zIndex: 1200, top: "38px" }}
+    >
+      {sugerenciasIns.map((ins) => (
+        <li
+          key={ins.IdInsumo}
+          className="list-group-item list-group-item-action"
+          style={{ cursor: "pointer" }}
+          onClick={() => seleccionarInsumo(index, i, ins)}
+        >
+          {ins.Nombre} - Disponible: {ins.Cantidad}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
           {/* 🔢 Cantidad usada */}
           <div className="col-md-5">
-            <input
-              type="number"
-              className="form-control"
-              value={insumo.cantidadUsada}
-              maxLength={5}
-              min={0}
-              onChange={(e) =>
-                actualizarInsumoCantidad(index, i, Number(e.target.value))
-              }
-            />
-          </div>
+  <input
+    type="number"
+    className="form-control"
+    value={insumo.cantidadUsada}
+    min={1}
+    maxLength={5}
+    onChange={(e) => {
+      let valor = parseInt(e.target.value);
+
+      // ❌ Si el valor es menor que 1 o vacío → se corrige a 1
+      if (!valor || valor < 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Cantidad inválida",
+          text: "La cantidad mínima es 1.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        valor = 1;
+      }
+
+      actualizarInsumoCantidad(index, i, valor);
+    }}
+  />
+</div>
+
 
           {/* ❌ Botón eliminar */}
           <div className="col-md-2 text-end">

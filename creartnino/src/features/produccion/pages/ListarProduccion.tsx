@@ -99,6 +99,8 @@ const [produccionesPedidos, setProduccionesPedidos] = useState<IProduccionPedido
   const [mostrarCrearVista, setMostrarCrearVista] = useState(false);
   const [vistaEditar, setVistaEditar] = useState<IProduccion | null>(null);
   const [produccionSeleccionada, setProduccionSeleccionada] = useState<IProduccion | null>(null);
+  const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
+
 
   const porPagina = 6;
 
@@ -558,26 +560,33 @@ const handleAnularProduccion = (p: IProduccion) => {
   };
 
   const produccionesFiltradas = useMemo(() => {
-  const t = busqueda.toLowerCase().trim();
+  const texto = busqueda.toLowerCase().trim();
+  const filtro = filtroEstado.toLowerCase();
 
-  // 🔽 Clonamos y ordenamos de forma descendente por IdProduccion
+  // Orden descendente por ID
   const ordenadas = [...producciones].sort((a, b) => (b.IdProduccion ?? 0) - (a.IdProduccion ?? 0));
-
-  if (!t) return ordenadas;
 
   return ordenadas.filter((p) => {
     const fi = formatearFecha(p.FechaInicio);
     const ff = formatearFecha(p.FechaFinal);
-    const estadoNombre = nombreEstadoProduccion(p.IdEstado || 0);
-    return (
-      p.NombreProduccion?.toLowerCase().includes(t) ||
-      p.TipoProduccion?.toLowerCase().includes(t) ||
-      fi.toLowerCase().includes(t) ||
-      ff.toLowerCase().includes(t) ||
-      estadoNombre.includes(t)
-    );
+    const estadoNombre = nombreEstadoProduccion(p.IdEstado || 0).toLowerCase();
+
+    // 🎯 Filtro de texto
+    const coincideTexto =
+      !texto ||
+      p.NombreProduccion?.toLowerCase().includes(texto) ||
+      p.TipoProduccion?.toLowerCase().includes(texto) ||
+      fi.toLowerCase().includes(texto) ||
+      ff.toLowerCase().includes(texto) ||
+      estadoNombre.includes(texto);
+
+    // 🎯 Filtro de estado
+    const coincideEstado =
+      filtro === "todos" || estadoNombre.includes(filtro);
+
+    return coincideTexto && coincideEstado;
   });
-}, [busqueda, producciones, estadosProduccion]);
+}, [busqueda, filtroEstado, producciones, estadosProduccion]);
 
 
   const totalPaginas = Math.ceil(produccionesFiltradas.length / porPagina);
@@ -636,18 +645,38 @@ const handleAnularProduccion = (p: IProduccion) => {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Buscar por nombre, tipo, fecha o estado"
-        className="form-control mb-3 buscador"
-        value={busqueda}
-        onChange={(e) => {
-            const value = e.target.value;
-            if (value.trim() === "" && value !== "") return;
-            setBusqueda(value);
-          setPaginaActual(1);
-        }}
-      />
+     <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-3 filtros-container">
+  <select
+    className="form-select filtro-estado"
+    value={filtroEstado}
+    onChange={(e) => {
+      setFiltroEstado(e.target.value);
+      setPaginaActual(1);
+    }}
+  >
+    <option value="Todos">📋 Mostrar todos</option>
+    {estadosProduccion.map((estado) => (
+      <option key={estado.id} value={estado.nombre}>
+        {/* capitaliza la primera letra para mostrar bonito */}
+        {estado.nombre.charAt(0).toUpperCase() + estado.nombre.slice(1)}
+      </option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    placeholder="🔍 Buscar por nombre, tipo, fecha"
+    className="form-control buscador"
+    value={busqueda}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (value.trim() === "" && value !== "") return; // evita solo espacios
+      setBusqueda(value);
+      setPaginaActual(1);
+    }}
+  />
+</div>
+
 
       <div className="tabla-container">
         <table className="table tabla-proveedores">
