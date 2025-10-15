@@ -11,6 +11,7 @@ import type { IProductos } from "../../features/interfaces/IProductos";
 
 interface Props {
   producto: IProductos;
+  overImagen?: (url: string) => void; // Nueva prop para manejar la vista de imagen ampliada
 }
 
 interface IImagenProducto {
@@ -19,7 +20,7 @@ interface IImagenProducto {
   Estado: boolean;
 }
 
-const CardProducto = ({ producto }: Props) => {
+const CardProducto = ({ producto,overImagen }: Props) => {
   const [cantidad, setCantidad] = useState(1);
   const [imagenUrl, setImagenUrl] = useState<string>("/placeholder.png");
 
@@ -95,6 +96,7 @@ const CardProducto = ({ producto }: Props) => {
         Precio: producto.Precio,
         ImagenUrl: imagenUrl,
         cantidad,
+        stock: producto.Cantidad ?? 1,
         CategoriaProducto: producto.CategoriaProducto,
         tipo: "Prediseñado",
       });
@@ -111,10 +113,14 @@ const CardProducto = ({ producto }: Props) => {
   return (
     <div className="categoria-card">
       <img
-        src={imagenUrl}
-        alt={producto.Nombre}
-        onError={(e) => (e.currentTarget.src = "/placeholder.png")}
-      />
+  src={imagenUrl}
+  alt={producto.Nombre}
+  onError={(e) => (e.currentTarget.src = "/placeholder.png")}
+  onClick={() => overImagen?.(imagenUrl)} // ✅ nuevo evento
+  className="imagen-producto" // (opcional, para darle estilo de cursor)
+  style={{ cursor: "zoom-in" }} // (recomendado visualmente)
+/>
+
       <h3>{producto.Nombre}</h3>
       <p className="precio">${producto.Precio.toLocaleString()} COP</p>
 

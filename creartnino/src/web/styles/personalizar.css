@@ -1,5 +1,4 @@
-/* src/styles/PersonalizarProductoModal.css */
-
+/* 🎀 Fondo del modal */
 .overlay-modal {
   position: fixed;
   inset: 0;
@@ -11,60 +10,74 @@
   animation: fadeInBackground 0.3s ease-in-out;
 }
 
+/* 🌸 Contenedor principal del modal */
 .modal-personalizar {
   background: #fff0fa;
-  padding: 2rem;
+  padding: 2rem 2.5rem;
   width: 90%;
-  max-width: 500px;
+  max-width: 520px;
   border-radius: 1.5rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
   animation: scaleIn 0.3s ease-in-out;
 }
 
+/* 🌷 Título */
 .modal-personalizar h2 {
   margin: 0;
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.9rem;
   color: #f072d1;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
+/* 📝 Campo de texto */
 .modal-personalizar textarea {
   width: 100%;
-  min-height: 120px;
+  min-height: 130px;
   border-radius: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #d6bcd9;
   padding: 1rem;
   font-size: 1rem;
   resize: vertical;
   font-family: inherit;
   background: #fff;
-  transition: border 0.3s ease;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .modal-personalizar textarea:focus {
   outline: none;
   border-color: #f072d1;
+  box-shadow: 0 0 6px rgba(240, 114, 209, 0.4);
 }
 
+/* ⚙️ Contenedor de botones */
 .modal-botones {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
+  width: 100%;
 }
 
+/* 🎀 Botones */
 .modal-botones button {
-  padding: 0.6rem 1.2rem;
+  padding: 0.7rem 1.5rem;
   border-radius: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 1rem;
   border: none;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 120px;
 }
 
 .btn-cancelar {
@@ -74,6 +87,7 @@
 
 .btn-cancelar:hover {
   background-color: #c6c6c6;
+  transform: translateY(-2px);
 }
 
 .btn-guardar {
@@ -83,6 +97,7 @@
 
 .btn-guardar:hover {
   background-color: #e05fbf;
+  transform: translateY(-2px);
 }
 
 .btn-guardar:disabled {
@@ -91,7 +106,7 @@
   cursor: not-allowed;
 }
 
-/* Animaciones */
+/* 🌈 Animaciones */
 @keyframes scaleIn {
   from {
     transform: scale(0.95);

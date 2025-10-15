@@ -13,6 +13,7 @@ import logo from "../../../assets/Imagenes/logo.jpg";
 
 interface Pedidos extends IPedido {
   Cliente: string;
+  Documento: string;
   Direccion: string;
   Estado: string;
   detallePedido?: {
@@ -50,9 +51,8 @@ const ListarPedidos: React.FC = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [modoCrear, setModoCrear] = useState(false);
   const [productos, setProductos] = useState<IProductos[]>([]);
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<IPedido | null>(
-    null
-  );
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<IPedido | null>(null);
+  const [filtroEstado, setFiltroEstado] = useState("Todos");
   const pedidosPorPagina = 6;
 
   useEffect(() => {
@@ -77,6 +77,10 @@ const ListarPedidos: React.FC = () => {
         return {
           ...p,
           Cliente: cliente?.NombreCompleto || "Sin nombre",
+          Documento: cliente
+  ? `${cliente.TipoDocumento ?? "Sin tipo"} - ${cliente.NumDocumento ?? "Sin número"}`
+  : "No tiene documento",
+
           Direccion: cliente?.Direccion || "No disponible",
           Estado:
             p.IdEstado === 1
@@ -132,6 +136,10 @@ const ListarPedidos: React.FC = () => {
         return {
           ...p,
           Cliente: cliente?.NombreCompleto || "Sin nombre",
+          Documento: cliente
+  ? `${cliente.TipoDocumento ?? "Sin tipo"} - ${cliente.NumDocumento ?? "Sin número"}`
+  : "No tiene documento",
+
           Direccion: cliente?.Direccion || "No disponible",
           Estado:
             p.IdEstado === 1
@@ -362,6 +370,7 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
     // 🔽 Datos principales
     const labels: [string, string | number | undefined][] = [
       ["Cliente", pedido.Cliente],
+      ["Documento", pedido.Documento],
       ["Dirección", pedido.Direccion],
       ["Método de Pago", pedido.MetodoPago ?? "N/A"],
       [
@@ -440,14 +449,24 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
   }
 };
 
-  const pedidosFiltrados = pedidos.filter(
-    (p) =>
-      p.MetodoPago?.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-      p.Cliente?.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-      p.FechaEntrega?.toLowerCase().startsWith(busqueda.toLowerCase()) ||
-      p.ValorInicial?.toString().startsWith(busqueda) ||
-      p.TotalPedido?.toString().startsWith(busqueda)
-  );
+  const pedidosFiltrados = pedidos.filter((p) => {
+    const busquedaLower = busqueda.toLowerCase();
+    const coincideBusqueda =
+      (`#${p.IdPedido}`.includes(busqueda) || // Buscar por #ID
+        p.IdPedido?.toString().includes(busqueda) || // Buscar por ID solo número
+        p.MetodoPago?.toLowerCase().includes(busquedaLower) ||
+        p.Cliente?.toLowerCase().includes(busquedaLower) ||
+        (typeof p.FechaEntrega === "string" && p.FechaEntrega.toLowerCase().includes(busquedaLower)) ||
+        p.ValorInicial?.toString().includes(busqueda) ||
+        p.TotalPedido?.toString().includes(busqueda)
+      );
+
+    const coincideEstado =
+      filtroEstado === "Todos" || p.Estado === filtroEstado;
+
+    return coincideBusqueda && coincideEstado;
+  });
+
 
   const indexInicio = (paginaActual - 1) * pedidosPorPagina;
   const pedidosPagina = pedidosFiltrados.slice(
@@ -457,13 +476,20 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
   const totalPaginas = Math.ceil(pedidosFiltrados.length / pedidosPorPagina);
 
   if (pedidoSeleccionado) {
-    return (
-      <VerPedido
-        pedido={pedidoSeleccionado}
-        onVolver={() => setPedidoSeleccionado(null)}
-      />
-    );
-  }
+  return (
+    <VerPedido
+      pedido={pedidoSeleccionado}
+      onVolver={async (actualizado) => {
+        // ✅ Si el pedido fue modificado (por ejemplo, cambió la fecha)
+        if (actualizado) {
+          await refreshPedidos(); // recarga los pedidos actualizados
+        }
+        setPedidoSeleccionado(null); // vuelve al listado
+      }}
+    />
+  );
+}
+
 
   if (modoCrear) {
     return (
@@ -484,23 +510,55 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Buscar por Nombre del Cliente y Metodo de Pago"
-        className="form-control mb-3 buscador"
-        value={busqueda}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (value.trim() === "" && value !== "") return;
-          setBusqueda(value);
-          setPaginaActual(1);
-        }}
-      />
+      <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-3 filtros-container">
+  {/* 🔽 Filtro por estado */}
+  <select
+    className="form-select filtro-estado"
+    value={filtroEstado}
+    onChange={(e) => {
+      setFiltroEstado(e.target.value);
+      setPaginaActual(1);
+    }}
+  >
+    <option value="Todos">📋 Mostrar todos</option>
+
+    {[
+      { id: 1, nombre: "primer pago" },
+      { id: 2, nombre: "en proceso" },
+      { id: 3, nombre: "en producción" },
+      { id: 4, nombre: "en proceso de entrega" },
+      { id: 5, nombre: "entregado" },
+      { id: 6, nombre: "anulado" },
+      { id: 7, nombre: "venta directa" },
+    ].map((estado) => (
+      <option key={estado.id} value={estado.nombre}>
+        {estado.nombre.charAt(0).toUpperCase() + estado.nombre.slice(1)}
+      </option>
+    ))}
+  </select>
+
+  {/* 🔍 Buscador */}
+  <input
+    type="text"
+    placeholder="🔍 Buscar por cliente, método o fecha y por el id con el #"
+    className="form-control buscador"
+    value={busqueda}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (value.trim() === "" && value !== "") return;
+      setBusqueda(value);
+      setPaginaActual(1);
+    }}
+  />
+</div>
+
+
 
       <div className="tabla-container">
         <table className="table tabla-proveedores">
           <thead>
             <tr>
+              <th>Documento</th>
               <th>Cliente</th>
               <th>Método de Pago</th>
               <th>Entrega</th>
@@ -516,6 +574,8 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
                 key={p.IdPedido}
                 className={index % 2 === 0 ? "fila-par" : "fila-impar"}
               >
+                <td>{p.Documento}</td>
+
                 <td>{p.Cliente}</td>
                 <td>{p.MetodoPago}</td>
                 <td>

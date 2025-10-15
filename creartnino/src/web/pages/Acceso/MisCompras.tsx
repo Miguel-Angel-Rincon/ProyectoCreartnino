@@ -25,17 +25,13 @@ const MisCompras: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [noEsCliente, setNoEsCliente] = useState(false);
   
+  const [mostrarSoloModificados, setMostrarSoloModificados] = useState(false);
 
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
   const [pagina, setPagina] = useState(1);
   // 🟢 Mantenemos en memoria las imágenes
-
-
 // 🔹 Cargar imágenes una sola vez
-
-
-
   /** =====================
    * HELPERS
    ====================== */
@@ -135,6 +131,93 @@ const MisCompras: React.FC = () => {
     fetchAll();
   }, [fetchAll]);
 
+  useEffect(() => {
+  if (!pedidos || pedidos.length === 0) return;
+
+  // 🔹 Solo pedidos con estado 1 o 2
+  const pedidosFiltrados = pedidos.filter(
+    (p) => p.IdEstado === 1 || p.IdEstado === 2
+  );
+
+  // 🔹 Detectar los modificados (total > inicial + restante)
+  const modificados = pedidosFiltrados.filter((p) => {
+    const inicial = Number(p.ValorInicial ?? p.valorInicial ?? 0);
+    const restante = Number(p.ValorRestante ?? p.valorRestante ?? 0);
+    const total = Number(p.TotalPedido ?? p.totalPedido ?? 0);
+    return total > inicial + restante;
+  });
+
+  if (modificados.length === 0) return;
+
+  // 🔹 Recuperar los IDs que ya se mostraron antes
+  const vistos = JSON.parse(localStorage.getItem("pedidosModificadosMostrados") || "[]");
+
+  // 🔹 Filtrar los nuevos modificados (no vistos antes)
+  const nuevos = modificados.filter(
+    (p) => !vistos.includes(p.IdPedido ?? p.idPedido)
+  );
+
+  if (nuevos.length === 0) return; // No hay nuevos, no mostrar alerta
+
+  // 🔹 Actualizar localStorage con todos los modificados vistos
+  const nuevosIds = modificados.map((p) => p.IdPedido ?? p.idPedido);
+  localStorage.setItem("pedidosModificadosMostrados", JSON.stringify(nuevosIds));
+
+  // 🔹 Crear lista de todos los modificados (no solo los nuevos)
+  const listaHtml = modificados
+    .map((p) => {
+      const id = p.IdPedido ?? p.idPedido;
+      const fechaPedido = p.FechaPedido
+        ? new Date(p.FechaPedido).toLocaleDateString()
+        : "-";
+      const fechaEntrega = p.FechaEntrega
+        ? new Date(p.FechaEntrega).toLocaleDateString()
+        : "Pendiente";
+      const inicial = Number(p.ValorInicial ?? p.valorInicial ?? 0);
+      const restante = Number(p.ValorRestante ?? p.valorRestante ?? 0);
+      const total = Number(p.TotalPedido ?? p.totalPedido ?? 0);
+      const excedente = total - (inicial + restante);
+
+      return `
+        <li style="margin-bottom:6px">
+          <strong>Pedido #${id}</strong> del ${fechaPedido}, entrega ${fechaEntrega}<br/>
+          <span style="color:#666">Excedente: <strong>$${excedente.toLocaleString()}</strong> → Nuevo total: <strong>$${total.toLocaleString()}</strong></span>
+        </li>`;
+    })
+    .join("");
+
+  // 🔹 Mostrar alerta con lista completa
+  MySwal.fire({
+    title: "🔔 Actualización en tus pedidos",
+    html: `
+      <div style="text-align:left; font-size:16px;">
+        <p>Se detectaron ${modificados.length} pedido(s) ajustado(s):</p>
+        <ul style="padding-left:20px; margin-top:8px">${listaHtml}</ul>
+        <hr/>
+        <div style="text-align:center; margin-top:10px;">
+          <button id="btnFiltrarModificados"
+            style="background:#d14fa2; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">
+            🔍 Filtrar pedidos modificados
+          </button>
+        </div>
+      </div>
+    `,
+    showConfirmButton: false,
+    background: "#fff8fc",
+    color: "#333",
+    didOpen: () => {
+      document
+        .getElementById("btnFiltrarModificados")
+        ?.addEventListener("click", () => {
+          setMostrarSoloModificados(true);
+          MySwal.close();
+        });
+    },
+  });
+}, [pedidos]);
+
+
+
   /** =====================
    * LOGICA DE NEGOCIO
    ====================== */
@@ -181,15 +264,41 @@ const MisCompras: React.FC = () => {
 );
   }, [pedidosDelCliente, desde, hasta]);
 
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil((pedidosFiltrados.length || 0) / ITEMS_POR_PAGINA)
-  );
-  const pedidosPaginados = pedidosFiltrados.slice(
-    (pagina - 1) * ITEMS_POR_PAGINA,
-    pagina * ITEMS_POR_PAGINA
-  );
+  const pedidosModificados = useMemo(() => {
+  return pedidosFiltrados.filter((p) => {
+    const inicial = Number(p.ValorInicial ?? p.valorInicial ?? 0);
+    const restante = Number(p.ValorRestante ?? p.valorRestante ?? 0);
+    const total = Number(p.TotalPedido ?? p.totalPedido ?? 0);
+    return total > (inicial + restante);
+  });
+}, [pedidosFiltrados]);
 
+
+  // 🔹 Calcular total de páginas según la lista que realmente se muestra
+
+
+  // 🔹 Determinar la lista que se está mostrando
+// 🔹 Determinar la lista que se está mostrando
+const listaFinal = mostrarSoloModificados ? pedidosModificados : pedidosFiltrados;
+
+// 🔹 Calcular total de páginas (mínimo 1)
+const totalPaginas = Math.max(1, Math.ceil(listaFinal.length / ITEMS_POR_PAGINA));
+
+// 🔹 Obtener los pedidos a mostrar en la página actual
+const pedidosPaginados = listaFinal.slice(
+  (pagina - 1) * ITEMS_POR_PAGINA,
+  pagina * ITEMS_POR_PAGINA
+);
+
+// 🔹 Si cambian los datos o el filtro, y la página actual se sale del rango, volver a la 1
+useEffect(() => {
+  if (pagina > totalPaginas) {
+    setPagina(1);
+  }
+}, [listaFinal, totalPaginas]);
+
+
+  
   const limpiarFiltro = () => {
     setDesde('');
     setHasta('');
@@ -215,8 +324,15 @@ const MisCompras: React.FC = () => {
     }
   };
 
-const mostrarDetalleProducto = async (idPedido: number) => {
+  // 🔹 Reinicia la paginación cuando cambia el filtro de modificados
+useEffect(() => {
+  setPagina(1);
+}, [mostrarSoloModificados]);
+
+
+const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: string) => {
   const detalles = await fetchDetalles(idPedido);
+
   if (!detalles.length) {
     MySwal.fire({
       title: "Detalle",
@@ -229,26 +345,60 @@ const mostrarDetalleProducto = async (idPedido: number) => {
   }
 
   let total = 0;
+
   const rowsHtml = await Promise.all(
     detalles.map(async (d: any) => {
       const idProd = Number(d.IdProducto ?? d.idProducto ?? 0);
       const producto = productosMap[idProd] ?? {};
-      const nombre =
-        producto.Nombre ?? producto.nombre ?? d.Nombre ?? `#${idProd}`;
-      const precio = Number(
-        producto.Precio ?? producto.precio ?? d.Precio ?? 0
-      );
+      const nombre = producto.Nombre ?? producto.nombre ?? d.Nombre ?? `#${idProd}`;
+      const precio = Number(producto.Precio ?? producto.precio ?? d.Precio ?? 0);
       const cantidad = Number(d.Cantidad ?? d.cantidad ?? 1);
       const subtotal = precio * cantidad;
       total += subtotal;
 
-      // 🔑 Buscar imagen: el producto tiene un campo Imagen que apunta a un IdImagen
+      // 🩷 Buscar descripción real del producto dentro del texto completo del pedido
+      let descripcionFinal = "Sin descripción disponible.";
+
+      if (descripcionPedido) {
+        const descCompleta = descripcionPedido.trim();
+
+        // 🏬 Si es un pedido hecho desde el administrador (una sola palabra o texto corto)
+        if (!descCompleta.includes("(") && !descCompleta.includes("-") && descCompleta.length <= 50) {
+          descripcionFinal = `
+            <div style='text-align:left;'>
+              <div style='font-weight:600; color:#b73a93; margin-bottom:5px;'>🏬 Este pedido fue realizado desde administrador.</div>
+              <div style='margin-bottom:8px;'>Realizaste este pedido en el punto físico de la empresa.</div>
+              <div style='font-weight:600; color:#b73a93; margin-top:10px;'>🖌 Esto fue lo que personalizaste:</div>
+              <div style='background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #eee;'>${descCompleta}</div>
+            </div>
+          `;
+        } else {
+          // 🔍 Buscar bloque que corresponde a este producto (pedidos hechos desde la web)
+          const regexProducto = new RegExp(
+            `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
+            "i"
+          );
+          const match = descCompleta.match(regexProducto);
+
+          if (match) {
+            const texto = match[1].trim();
+
+            if (texto.includes("Sin personalización")) {
+              descripcionFinal = "Este producto no lo personalizaste.";
+            } else if (texto.startsWith('"') && texto.endsWith('"')) {
+              descripcionFinal = texto.slice(1, -1); // quitar comillas
+            } else {
+              descripcionFinal = texto;
+            }
+          }
+        }
+      }
+
+      // 🩷 Buscar imagen
       let urlImagen = "/placeholder.png";
       try {
         if (producto.Imagen) {
-          const resp = await fetch(
-            "https://www.apicreartnino.somee.com/api/Imagenes_Productos/Lista"
-          );
+          const resp = await fetch("https://www.apicreartnino.somee.com/api/Imagenes_Productos/Lista");
           if (resp.ok) {
             const data: any[] = await resp.json();
             const idImagen = Number(producto.Imagen);
@@ -264,24 +414,37 @@ const mostrarDetalleProducto = async (idPedido: number) => {
         console.error("❌ Error cargando imagen:", e);
       }
 
+      // 🩷 Construir fila HTML
       return `
-        <div style="margin-bottom:12px; padding:0.5rem; border-radius:8px; background:#fff; display:flex; align-items:center; gap:10px;">
-          <img src="${urlImagen}" alt="${nombre}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;" />
-          <div>
-            <div style="font-weight:600">${nombre}</div>
-            <div>Cantidad: ${cantidad}</div>
-            <div>Precio unit.: $${precio.toLocaleString()}</div>
-            <div>Subtotal: $${subtotal.toLocaleString()}</div>
+        <div style="margin-bottom:12px; padding:0.5rem; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${urlImagen}" alt="${nombre}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;" />
+            <div>
+              <div style="font-weight:600">${nombre}</div>
+              <div>Cantidad: ${cantidad}</div>
+              <div>Precio unit.: $${precio.toLocaleString()}</div>
+              <div>Subtotal: $${subtotal.toLocaleString()}</div>
+            </div>
+          </div>
+          <div 
+            class="ver-descripcion"
+            data-nombre="${encodeURIComponent(nombre)}"
+            data-descripcion="${encodeURIComponent(descripcionFinal)}"
+            style="cursor:pointer; font-size:20px; color:#b73a93;"
+            title="Ver personalización del producto"
+          >
+            👁‍🗨
           </div>
         </div>
       `;
     })
   );
 
+  // 🩷 Modal principal
   MySwal.fire({
     title: `<div style="font-size:1.15rem; color:#b73a93;">🧸 Detalle del pedido</div>`,
     html: `
-      <div style="text-align:left;">
+      <div id="detalle-pedido" style="text-align:left;">
         ${rowsHtml.join("")}
         <hr style="margin: 10px 0"/>
         <div style="font-size:1.1rem; font-weight:bold;">
@@ -293,9 +456,27 @@ const mostrarDetalleProducto = async (idPedido: number) => {
     confirmButtonText: "Cerrar",
     confirmButtonColor: "#d14fa2",
     width: 500,
+    didOpen: () => {
+      document.querySelectorAll(".ver-descripcion").forEach((el) => {
+        el.addEventListener("click", async () => {
+          const nombre = decodeURIComponent(el.getAttribute("data-nombre") || "");
+          const descripcion = decodeURIComponent(el.getAttribute("data-descripcion") || "");
+
+          await MySwal.fire({
+            title: `<div style='color:#b73a93;'>🖌 Personalización</div>`,
+            html: `
+              <div style='font-size:16px; font-weight:600; margin-bottom:5px; color:#b73a93;'>${nombre}</div>
+              <div style='text-align:left; font-size:15px;'>${descripcion}</div>`,
+            confirmButtonText: "Cerrar",
+            confirmButtonColor: "#d14fa2",
+            background: "#fff8fc",
+            width: 450,
+          });
+        });
+      });
+    },
   });
 };
-
 
 
   const anularPedido = async (idPedido: number) => {
@@ -422,10 +603,6 @@ const detalles = (allDetalles || []).filter(
     default: return 'estado estado-otro';
   }
 };
-
-
-
-
   /** =====================
    * RENDER
    ====================== */
@@ -495,11 +672,54 @@ const detalles = (allDetalles || []).filter(
           <FaTimes /> Limpiar filtro
         </button>
       </div>
+      <div style={{ marginBottom: "10px" }}>
+  <button
+    className="boton-filtrar-modificados"
+    onClick={() => setMostrarSoloModificados(!mostrarSoloModificados)}
+    style={{
+      backgroundColor: mostrarSoloModificados ? "#f7b8e4" : "#d14fa2",
+      color: "#fff",
+      border: "none",
+      padding: "8px 14px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      marginLeft: "10px",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {mostrarSoloModificados
+      ? "🔁 Ver todos los pedidos"
+      : "🔍 Ver pedidos modificados"}
+  </button>
+
+  {/* 🔹 Mostrar mensaje si no hay pedidos modificados */}
+  {mostrarSoloModificados && pedidos.filter((p) => {
+      const inicial = Number(p.ValorInicial ?? p.valorInicial ?? 0);
+      const restante = Number(p.ValorRestante ?? p.valorRestante ?? 0);
+      const total = Number(p.TotalPedido ?? p.totalPedido ?? 0);
+      return total > (inicial + restante);
+    }).length === 0 && (
+      <p
+        style={{
+          marginTop: "10px",
+          fontSize: "15px",
+          color: "#888",
+          background: "#fff8fc",
+          padding: "10px 15px",
+          borderRadius: "8px",
+          border: "1px solid #f3cce6",
+          display: "inline-block",
+        }}
+      >
+        ❌ No hay pedidos modificados
+      </p>
+    )}
+</div>
 
       {/* pedidos */}
       {pedidosPaginados.length === 0 ? (
         <p style={{ textAlign: 'center', fontWeight: 500 }}>
-          😕 No hay pedidos en ese rango.
+          😕 No hay pedidos .
         </p>
       ) : (
         <div className="compras-grid">
@@ -516,7 +736,11 @@ const detalles = (allDetalles || []).filter(
 
             return (
               <div className="card-compra" key={idPedido}>
-                <div className="card-info">
+                <div className="card-info"><br />
+                  <div>
+                    <FaCalendarAlt style={{ color: "#cd3e3eff" }}/> <strong>Numero de pedido:</strong>{' #'}
+                    {p.IdPedido ?? p.IdPedido ?? '-'}
+                  </div>
                   <div>
   <FaCalendarAlt style={{ color: "#28a745" }} /> <strong>Pedido:</strong>{" "}
   {p.FechaPedido
@@ -544,16 +768,52 @@ const detalles = (allDetalles || []).filter(
 </span>
 
                   </div>
-                  <div>
-                    <FaMoneyBillWave style={{ color: "#bd5baaff" }} /> <strong>Inicial:</strong> $
-                    {Number(p.ValorInicial ?? p.valorInicial ?? 0).toLocaleString()}
-                  </div>
-                  <div>
-                    <FaMoneyBillWave style={{ color: "#28a745" }}/> <strong>Total:</strong> $
-                    {Number(
-                      p.TotalPedido ?? p.totalPedido ?? 0
-                    ).toLocaleString()}
-                  </div>
+                  {/* 💰 Valores del pedido */}
+<div>
+  <FaMoneyBillWave style={{ color: "#bd5baaff" }} /> <strong>Inicial:</strong> $
+  {Number(p.ValorInicial ?? p.valorInicial ?? 0).toLocaleString()}
+</div>
+
+{(() => {
+  const inicial = Number(p.ValorInicial ?? p.valorInicial ?? 0);
+  const restante = Number(p.ValorRestante ?? p.valorRestante ?? 0);
+  const total = Number(p.TotalPedido ?? p.totalPedido ?? 0);
+  const totalOriginal = inicial + restante;
+
+  // 🟢 Si fue modificado, mostramos nuevo restante y omitimos el original
+  if (total > totalOriginal) {
+    const excedente = total - totalOriginal;
+    const nuevoRestante = restante + excedente;
+    return (
+      <div
+        style={{
+          marginTop: "4px",
+          color: "#000000ff",
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        <FaMoneyBillWave style={{ color: "#fc4783ff" }} /> <strong>Nuevo restante:</strong> ${nuevoRestante.toLocaleString()}
+      </div>
+    );
+  }
+
+  // 🩵 Si no fue modificado, mostramos el restante original
+  return (
+    <div>
+      <FaMoneyBillWave style={{ color: "#5baebdff" }} /> <strong>Restante:</strong> $
+      {restante.toLocaleString()}
+    </div>
+  );
+})()}
+
+<div>
+  <FaMoneyBillWave style={{ color: "#28a745" }} /> <strong>Total:</strong> $
+  {Number(p.TotalPedido ?? p.totalPedido ?? 0).toLocaleString()}
+</div>
+
                 </div>
 
                 <div>
@@ -566,7 +826,7 @@ const detalles = (allDetalles || []).filter(
       <FaEye
         className="icono-ojo"
         title="Ver detalle"
-        onClick={() => mostrarDetalleProducto(idPedido)}
+        onClick={() => mostrarDetalleProducto(idPedido, p.Descripcion ?? p.descripcion ?? '')}
         style={{ cursor: 'pointer', marginLeft: 8, color: '#666' }}
       />
     </li>
@@ -593,26 +853,30 @@ const detalles = (allDetalles || []).filter(
         </div>
       )}
 
-      {/* paginación */}
-{totalPaginas > 1 && (
-  <div className="paginacion">
-    <button
-      disabled={pagina === 1}
-      onClick={() => setPagina(pagina - 1)}
-    >
-      ‹
-    </button>
-    <span>
-      Página {pagina} de {totalPaginas}
-    </span>
-    <button
-      disabled={pagina === totalPaginas}
-      onClick={() => setPagina(pagina + 1)}
-    >
-      ›
-    </button>
-  </div>
-)}
+{/* 🔹 Mostrar la paginación solo si hay más de una página */}
+{totalPaginas > 1 ? (
+  <div className="paginacion pastel-paginacion">
+  <button
+    disabled={pagina === 1}
+    onClick={() => setPagina(pagina - 1)}
+  >
+    ‹
+  </button>
+
+  <span>
+    Página {pagina} de {totalPaginas}
+  </span>
+
+  <button
+    disabled={pagina === totalPaginas}
+    onClick={() => setPagina(pagina + 1)}
+  >
+    ›
+  </button>
+</div>
+
+) : null}
+
     </div>
   );
 };

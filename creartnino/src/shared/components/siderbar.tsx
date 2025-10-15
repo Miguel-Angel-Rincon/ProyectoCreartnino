@@ -52,7 +52,7 @@ export default function Sidebar() {
       Swal.fire({
         title: "Sesión cerrada",
         text: "Has cerrado sesión correctamente.",
-        timer: 80000,
+        timer: 8000,
         icon: "success",
         confirmButtonColor: "#ff8feeff",
       });

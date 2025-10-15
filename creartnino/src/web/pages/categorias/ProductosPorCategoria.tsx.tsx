@@ -1,4 +1,3 @@
-// src/web/pages/ProductosPorCategoria.tsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import CardProducto from "../../components/CardProducto";
@@ -13,9 +12,16 @@ const ProductosPorCategoria = () => {
   const [productos, setProductos] = useState<IProductos[]>([]);
   const [cargando, setCargando] = useState(true);
 
+  // 🔍 Filtros
+  const [busqueda, setBusqueda] = useState("");
+  const [rangoPrecio, setRangoPrecio] = useState<[number, number]>([0, 0]);
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
+
+  const abrirImagen = (url: string) => setImagenSeleccionada(url);
+  const cerrarImagen = () => setImagenSeleccionada(null);
+
   const categoriaSlug = categoria?.toLowerCase() || "todos";
 
-  // 🔧 Normaliza texto para slug (sin acentos y en minúscula)
   const normalizarTexto = (txt: string) =>
     txt
       .toLowerCase()
@@ -23,10 +29,10 @@ const ProductosPorCategoria = () => {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-");
 
-  // 🔠 Capitaliza texto para mostrar en título
   const capitalizar = (txt: string) =>
     txt.charAt(0).toUpperCase() + txt.slice(1);
 
+  // 🧠 Cargar datos desde la API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,9 +48,15 @@ const ProductosPorCategoria = () => {
         const dataCategorias: ICatProductos[] = await respCategorias.json();
         const dataProductos: IProductos[] = await respProductos.json();
 
-        // ✅ Guardar solo categorías activas
         setCategorias(dataCategorias.filter((c) => c.Estado === true));
         setProductos(dataProductos);
+
+        // 📈 Establecer rango inicial según producto más caro
+        const precios = dataProductos.map((p) => p.Precio);
+        const maxPrecio = precios.length ? Math.max(...precios) : 1000000;
+        // Limitar el rango máximo visible para que no se deforme el slider visualmente
+const limiteVisual = maxPrecio > 2000000 ? 2000000 : maxPrecio;
+setRangoPrecio([0, limiteVisual]);
       } catch (error) {
         console.error("Error al cargar datos:", error);
       } finally {
@@ -55,14 +67,39 @@ const ProductosPorCategoria = () => {
     fetchData();
   }, []);
 
+  // 🔁 Actualizar rango de precio dinámicamente al cambiar de categoría
+useEffect(() => {
+  if (productos.length === 0) return;
+
+  const productosFiltradosCategoria =
+    categoriaSlug === "todos"
+      ? productos
+      : productos.filter((p) => {
+          const categoriaEncontrada = categorias.find(
+            (c) =>
+              c.CategoriaProducto1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+              categoriaSlug
+          );
+          return p.CategoriaProducto === categoriaEncontrada?.IdCategoriaProducto;
+        });
+
+  const preciosCat = productosFiltradosCategoria.map((p) => p.Precio);
+  if (preciosCat.length > 0) {
+    const nuevoMin = Math.min(...preciosCat);
+    const nuevoMax = Math.max(...preciosCat);
+    setRangoPrecio([nuevoMin, nuevoMax]);
+  }
+}, [categoriaSlug, productos, categorias]);
+
+
   if (cargando) {
     return <p className="cargando">Cargando productos...</p>;
   }
 
-  // ✅ Filtrar productos activos según la categoría seleccionada
-  const productosFiltrados =
+  // 🧩 Filtrado por categoría
+  const productosPorCategoria =
     categoriaSlug === "todos"
-      ? productos.filter((p) => p.Estado === true) // Solo activos
+      ? productos.filter((p) => p.Estado === true)
       : productos.filter((p) => {
           const categoriaEncontrada = categorias.find(
             (c) => normalizarTexto(c.CategoriaProducto1) === categoriaSlug
@@ -73,6 +110,36 @@ const ProductosPorCategoria = () => {
           );
         });
 
+        
+
+  // 💰 Recalcular precios dinámicamente según categoría
+  const precios = productosPorCategoria.map((p) => p.Precio);
+  const precioMinimoTotal = precios.length ? Math.min(...precios) : 0;
+  const precioMaximoTotal = precios.length ? Math.max(...precios) : rangoPrecio[1];
+  
+
+  
+
+  // 🧮 Filtrado final por nombre y rango de precio
+  const productosFiltrados = productosPorCategoria.filter((p) => {
+    const coincideNombre = p.Nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const dentroRango = p.Precio >= rangoPrecio[0] && p.Precio <= rangoPrecio[1];
+    return coincideNombre && dentroRango;
+  });
+
+  // 🎚️ Control del slider
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>, tipo: "min" | "max") => {
+    const valor = Number(e.target.value);
+    if (tipo === "min" && valor <= rangoPrecio[1]) setRangoPrecio([valor, rangoPrecio[1]]);
+    if (tipo === "max" && valor >= rangoPrecio[0]) setRangoPrecio([rangoPrecio[0], valor]);
+  };
+
+  // 📏 Posiciones de los puntos
+  const rangoVisual = Math.max(precioMaximoTotal - precioMinimoTotal, 1); // evita división por 0
+const minPos = ((rangoPrecio[0] - precioMinimoTotal) / rangoVisual) * 100;
+const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
+
+
   return (
     <div className="categorias-container">
       <h2 className="titulo">
@@ -81,15 +148,80 @@ const ProductosPorCategoria = () => {
           : capitalizar(categoriaSlug.replace(/-/g, " "))}
       </h2>
 
+      {/* 🔍 Filtros */}
+      <div className="filtros-container-modern">
+        <input
+          type="text"
+          placeholder="🔍 Buscar producto..."
+          className="input-busqueda-grande"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        {/* 🎚️ Rango de precio */}
+        <div className="filtro-precio">
+          <h4 className="titulo-precio">💰 Rango de Precio</h4>
+
+          <div className="slider-wrapper">
+            <div className="slider-linea-base"></div>
+
+            {/* Barra activa */}
+            <div
+              className="slider-rango-activo"
+              style={{
+                left: `${minPos}%`,
+                width: `${maxPos - minPos}%`,
+              }}
+            ></div>
+
+            {/* Sliders */}
+            <input
+              type="range"
+              min={precioMinimoTotal}
+              max={precioMaximoTotal}
+              value={rangoPrecio[0]}
+              onChange={(e) => handleSliderChange(e, "min")}
+              className="slider-input"
+            />
+            <input
+              type="range"
+              min={precioMinimoTotal}
+              max={precioMaximoTotal}
+              value={rangoPrecio[1]}
+              onChange={(e) => handleSliderChange(e, "max")}
+              className="slider-input"
+            />
+
+            {/* Puntos + etiquetas */}
+            <div className="slider-punto" style={{ left: `${minPos}%` }}>
+              <div className="slider-valor">${rangoPrecio[0].toLocaleString()} COP</div>
+            </div>
+            <div className="slider-punto" style={{ left: `${maxPos}%` }}>
+              <div className="slider-valor">${rangoPrecio[1].toLocaleString()} COP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 🛍️ Productos */}
       <div className="categorias-grid">
         {productosFiltrados.length > 0 ? (
           productosFiltrados.map((producto) => (
-            <CardProducto key={producto.IdProducto} producto={producto} />
+            <CardProducto key={producto.IdProducto} producto={producto} overImagen={abrirImagen} />
           ))
         ) : (
-          <p>No hay productos en esta categoría.</p>
+          <p>No hay productos que coincidan con los filtros.</p>
         )}
       </div>
+
+      {/* 🖼️ Modal de imagen */}
+      {imagenSeleccionada && (
+        <div className="modal-imagen" onClick={cerrarImagen}>
+          <div className="modal-imagen-contenido">
+            <img src={imagenSeleccionada} alt="Vista ampliada" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

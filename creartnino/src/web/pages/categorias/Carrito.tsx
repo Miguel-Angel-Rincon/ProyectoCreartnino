@@ -1,21 +1,43 @@
-// src/web/pages/Carrito.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCarrito } from '../../../context/CarritoContext';
 import '../../styles/carrito.css';
 import { FaTrash, FaPen } from 'react-icons/fa';
 import '../../styles/personalizar.css';
+import Swal from 'sweetalert2';
 import PersonalizarProductoModal from '../categorias/PersonalizarProductoModal';
-import FinalizarCompraModal from '../categorias/FinalizarCompraModal'; // NUEVO
+import FinalizarCompraModal from '../categorias/FinalizarCompraModal';
 
 const Carrito = () => {
-  const { carrito, total, eliminarProducto, limpiarCarrito, agregarProducto } = useCarrito();
+  const { carrito, total, eliminarProducto, limpiarCarrito, agregarProducto, incrementarCantidad, disminuirCantidad } = useCarrito();
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [productoEditar, setProductoEditar] = useState<any>(null);
   const [mensajeTemp, setMensajeTemp] = useState('');
+  const [modalCompraVisible, setModalCompraVisible] = useState(false);
 
-  const [modalCompraVisible, setModalCompraVisible] = useState(false); // NUEVO
+  const [stockProductos, setStockProductos] = useState<Record<number, number>>({});
 
+  // 🟢 Cargar stock de productos desde la API
+  useEffect(() => {
+    const cargarStock = async () => {
+      try {
+        const res = await fetch('https://www.apicreartnino.somee.com/api/Productos/Lista');
+        const data = await res.json();
+
+        const stockMap: Record<number, number> = {};
+        data.forEach((p: any) => {
+          stockMap[p.IdProducto] = p.Cantidad;
+        });
+        setStockProductos(stockMap);
+      } catch (error) {
+        console.error('Error al cargar stock:', error);
+      }
+    };
+
+    cargarStock();
+  }, []);
+
+  // 🟡 Abrir modal de personalización
   const abrirModal = (id: number, mensaje: string) => {
     const prod = carrito.find(p => p.IdProducto === id);
     if (prod) {
@@ -37,20 +59,64 @@ const Carrito = () => {
     }
   };
 
-  const aumentar = (id: number) => {
-    const producto = carrito.find(p => p.IdProducto === id);
-    if (producto) {
-      eliminarProducto(id);
-      agregarProducto({ ...producto, cantidad: producto.cantidad + 1 });
-    }
-  };
+  // 🧩 Aumentar cantidad con validación de stock
+  // 🧩 Aumentar cantidad con validación de stock (sin cambiar orden)
+const aumentar = (id: number) => {
+  const producto = carrito.find(p => p.IdProducto === id);
+  if (!producto) return;
 
-  const disminuir = (id: number) => {
-    const producto = carrito.find(p => p.IdProducto === id);
-    if (producto && producto.cantidad > 1) {
-      eliminarProducto(id);
-      agregarProducto({ ...producto, cantidad: producto.cantidad - 1 });
+  const stockDisponible = stockProductos[id];
+
+  if (stockDisponible !== undefined && producto.cantidad >= stockDisponible) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Stock insuficiente',
+      text: `Solo hay ${stockDisponible} unidades disponibles de "${producto.Nombre}".`,
+      confirmButtonColor: '#3085d6'
+    });
+    return;
+  }
+
+  // usa la función del contexto que sólo incrementa cantidad (mantiene orden)
+  incrementarCantidad(id);
+};
+
+// 🧩 Disminuir cantidad (sin cambiar orden)
+const disminuir = (id: number) => {
+  const producto = carrito.find(p => p.IdProducto === id);
+  if (!producto) return;
+
+  // si quieres impedir que llegue a 0 (como antes)
+  if (producto.cantidad > 1) {
+    disminuirCantidad(id); // función del contexto que sólo decrementa
+  } else {
+    // si quieres que al llegar a 0 se elimine, descomenta:
+    // eliminarProducto(id);
+  }
+};
+
+
+  // 🟠 Validar stock antes de finalizar compra
+  const validarStockAntesDeFinalizar = () => {
+    const productosConProblema = carrito.filter(p => {
+      const stock = stockProductos[p.IdProducto];
+      return stock !== undefined && p.cantidad > stock;
+    });
+
+    if (productosConProblema.length > 0) {
+      const lista = productosConProblema
+        .map(p => `• ${p.Nombre}: solo ${stockProductos[p.IdProducto]} disponibles.`)
+        .join('<br>');
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Stock insuficiente',
+        html: `No puedes finalizar la compra:<br>${lista}`,
+        confirmButtonColor: '#3085d6'
+      });
+      return false;
     }
+    return true;
   };
 
   return (
@@ -63,9 +129,10 @@ const Carrito = () => {
         <>
           <div className="tabla-carrito">
             <div className="encabezado">
-              <span>Producto</span>
+              <span style={{ textAlign: "left", paddingLeft: "2rem" }}>Producto</span>
               <span>Precio</span>
               <span>Cantidad</span>
+              <span>Disponibles</span> {/* 🟢 Nueva columna para stock */}
               <span>Subtotal</span>
               <span>Tipo</span>
               <span>Acción</span>
@@ -80,7 +147,7 @@ const Carrito = () => {
                 </div>
 
                 <div className="columna precio">
-                  ${producto.Precio.toLocaleString()} cop
+                  ${producto.Precio.toLocaleString()} COP
                 </div>
 
                 <div className="columna cantidad">
@@ -89,8 +156,15 @@ const Carrito = () => {
                   <button className="cantidad-btn" onClick={() => aumentar(producto.IdProducto)}>+</button>
                 </div>
 
+                {/* 🟢 Nueva columna separada para stock */}
+                <div className="columna stock">
+                  {stockProductos[producto.IdProducto] !== undefined
+                    ? stockProductos[producto.IdProducto]
+                    : '...'}
+                </div>
+
                 <div className="columna subtotal">
-                  ${(producto.Precio * producto.cantidad).toLocaleString()} cop
+                  ${(producto.Precio * producto.cantidad).toLocaleString()} COP
                 </div>
 
                 <div className="columna tipo">
@@ -137,7 +211,15 @@ const Carrito = () => {
 
           <div className="acciones-carrito">
             <button className="btn-vaciar" onClick={limpiarCarrito}>Vaciar Carrito</button>
-            <button className="btn-finalizar" onClick={() => setModalCompraVisible(true)}>
+
+            <button
+              className="btn-finalizar"
+              onClick={() => {
+                if (validarStockAntesDeFinalizar()) {
+                  setModalCompraVisible(true);
+                }
+              }}
+            >
               Finalizar Compra
             </button>
           </div>
@@ -158,12 +240,12 @@ const Carrito = () => {
 
       {/* Modal de Finalizar Compra */}
       <FinalizarCompraModal
-              visible={modalCompraVisible}
-              onClose={() => setModalCompraVisible(false)}
-              onEnviar={() => {
-                  limpiarCarrito();
-                  setModalCompraVisible(false);
-              }}
+        visible={modalCompraVisible}
+        onClose={() => setModalCompraVisible(false)}
+        onEnviar={() => {
+          limpiarCarrito();
+          setModalCompraVisible(false);
+        }}
       />
     </div>
   );

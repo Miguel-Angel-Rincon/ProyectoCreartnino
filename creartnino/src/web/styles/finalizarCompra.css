@@ -1,4 +1,4 @@
-/* Fondo oscuro semitransparente */
+/* === FONDO Y CONTENEDOR PRINCIPAL === */
 .overlay-modal {
   position: fixed;
   inset: 0;
@@ -9,30 +9,21 @@
   z-index: 999;
 }
 
-.input-label {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 600;
-  color: #000; /* negro */
-}
-
-
-/* Contenedor del modal */
 .modal-finalizar {
   position: relative;
   background: #ffeaf6;
   padding: 2rem;
   width: 95%;
-  max-width: 720px;
+  max-width: 1000px;
   border-radius: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
   display: flex;
   flex-direction: column;
-  gap: 1.4rem;
+  gap: 1.5rem;
   max-height: 90vh;
   overflow-y: auto;
-  animation: fadeIn 0.3s ease;
   scrollbar-width: none;
+  animation: fadeIn 0.3s ease;
 }
 .modal-finalizar::-webkit-scrollbar {
   display: none;
@@ -40,7 +31,7 @@
 
 .modal-finalizar h2 {
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.2rem; /* Aumentamos tamaño del texto */
   color: #d14fa2;
   display: flex;
   justify-content: center;
@@ -48,14 +39,14 @@
   gap: 0.6rem;
 }
 
-/* Botón de cerrar */
+/* === BOTÓN CERRAR === */
 .btn-cerrar {
   position: absolute;
   top: 1.2rem;
   right: 1.5rem;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.6rem; /* Aumentamos tamaño */
   cursor: pointer;
   color: #b73a93;
   transition: color 0.2s ease;
@@ -65,39 +56,52 @@
   color: #8a2e6e;
 }
 
-/* Inputs organizados en dos columnas */
-.formulario-dos-columnas {
+/* === FORMULARIO EN TRES COLUMNAS === */
+.formulario-tres-columnas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Estilo para inputs con ícono */
+@media (max-width: 768px) {
+  .formulario-tres-columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === INPUTS CON ICONOS Y TOOLTIP === */
 .input-icono {
   display: flex;
   align-items: center;
   background: #fff;
   border-radius: 1rem;
   border: 1.5px solid #ccc;
-  padding: 0.7rem 1rem;
-  gap: 0.7rem;
+  padding: 1rem;
+  gap: 0.8rem;
   transition: all 0.3s ease;
+  position: relative;
 }
+
 .input-icono:hover {
   border-color: #d14fa2;
 }
+
 .input-icono .icono {
   color: #d14fa2;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
+
 .input-icono input,
-.input-icono select {
+.input-icono select,
+.input-icono textarea {
   flex: 1;
   border: none;
   outline: none;
   font-size: 1rem;
   background: transparent;
 }
+
 .input-icono input[readonly] {
   color: #444;
   font-weight: bold;
@@ -105,7 +109,114 @@
   user-select: none;
 }
 
-/* Área de descripción */
+/* Tooltip */
+.input-icono[data-label]:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d14fa2;
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  animation: fadeTooltip 0.3s forwards;
+  z-index: 10;
+}
+
+.input-icono[data-label]:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #d14fa2 transparent;
+  opacity: 0;
+  animation: fadeTooltip 0.3s forwards;
+}
+
+@keyframes fadeTooltip {
+  to {
+    opacity: 1;
+  }
+}
+
+/* === INPUT DE ARCHIVO === */
+.subir-archivo input[type="file"] {
+  display: none;
+}
+
+.subir-label {
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.7rem;
+  transition: background 0.3s ease;
+}
+
+.subir-label:hover {
+  color: #d14fa2;
+}
+
+/* === VISTA PREVIA DE IMAGEN === */
+.vista-previa-img {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.vista-previa-img img {
+  max-width: 150px;
+  border-radius: 1rem;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+/* === DETALLE DEL PEDIDO === */
+.detalle-pedido {
+  margin-top: 20px;
+  background: #fdfdfd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.detalle-pedido h3 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #444;
+}
+
+.tabla-detalle {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-detalle th,
+.tabla-detalle td {
+  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.tabla-detalle th {
+  background: #f7f7f7;
+  color: #333;
+  font-weight: 600;
+}
+
+.tabla-detalle td {
+  font-size: 1rem;
+}
+
+/* === CAMPO PERSONALIZACIÓN === */
 .descripcion-textarea {
   background: white;
   border-radius: 1rem;
@@ -114,47 +225,17 @@
   color: #444;
   font-weight: bold;
   resize: none;
-  height: auto;
-  min-height: 140px;
+  min-height: 120px;
   border: 1.5px solid #ccc;
-  cursor: not-allowed;
-  user-select: none;
   overflow-y: auto;
   scrollbar-width: none;
 }
+
 .descripcion-textarea::-webkit-scrollbar {
   display: none;
 }
 
-/* Estilo para el input de archivo */
-.subir-archivo input[type="file"] {
-  display: none;
-}
-.subir-label {
-  font-weight: bold;
-  color: #555;
-  cursor: pointer;
-  padding: 0.3rem 0.5rem;
-  border-radius: 0.7rem;
-  transition: background 0.3s ease;
-}
-.subir-label:hover {
-  color: #d14fa2;
-}
-
-/* Vista previa del comprobante */
-.vista-previa-img {
-  display: flex;
-  justify-content: center;
-  margin-top: 0.5rem;
-}
-.vista-previa-img img {
-  max-width: 140px;
-  border-radius: 1rem;
-  border: 1px solid #ccc;
-}
-
-/* Sección resumen de pago */
+/* === RESUMEN DE PAGO === */
 .resumen-pago {
   background: #fdd9f1;
   border-radius: 1rem;
@@ -165,6 +246,7 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .resumen-pago p {
   margin: 0;
   display: flex;
@@ -173,36 +255,27 @@
   font-weight: bold;
 }
 
-/* Botón principal */
+/* === BOTÓN ENVIAR === */
 .btn-enviar {
   background-color: #d14fa2;
   color: white;
-  padding: 0.9rem 2rem;
+  padding: 1rem 2rem;
   border: none;
   border-radius: 2rem;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease;
   align-self: center;
   margin-top: 1rem;
 }
+
 .btn-enviar:hover {
   background-color: #b73a93;
 }
 
-/* Animación */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
- .modal-imagen-ampliada {
+/* === MODAL IMAGEN AMPLIADA === */
+.modal-imagen-ampliada {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.85);
@@ -221,152 +294,77 @@
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
-/* Tooltip base */
-.input-icono {
-  position: relative;
+/* === SUBMODAL MÉTODO DE PAGO === */
+.overlay-submodal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  animation: fadeIn 0.3s ease;
 }
 
-/* Tooltip cuando pasas el mouse */
-.input-icono[data-label]:hover::after {
-  content: attr(data-label);
-  position: absolute;
-  bottom: 115%; /* aparece arriba del input */
-  left: 50%;
-  transform: translateX(-50%);
-  background: #d14fa2;
-  color: #fff;
-  padding: 0.4rem 0.7rem;
-  border-radius: 0.5rem;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  animation: fadeTooltip 0.3s forwards;
-  z-index: 10;
+.submodal {
+  background: #fff8fc;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  max-width: 650px; /* Ancho ajustado */
+  width: 95%;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: fadeInUp 0.3s ease;
 }
 
-/* Flechita */
-.input-icono[data-label]:hover::before {
-  content: "";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: transparent transparent #d14fa2 transparent;
-  opacity: 0;
-  animation: fadeTooltip 0.3s forwards;
+.submodal h3 {
+  color: #d14fa2;
+  font-size: 1.5rem; /* Ajustamos el tamaño */
+  margin-bottom: 1rem;
 }
 
-/* Animación */
-@keyframes fadeTooltip {
-  to {
-    opacity: 1;
-  }
+.submodal p {
+  margin: 0.5rem 0;
+  color: #444;
+  font-weight: 500;
+  font-size: 1.1rem;
 }
 
-/* Contenedor de botones */
+/* Botones del submodal */
 .acciones {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 1.5rem;
 }
 
-/* Botón Confirmar */
 .btn-confirmar {
   background: #d14fa2;
   color: white;
   font-weight: bold;
-  padding: 0.7rem 1.4rem;
+  padding: 0.8rem 1.6rem;
   border: none;
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
+
 .btn-confirmar:hover {
   background: #b73a93;
 }
 
-/* Botón Cancelar */
 .btn-cancelar {
   background: #f3f3f3;
   color: #555;
   font-weight: bold;
-  padding: 0.7rem 1.4rem;
+  padding: 0.8rem 1.6rem;
   border: none;
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease;
 }
+
 .btn-cancelar:hover {
   background: #ffeaf6;
   color: #d14fa2;
-}
-
-/* === SUBMODAL === */
-
-/* Fondo oscuro del submodal */
-.overlay-submodal {
-  position: fixed;
-  inset: 0; /* cubre toda la pantalla */
-  background-color: rgba(0, 0, 0, 0.45);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1500; /* encima del modal principal */
-  animation: fadeIn 0.3s ease;
-}
-
-/* Caja del submodal */
-.submodal {
-  position: relative;
-  background: #fff8fc; /* pastel claro */
-  padding: 1.8rem;
-  border-radius: 1.5rem;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  animation: fadeInUp 0.3s ease;
-}
-
-/* Título del submodal */
-.submodal h3 {
-  color: #d14fa2;
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .5rem;
-}
-
-/* Texto dentro del submodal */
-.submodal p {
-  margin: 0.4rem 0;
-  color: #444;
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-/* Botones en el submodal */
-.submodal .acciones {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-/* Animaciones */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

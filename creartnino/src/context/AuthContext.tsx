@@ -6,7 +6,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import Swal from "sweetalert2"; // 👈 Importamos Swal
+import Swal from "sweetalert2";
 import type { IUsuarios } from "../features/interfaces/IUsuarios";
 
 interface AuthContextType {
@@ -14,10 +14,11 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   iniciarSesion: (datos: IUsuarios, token: string) => Promise<void>;
-  cerrarSesion: () => void;
+  cerrarSesion: (porInactividad?: boolean) => void;
   permisos: string[];
   cargarPermisos: (idRol: number) => Promise<void>;
   refrescarUsuario: () => Promise<void>;
+  loading: boolean; // 🟢 Nuevo campo
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -29,17 +30,16 @@ export const AuthContext = createContext<AuthContextType>({
   permisos: [],
   cargarPermisos: async () => {},
   refrescarUsuario: async () => {},
+  loading: true, // 🟢 Valor por defecto
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [usuario, setUsuario] = useState<IUsuarios | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [permisos, setPermisos] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true); // 🟢 NUEVO
+  const [loading, setLoading] = useState(true);
 
-  // -------------------
   // 🟢 INICIAR SESIÓN
-  // -------------------
   const iniciarSesion = async (datos: IUsuarios, token: string) => {
     let usuarioConId = datos;
 
@@ -73,40 +73,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await refrescarUsuario();
   };
 
-  // -------------------
   // 🔴 CERRAR SESIÓN
-  // -------------------
-  // 🔴 CERRAR SESIÓN
-const cerrarSesion = (porInactividad: boolean = false) => {
-  setUsuario(null);
-  setToken(null);
-  setPermisos([]);
+  const cerrarSesion = (porInactividad: boolean = false) => {
+    setUsuario(null);
+    setToken(null);
+    setPermisos([]);
 
-  localStorage.removeItem("usuario");
-  localStorage.removeItem("token");
-  localStorage.removeItem("rolUsuario");
-  localStorage.removeItem("permisos");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("token");
+    localStorage.removeItem("rolUsuario");
+    localStorage.removeItem("permisos");
 
-  if (porInactividad) {
-    Swal.fire({
-      icon: "info",
-      title: "Sesión cerrada",
-      text: "Tu sesión se cerró automáticamente por inactividad.",
-      confirmButtonText: "Aceptar",
-      confirmButtonColor: "#df64b2ff",
-    }).then(() => {
+    if (porInactividad) {
+      Swal.fire({
+        icon: "info",
+        title: "Sesión cerrada",
+        text: "Tu sesión se cerró automáticamente por inactividad.",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#df64b2ff",
+      }).then(() => {
+        window.location.href = "/ingresar";
+      });
+    } else {
       window.location.href = "/ingresar";
-    });
-  } else {
-    window.location.href = "/ingresar";
-  }
-};
+    }
+  };
 
-
-
-  // -------------------
   // 🔑 CARGAR PERMISOS
-  // -------------------
   const cargarPermisos = async (idRol: number) => {
     try {
       const permisosRes = await fetch(
@@ -138,9 +131,7 @@ const cerrarSesion = (porInactividad: boolean = false) => {
     }
   };
 
-  // -------------------
   // 🔄 REFRESCAR USUARIO
-  // -------------------
   const refrescarUsuario = async () => {
     if (!usuario && !localStorage.getItem("usuario")) return;
 
@@ -170,65 +161,56 @@ const cerrarSesion = (porInactividad: boolean = false) => {
     }
   };
 
-  // -------------------
   // ⏱️ AUTO-LOGOUT CON ADVERTENCIA
-  // -------------------
-  // ⏱️ AUTO-LOGOUT CON ADVERTENCIA
-useEffect(() => {
-  if (!token) return;
+  useEffect(() => {
+    if (!token) return;
 
-  let logoutTimer: ReturnType<typeof setTimeout>;
-  let warningTimer: ReturnType<typeof setTimeout>;
+    let logoutTimer: ReturnType<typeof setTimeout>;
+    let warningTimer: ReturnType<typeof setTimeout>;
 
-  const iniciarContadores = () => {
-    clearTimeout(logoutTimer);
-    clearTimeout(warningTimer);
+    const iniciarContadores = () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warningTimer);
 
-    // ⏳ Mostrar advertencia 1 minuto antes (a los 29 min)
-    warningTimer = setTimeout(() => {
-      Swal.fire({
-        title: "¿Sigues allí?",
-        text: "Tu sesión se cerrará en 1 minuto por inactividad.",
-        icon: "warning",
-        confirmButtonText: "Continuar",
-        showCancelButton: true,
-        cancelButtonText: "Cerrar sesión",
-        confirmButtonColor: "#e47cedff",
-        reverseButtons: true,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          iniciarContadores(); // 👈 reinicia el tiempo
-        } else {
-          cerrarSesion();
-        }
-      });
-    }, 29 * 60 * 1000); // 29 minutos
+      warningTimer = setTimeout(() => {
+        Swal.fire({
+          title: "¿Sigues allí?",
+          text: "Tu sesión se cerrará en 1 minuto por inactividad.",
+          icon: "warning",
+          confirmButtonText: "Continuar",
+          showCancelButton: true,
+          cancelButtonText: "Cerrar sesión",
+          confirmButtonColor: "#e47cedff",
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            iniciarContadores();
+          } else {
+            cerrarSesion();
+          }
+        });
+      }, 29 * 60 * 1000);
 
-    // 🔴 Logout automático a los 30 min
-    logoutTimer = setTimeout(() => {
-      cerrarSesion(true);
-    }, 30 * 60 * 1000);
-  };
+      logoutTimer = setTimeout(() => {
+        cerrarSesion(true);
+      }, 30 * 60 * 1000);
+    };
 
-  const resetTimer = () => iniciarContadores();
+    const resetTimer = () => iniciarContadores();
 
-  const eventos = ["mousemove", "keydown", "click", "scroll"];
-  eventos.forEach((e) => window.addEventListener(e, resetTimer));
+    const eventos = ["mousemove", "keydown", "click", "scroll"];
+    eventos.forEach((e) => window.addEventListener(e, resetTimer));
 
-  iniciarContadores();
+    iniciarContadores();
 
-  return () => {
-    clearTimeout(logoutTimer);
-    clearTimeout(warningTimer);
-    eventos.forEach((e) => window.removeEventListener(e, resetTimer));
-  };
-}, [token]);
+    return () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warningTimer);
+      eventos.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [token]);
 
-
-  // -------------------
   // ♻️ RECUPERAR ESTADO AL RECARGAR
-  // -------------------
-   // ♻️ RECUPERAR ESTADO AL RECARGAR
   useEffect(() => {
     const almacenado = localStorage.getItem("usuario");
     const tokenStored = localStorage.getItem("token");
@@ -241,7 +223,7 @@ useEffect(() => {
 
     if (tokenStored) setToken(tokenStored);
 
-    setLoading(false); // ✅ Termina carga
+    setLoading(false); // ✅ Termina carga inicial
   }, []);
 
   return (
@@ -255,9 +237,9 @@ useEffect(() => {
         permisos,
         cargarPermisos,
         refrescarUsuario,
+        loading, // ✅ Exportamos loading
       }}
     >
-      {/* ⏳ Mientras carga, puedes mostrar un spinner o nada */}
       {loading ? <div>Cargando...</div> : children}
     </AuthContext.Provider>
   );

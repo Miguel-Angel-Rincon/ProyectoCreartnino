@@ -1,5 +1,258 @@
 /* src/styles/CategoriasProductos.css */
 
+/* 🔍 Contenedor */
+.filtros-container-modern {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+/* 🔎 Buscador */
+.input-busqueda-grande {
+  flex: 1;
+  min-width: 600px;
+  padding: 16px 22px;
+  font-size: 1rem;
+  border: 2px solid #f4a3d8;
+  border-radius: 14px;
+  outline: none;
+  background: transparent;
+  transition: 0.3s;
+}
+
+.input-busqueda-grande:focus {
+  border-color: #f072d1;
+  box-shadow: 0 0 6px rgba(240, 114, 209, 0.3);
+}
+
+/* 💰 Sección precio */
+.filtro-precio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3rem;
+  min-width: 330px;
+}
+
+.titulo-precio {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+/* 🎚️ Slider */
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  height: 60px;
+  margin-top: 0.5rem;
+}
+
+.slider-linea-base {
+  position: absolute;
+  top: 45%;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #f7c4e3;
+  border-radius: 3px;
+}
+
+.slider-rango-activo {
+  position: absolute;
+  top: 45%;
+  height: 6px;
+  background: #f072d1;
+  border-radius: 3px;
+}
+
+/* 🎛️ Input invisible */
+.slider-input {
+  position: absolute;
+  width: 100%;
+  top: 45%;
+  transform: translateY(-50%);
+  background: transparent;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.slider-input::-webkit-slider-thumb {
+  pointer-events: all;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f072d1;
+  border: 4px solid #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition: 0.2s;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #ff92d9;
+  box-shadow: 0 0 8px rgba(240, 114, 209, 0.4);
+}
+
+/* 🔘 Puntos y precios */
+.slider-punto {
+  position: absolute;
+  top: 40%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.slider-valor {
+  margin-top: 25px;
+  background: #fff;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 2px solid #f7c4e3;
+  border-radius: 10px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* 🌸 RESPONSIVE igual estilo que categorías */
+@media (min-width: 1200px) {
+  .filtros-container-modern {
+    gap: 5rem;
+  }
+
+  .input-busqueda-grande {
+    min-width: 650px;
+  }
+
+  .slider-wrapper {
+    max-width: 380px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filtros-container-modern {
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .input-busqueda-grande {
+    min-width: 80%;
+    font-size: 1rem;
+  }
+
+  .filtro-precio {
+    width: 100%;
+    align-items: center;
+  }
+
+  .slider-wrapper {
+    max-width: 80%;
+  }
+
+  .slider-valor {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-busqueda-grande {
+    min-width: 100%;
+    padding: 14px 18px;
+    font-size: 0.95rem;
+  }
+
+  .filtro-precio {
+    gap: 1rem;
+  }
+
+  .slider-wrapper {
+    max-width: 90%;
+    height: 70px;
+  }
+
+  .slider-valor {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+
+  .slider-input::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+}
+.modal-imagen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Contenedor fijo con proporción consistente */
+.modal-imagen-contenido {
+  width: 90vw;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* evita que sobresalga la imagen */
+  border-radius: 12px;
+  box-shadow: transparent;
+  background: transparent
+}
+
+/* Imagen centrada y ajustada dentro del contenedor */
+.modal-imagen-contenido img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* mantiene proporción sin recortar */
+  border-radius: 10px;
+  animation: scaleUp 0.3s ease;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0.8; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* 📱 Responsivo */
+@media (max-width: 768px) {
+  .modal-imagen-contenido {
+    width: 95vw;
+    height: 70vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-imagen-contenido {
+    width: 100vw;
+    height: 65vh;
+    border-radius: 0;
+  }
+}
+
+
+
+
 .categorias-container {
   padding: 2rem;
   background: #ffffff;
