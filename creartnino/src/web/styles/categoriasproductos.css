@@ -1,5 +1,67 @@
 /* src/styles/CategoriasProductos.css */
 
+
+/* 🩷 Select de Categorías */
+.select-categorias {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff; /* fondo limpio */
+  border: 2px solid #f4a3d8;
+  border-radius: 14px;
+  padding: 14px 2.5rem 14px 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #5e3b76;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 8px rgba(243, 196, 245, 0.25);
+  outline: none;
+  cursor: pointer;
+  width: 220px;
+  background-image: 
+    linear-gradient(45deg, transparent 50%, #f072d1 50%),
+    linear-gradient(135deg, #f072d1 50%, transparent 50%);
+  background-position: 
+    calc(100% - 20px) calc(50% - 2px),
+    calc(100% - 15px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+/* ✨ Hover y focus */
+.select-categorias:hover {
+  border-color: #f072d1;
+  box-shadow: 0 0 10px rgba(240, 114, 209, 0.35);
+  background-color: #fffafc;
+}
+
+.select-categorias:focus {
+  border-color: #f072d1;
+  box-shadow: 0 0 10px rgba(240, 114, 209, 0.45);
+}
+
+/* 🌸 Opciones del dropdown */
+.select-categorias option {
+  background-color: #fffafc;
+  color: #5e3b76;
+  font-weight: 500;
+  border: none;
+  padding: 8px;
+}
+
+/* 💫 efecto flotante suave (igual estética que el input) */
+.select-categorias:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 5px rgba(240, 114, 209, 0.25);
+}
+
+/* 👌 Pequeña mejora para Safari */
+.select-categorias::-ms-expand {
+  display: none;
+}
+
 /* 🔍 Contenedor */
 .filtros-container-modern {
   display: flex;
@@ -10,12 +72,13 @@
   flex-wrap: wrap;
 }
 
-/* 🔎 Buscador */
+/* 🔎 Buscador (más compacto, pero igual estilo) */
 .input-busqueda-grande {
   flex: 1;
-  min-width: 600px;
-  padding: 16px 22px;
-  font-size: 1rem;
+  min-width: 420px; /* 🔽 antes 600px */
+  max-width: 500px;
+  padding: 12px 18px; /* 🔽 menos alto */
+  font-size: 0.95rem;
   border: 2px solid #f4a3d8;
   border-radius: 14px;
   outline: none;
@@ -128,7 +191,7 @@
   }
 
   .input-busqueda-grande {
-    min-width: 650px;
+    min-width: 480px; /* 🔽 ajustado */
   }
 
   .slider-wrapper {
@@ -188,6 +251,7 @@
     height: 18px;
   }
 }
+
 .modal-imagen {
   position: fixed;
   inset: 0;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import CardProducto from "../../components/CardProducto";
 import "../../styles/categoriasproductos.css";
 
@@ -8,6 +8,8 @@ import type { ICatProductos } from "../../../features/interfaces/ICatProductos";
 
 const ProductosPorCategoria = () => {
   const { categoria } = useParams();
+  const navigate = useNavigate();
+
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
   const [productos, setProductos] = useState<IProductos[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -51,12 +53,10 @@ const ProductosPorCategoria = () => {
         setCategorias(dataCategorias.filter((c) => c.Estado === true));
         setProductos(dataProductos);
 
-        // 📈 Establecer rango inicial según producto más caro
         const precios = dataProductos.map((p) => p.Precio);
         const maxPrecio = precios.length ? Math.max(...precios) : 1000000;
-        // Limitar el rango máximo visible para que no se deforme el slider visualmente
-const limiteVisual = maxPrecio > 2000000 ? 2000000 : maxPrecio;
-setRangoPrecio([0, limiteVisual]);
+        const limiteVisual = maxPrecio > 2000000 ? 2000000 : maxPrecio;
+        setRangoPrecio([0, limiteVisual]);
       } catch (error) {
         console.error("Error al cargar datos:", error);
       } finally {
@@ -68,29 +68,27 @@ setRangoPrecio([0, limiteVisual]);
   }, []);
 
   // 🔁 Actualizar rango de precio dinámicamente al cambiar de categoría
-useEffect(() => {
-  if (productos.length === 0) return;
+  useEffect(() => {
+    if (productos.length === 0) return;
 
-  const productosFiltradosCategoria =
-    categoriaSlug === "todos"
-      ? productos
-      : productos.filter((p) => {
-          const categoriaEncontrada = categorias.find(
-            (c) =>
-              c.CategoriaProducto1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-              categoriaSlug
-          );
-          return p.CategoriaProducto === categoriaEncontrada?.IdCategoriaProducto;
-        });
+    const productosFiltradosCategoria =
+      categoriaSlug === "todos"
+        ? productos
+        : productos.filter((p) => {
+            const categoriaEncontrada = categorias.find(
+              (c) =>
+                normalizarTexto(c.CategoriaProducto1) === categoriaSlug
+            );
+            return p.CategoriaProducto === categoriaEncontrada?.IdCategoriaProducto;
+          });
 
-  const preciosCat = productosFiltradosCategoria.map((p) => p.Precio);
-  if (preciosCat.length > 0) {
-    const nuevoMin = Math.min(...preciosCat);
-    const nuevoMax = Math.max(...preciosCat);
-    setRangoPrecio([nuevoMin, nuevoMax]);
-  }
-}, [categoriaSlug, productos, categorias]);
-
+    const preciosCat = productosFiltradosCategoria.map((p) => p.Precio);
+    if (preciosCat.length > 0) {
+      const nuevoMin = Math.min(...preciosCat);
+      const nuevoMax = Math.max(...preciosCat);
+      setRangoPrecio([nuevoMin, nuevoMax]);
+    }
+  }, [categoriaSlug, productos, categorias]);
 
   if (cargando) {
     return <p className="cargando">Cargando productos...</p>;
@@ -110,15 +108,9 @@ useEffect(() => {
           );
         });
 
-        
-
-  // 💰 Recalcular precios dinámicamente según categoría
   const precios = productosPorCategoria.map((p) => p.Precio);
   const precioMinimoTotal = precios.length ? Math.min(...precios) : 0;
   const precioMaximoTotal = precios.length ? Math.max(...precios) : rangoPrecio[1];
-  
-
-  
 
   // 🧮 Filtrado final por nombre y rango de precio
   const productosFiltrados = productosPorCategoria.filter((p) => {
@@ -135,10 +127,15 @@ useEffect(() => {
   };
 
   // 📏 Posiciones de los puntos
-  const rangoVisual = Math.max(precioMaximoTotal - precioMinimoTotal, 1); // evita división por 0
-const minPos = ((rangoPrecio[0] - precioMinimoTotal) / rangoVisual) * 100;
-const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
+  const rangoVisual = Math.max(precioMaximoTotal - precioMinimoTotal, 1);
+  const minPos = ((rangoPrecio[0] - precioMinimoTotal) / rangoVisual) * 100;
+  const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
 
+  // 🔽 Cambiar categoría desde el select
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    navigate(`/productos/${value}`);
+  };
 
   return (
     <div className="categorias-container">
@@ -158,14 +155,26 @@ const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
+        {/* 🧭 Select de Categorías */}
+        <select
+          className="select-categorias"
+          value={categoriaSlug}
+          onChange={handleCategoriaChange}
+        >
+          <option value="todos">Todas las categorías</option>
+          {categorias.map((cat) => (
+            <option key={cat.IdCategoriaProducto} value={normalizarTexto(cat.CategoriaProducto1)}>
+              {cat.CategoriaProducto1}
+            </option>
+          ))}
+        </select>
+
         {/* 🎚️ Rango de precio */}
         <div className="filtro-precio">
           <h4 className="titulo-precio">💰 Rango de Precio</h4>
 
           <div className="slider-wrapper">
             <div className="slider-linea-base"></div>
-
-            {/* Barra activa */}
             <div
               className="slider-rango-activo"
               style={{
@@ -173,8 +182,6 @@ const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
                 width: `${maxPos - minPos}%`,
               }}
             ></div>
-
-            {/* Sliders */}
             <input
               type="range"
               min={precioMinimoTotal}
@@ -191,8 +198,6 @@ const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
               onChange={(e) => handleSliderChange(e, "max")}
               className="slider-input"
             />
-
-            {/* Puntos + etiquetas */}
             <div className="slider-punto" style={{ left: `${minPos}%` }}>
               <div className="slider-valor">${rangoPrecio[0].toLocaleString()} COP</div>
             </div>

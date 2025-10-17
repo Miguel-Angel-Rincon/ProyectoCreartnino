@@ -48,7 +48,7 @@ const VerRolModal: React.FC<Props> = ({ rol, onClose }) => {
   }, [rol.IdRol]);
 
   return (
-    <div className="modal d-block" tabIndex={-1}>
+    <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <div className="modal-header pastel-header">

@@ -34,28 +34,28 @@ const Footer = () => {
           <div className="col-md-4 mt-4 mt-md-0 d-flex flex-column align-items-center align-items-md-start">
             <p className="fw-semibold mb-2">Contacto:</p>
             <div className="d-flex gap-3">
-              <a href="#" className="social-icon">
+              <a href="https://www.instagram.com/creartnino?igsh=MXFzeDBmdXp5NmJ4bg%3D%3D&utm_source=qr" className="social-icon">
                 <img
                   src="https://img.icons8.com/color/48/instagram-new--v1.png"
                   alt="Instagram"
                   width="30"
                 />
               </a>
-              <a href="#" className="social-icon">
+              <a href="http://wa.me/573246272022" className="social-icon">
                 <img
                   src="https://img.icons8.com/color/48/whatsapp.png"
                   alt="WhatsApp"
                   width="30"
                 />
               </a>
-              <a href="#" className="social-icon">
+              <a href="https://www.facebook.com/share/17XoZbmcSu/?mibextid=wwXIfr" className="social-icon">
                 <img
                   src="https://img.icons8.com/fluency/48/facebook-new.png"
                   alt="Facebook"
                   width="30"
                 />
               </a>
-              <a href="#" className="social-icon">
+              <a href="https://www.tiktok.com/@creartnino?_t=ZS-90ZlpDkZriZ&_r=1" className="social-icon">
                 <img
                   src="https://img.icons8.com/ios-filled/50/000000/tiktok.png"
                   alt="TikTok"

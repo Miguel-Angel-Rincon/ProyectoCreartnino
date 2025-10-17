@@ -63,6 +63,25 @@ const CardProducto = ({ producto,overImagen }: Props) => {
   fetchImagen();
 }, [producto.Imagen]);
 
+// 🧮 Controlar cantidad sin pasar stock disponible
+const handleCantidadChange = (value: number) => {
+  const stockDisponible = producto.Cantidad ?? 1;
+
+  if (value < 1) value = 1;
+
+  if (value > stockDisponible) {
+    Swal.fire({
+      title: "Cantidad no disponible 😕",
+      text: `Solo hay ${stockDisponible} unidades disponibles en stock.`,
+      icon: "warning",
+      confirmButtonColor: "#f072d1",
+    });
+    value = stockDisponible;
+  }
+
+  setCantidad(value);
+};
+
 
   // 🛒 Agregar producto al carrito
   const handleAgregar = () => {
@@ -128,11 +147,12 @@ const CardProducto = ({ producto,overImagen }: Props) => {
         <div className="cantidad-container">
           <label>Cantidad:</label>
           <input
-            type="number"
-            min="1"
-            value={cantidad}
-            onChange={(e) => setCantidad(Number(e.target.value))}
-          />
+  type="number"
+  min="1"
+  value={cantidad}
+  onChange={(e) => handleCantidadChange(Number(e.target.value))}
+/>
+
         </div>
       )}
 

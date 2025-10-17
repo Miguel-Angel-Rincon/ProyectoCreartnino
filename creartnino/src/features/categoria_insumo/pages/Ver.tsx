@@ -9,7 +9,7 @@ interface Props {
 
 const VerInsumoModal: React.FC<Props> = ({ catinsumo, onClose }) => {
   return (
-    <div className="modal d-block pastel-overlay" tabIndex={-1}>
+    <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <div className="modal-header pastel-header">

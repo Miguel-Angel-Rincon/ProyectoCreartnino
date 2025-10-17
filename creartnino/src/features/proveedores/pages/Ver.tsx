@@ -28,7 +28,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
   };
 
   return (
-    <div className="modal d-block pastel-overlay" tabIndex={-1}>
+    <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <div className="modal-header pastel-header">
@@ -101,7 +101,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
             </div>
           </div>
           <div className="modal-footer pastel-footer">
-            <button type="button" className="btn pastel-btn-primary" onClick={onClose}>
+            <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
               Cerrar
             </button>
           </div>

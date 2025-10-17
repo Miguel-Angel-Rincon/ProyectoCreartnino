@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Modal } from "react-bootstrap";
 import Swal from "sweetalert2";
 import "../styles/style.css";
 import { APP_SETTINGS } from "../../../settings/appsettings";
@@ -975,168 +974,157 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
   </div>
 
   {/* Submodal insumos */}
-  <Modal
-  show={mostrarSubmodal === index}
-  onHide={() => setMostrarSubmodal(null)}
-  centered
-  className="pastel-modal"
->
-  <Modal.Header closeButton className="pastel-header">
-    <Modal.Title>🧪 Gasto de Insumos</Modal.Title>
-  </Modal.Header>
-
-  <Modal.Body>
-    {/* 🔄 Renderizar insumos */}
-    {item.insumos?.map((insumo, i) => {
-      const qI = insumoQuery[index]?.[i] ?? "";
-      const sugerenciasIns =
-  qI.length > 0
-    ? insumos.filter(
-        (ins) =>
-          ins.Nombre.toLowerCase().includes(qI.toLowerCase()) &&
-          !(item.insumos ?? []).some(
-  (iSel, ii) => iSel.insumo === ins.Nombre && ii !== i
-)
-
-      )
-    : [];
-
-
-      return (
-        <div
-          key={i}
-          className="row align-items-center mb-2 position-relative"
-        >
-          {/* 🔎 Buscador de insumos */}
-          <div className="col-md-5 position-relative">
-  <input
-    type="text"
-    className="form-control"
-    placeholder="Buscar insumo..."
-    value={qI !== "" ? qI : insumo.insumo}
-    onChange={(e) => {
-      let valor = e.target.value;
-
-      // 🧹 Limpiar espacios: sin espacio al inicio, ni dobles
-      valor = valor.replace(/^\s+/, "");
-      valor = valor.replace(/\s{2,}/g, " ");
-
-      // ⚠️ Validar caracteres inválidos (solo letras, números y espacios)
-      if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Caracter inválido",
-          text: "Solo se permiten letras, números y espacios.",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
-
-      // ⚠️ Limitar repeticiones de caracteres (ej: aaaa → aaa)
-      if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
-    Swal.fire({
-      icon: "warning",
-      title: "Repetición excesiva",
-      text: "No repitas el mismo carácter más de 3 veces consecutivas.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-  }
-
-      handleInsumoQueryChange(index, i, valor);
-    }}
-  />
-  {qI && sugerenciasIns.length > 0 && (
-    <ul
-      className="list-group position-absolute w-100"
-      style={{ zIndex: 1200, top: "38px" }}
+  {/* 🌸 MODAL DE GASTO DE INSUMOS CON ESTILO PASTEL */}
+{mostrarSubmodal === index && (
+  <div className="modal-overlay" onClick={() => setMostrarSubmodal(null)}>
+    <div
+      className="modal-box-pastel"
+      onClick={(e) => e.stopPropagation()} // evita cerrar al hacer click dentro
     >
-      {sugerenciasIns.map((ins) => (
-        <li
-          key={ins.IdInsumo}
-          className="list-group-item list-group-item-action"
-          style={{ cursor: "pointer" }}
-          onClick={() => seleccionarInsumo(index, i, ins)}
-        >
-          {ins.Nombre} - Disponible: {ins.Cantidad}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+      {/* 🌸 Encabezado */}
+      <div className="modal-header-pastel">
+        <h5>🧪 Gasto de Insumos</h5>
+        <button className="close-btn" onClick={() => setMostrarSubmodal(null)}>
+          ✖
+        </button>
+      </div>
 
+      {/* 🌸 Cuerpo */}
+      <div className="modal-body">
+        {item.insumos?.map((insumo, i) => {
+          const qI = insumoQuery[index]?.[i] ?? "";
+          const sugerenciasIns =
+            qI.length > 0
+              ? insumos.filter(
+                  (ins) =>
+                    ins.Nombre.toLowerCase().includes(qI.toLowerCase()) &&
+                    !(item.insumos ?? []).some(
+                      (iSel, ii) => iSel.insumo === ins.Nombre && ii !== i
+                    )
+                )
+              : [];
 
-          {/* 🔢 Cantidad usada */}
-          <div className="col-md-5">
-  <input
-    type="number"
-    className="form-control"
-    value={insumo.cantidadUsada}
-    min={1}
-    maxLength={5}
-    onChange={(e) => {
-      let valor = parseInt(e.target.value);
+          return (
+            <div key={i} className="row align-items-center mb-3 position-relative">
+              {/* 🔍 Buscador de insumo */}
+              <div className="col-md-5 position-relative">
+                <input
+                  type="text"
+                  className="pastel-input w-100"
+                  placeholder="Buscar insumo..."
+                  value={qI !== "" ? qI : insumo.insumo}
+                  onChange={(e) => {
+                    let valor = e.target.value.trimStart().replace(/\s{2,}/g, " ");
+                    if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Caracter inválido",
+                        text: "Solo se permiten letras, números y espacios.",
+                        timer: 1500,
+                        showConfirmButton: false,
+                      });
+                      valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+                    }
+                    if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Repetición excesiva",
+                        text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+                        timer: 1500,
+                        showConfirmButton: false,
+                      });
+                      valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+                    }
+                    handleInsumoQueryChange(index, i, valor);
+                  }}
+                />
+                {qI && sugerenciasIns.length > 0 && (
+                  <ul
+                    className="list-group position-absolute w-100"
+                    style={{ zIndex: 1200, top: "38px" }}
+                  >
+                    {sugerenciasIns.map((ins) => (
+                      <li
+                        key={ins.IdInsumo}
+                        className="list-group-item list-group-item-action"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => seleccionarInsumo(index, i, ins)}
+                      >
+                        {ins.Nombre} - Disponible: {ins.Cantidad}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-      // ❌ Si el valor es menor que 1 o vacío → se corrige a 1
-      if (!valor || valor < 1) {
-        Swal.fire({
-          icon: "warning",
-          title: "Cantidad inválida",
-          text: "La cantidad mínima es 1.",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        valor = 1;
-      }
+              {/* 🔢 Cantidad usada */}
+              <div className="col-md-5">
+                <input
+                  type="number"
+                  className="pastel-input w-100"
+                  value={insumo.cantidadUsada}
+                  min={1}
+                  maxLength={5}
+                  onChange={(e) => {
+                    let valor = parseInt(e.target.value);
+                    if (!valor || valor < 1) {
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Cantidad inválida",
+                        text: "La cantidad mínima es 1.",
+                        timer: 1500,
+                        showConfirmButton: false,
+                      });
+                      valor = 1;
+                    }
+                    actualizarInsumoCantidad(index, i, valor);
+                  }}
+                />
+              </div>
 
-      actualizarInsumoCantidad(index, i, valor);
-    }}
-  />
-</div>
+              {/* ❌ Botón eliminar */}
+              <div className="col-md-2 text-end">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-danger"
+                  onClick={() => eliminarInsumo(index, i)}
+                >
+                  ✖
+                </button>
+              </div>
+            </div>
+          );
+        })}
 
+        {/* 📊 Resumen de insumos */}
+        {resumenInsumos(item.insumos)}
 
-          {/* ❌ Botón eliminar */}
-          <div className="col-md-2 text-end">
-            <button
-              type="button"
-              className="btn btn-danger btn-sm"
-              onClick={() => eliminarInsumo(index, i)}
-            >
-              ✖
-            </button>
-          </div>
+        {/* ✅ Botones */}
+        <div className="text-end mt-4">
+          <button
+            type="button"
+            className="btn pastel-btn-secondary me-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              agregarInsumo(index);
+            }}
+          >
+            + Agregar Insumo
+          </button>
+
+          <button
+            type="button"
+            className="pastel-btn-listo"
+            onClick={() => setMostrarSubmodal(null)}
+          >
+            ✔ Listo
+          </button>
         </div>
-      );
-    })}
-
-    {/* 📊 Resumen de insumos */}
-    {resumenInsumos(item.insumos)}
-
-    {/* ✅ Botones del modal */}
-    <div className="text-end mt-3">
-      <button
-  type="button"
-  className="btn btn-sm pastel-btn-secondary me-2"
-  onClick={(e) => {
-    e.stopPropagation(); // 🚫 evita que se dispare dos veces
-    agregarInsumo(index);
-  }}
->
-  + Agregar Insumo
-</button>
-
-      <button
-        type="button"
-        className="btn btn-sm pastel-btn-primary"
-        onClick={() => setMostrarSubmodal(null)}
-      >
-        ✔ Listo
-      </button>
+      </div>
     </div>
-  </Modal.Body>
-</Modal>
+  </div>
+)}
+
 
 </div>
 

@@ -408,10 +408,8 @@ const reenviarCodigo = async () => {
                 <button className="btn pastel-btn-primary" onClick={enviarRegistro} disabled={loading}>
                   {loading ? "Registrando..." : "Registrarse"}
                 </button>
-                <Link to="/ingresar" className="btn pastel-btn-secondary">
-                  Iniciar sesión
-                </Link>
-              </div>
+              </div><br />
+              <center><span className=" volver mt-3">Ya tienes cuenta? <Link to="/ingresar"> Iniciar sesion</Link></span></center>
               <div className="volver mt-3">
                 <Link to="/">&larr; Regresar</Link>
               </div>
@@ -428,6 +426,7 @@ const reenviarCodigo = async () => {
                   <input
                     className="form-control text-center"
                     value={codigo}
+                    maxLength={6}
                     onChange={(e) => {
                       const value = e.target.value;
                       if (value.trim() === "" && value !== "") return;

@@ -240,7 +240,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
 
 
   return (
-    <div className="modal d-block pastel-overlay" tabIndex={-1}>
+    <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <form onSubmit={handleSubmit}>

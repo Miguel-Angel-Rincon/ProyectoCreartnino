@@ -22,7 +22,7 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
   }, [usuario.IdRol]);
 
   return (
-    <div className="modal d-block" tabIndex={-1}>
+    <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <div className="modal-header pastel-header">
@@ -39,7 +39,7 @@ const VerUsuarioModal: React.FC<Props> = ({ usuario, onClose }) => {
                 <label className="form-label">🔢 Número de Documento</label>
                 <input className="form-control" value={usuario.NumDocumento} disabled />
               </div>
-              <div className="col-md-12">
+              <div className="col-md-6">
                 <label className="form-label">🙍 Nombre Completo</label>
                 <input className="form-control" value={usuario.NombreCompleto} disabled />
               </div>

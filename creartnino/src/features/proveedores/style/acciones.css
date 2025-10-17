@@ -1,7 +1,19 @@
 /* Modal pastel overlay */
-.pastel-overlay {
-  background-color: rgba(250, 235, 245, 0.85); /* rosa pastel semitransparente */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   backdrop-filter: blur(4px);
+  z-index: 9999;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Contenedor del modal */
@@ -44,7 +56,7 @@
 }
 
 .pastel-btn-secondary {
-  background-color: #f3a683;
+  background-color: #f78fb3;
   border: none;
   color: white;
   font-weight: 500;
@@ -54,7 +66,7 @@
 }
 
 .pastel-btn-secondary:hover {
-  background-color: #da855d;
+  background-color: #f78fb3;
 }
 
 /* Input y select */

@@ -251,3 +251,123 @@ input:checked + .slider:before {
 
 /* Ocultar flecha en navegadores antiguos */
 .estado-select::-ms-expand { display: none; }
+
+/* Fondo difuminado del modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* Caja del modal con sombra suave */
+.modal-box-pastel {
+  background: #ffffff;
+  border-radius: 1rem;
+  overflow: hidden;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 25px rgba(232, 108, 195, 0.25);
+  animation: scaleUp 0.25s ease-in-out;
+}
+
+/* Encabezado rosado con degradado */
+.modal-header-pastel {
+  background: linear-gradient(90deg, #fdd6f9, #e86cc3);
+  color: #4a004f;
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.modal-header-pastel h5 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Botón de cierre */
+.close-btn {
+  background: none;
+  border: none;
+  color: #4a004f;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* Cuerpo del modal */
+.modal-body {
+  padding: 1.2rem 1.5rem;
+}
+
+/* Inputs pastel */
+.pastel-input {
+  background: #f2f3f5;
+  border: 1.5px solid #f7a7e1;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.7rem;
+  color: #444;
+  transition: all 0.2s;
+}
+
+.pastel-input:focus {
+  border-color: #e86cc3;
+  box-shadow: 0 0 0 3px rgba(232, 108, 195, 0.25);
+  outline: none;
+}
+
+/* Botón “Listo” verde pastel */
+.pastel-btn-listo {
+  background-color: #d4f5e1;
+  color: #214e2b;
+  font-weight: 600;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 0.6rem;
+  transition: all 0.2s;
+}
+
+.pastel-btn-listo:hover {
+  background-color: #bff0cf;
+  transform: scale(1.03);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.92); opacity: 0.7; }
+  to { transform: scale(1); opacity: 1; }
+}
+.pastel-btn-listo {
+  margin-bottom: 0.8rem;  /* separa del borde inferior */
+  margin-right: 0.8rem;   /* separa de la esquina derecha */
+}
+
+.pastel-btn-agregar{
+  background-color: #f06292;
+  color: black;
+  font-weight: 600;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 0.6rem;
+  transition: all 0.2s;
+}

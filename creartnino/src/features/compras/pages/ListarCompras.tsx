@@ -307,6 +307,13 @@ const generarPDF = async (
 
     const labels: [string, string][] = [
       ["Proveedor", proveedor],
+      ["Documento",
+      proveedores.find((p) => p.IdProveedor === compra.IdProveedor)
+        ? (() => {
+            const prov = proveedores.find((p) => p.IdProveedor === compra.IdProveedor)!;
+            return `${prov.TipoDocumento} - ${prov.NumDocumento}`;
+          })()
+        : "Desconocido"],
       ["Método de Pago", compra.MetodoPago ?? "N/A"],
       ["Fecha", new Date(compra.FechaCompra).toLocaleDateString("es-CO")],
       ["Estado", nombreEstado],
@@ -461,6 +468,7 @@ const generarPDF = async (
             <table className="table tabla-proveedores">
               <thead>
                 <tr>
+                  <th>Documento</th>
                   <th>Proveedor</th>
                   <th>Método</th>
                   <th>Fecha</th>
@@ -487,6 +495,15 @@ const generarPDF = async (
                       key={c.IdCompra}
                       className={index % 2 === 0 ? "fila-par" : "fila-impar"}
                     >
+                      <td>
+  {proveedores.find((p) => p.IdProveedor === c.IdProveedor)
+    ? (() => {
+        const prov = proveedores.find((p) => p.IdProveedor === c.IdProveedor)!;
+        return `${prov.TipoDocumento} - ${prov.NumDocumento}`;
+      })()
+    : "Desconocido"}
+</td>
+
                       <td>{proveedor}</td>
                       <td>{c.MetodoPago}</td>
                       <td>{new Date(c.FechaCompra).toLocaleDateString()}</td>

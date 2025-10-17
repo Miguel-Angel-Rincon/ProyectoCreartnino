@@ -1,0 +1,100 @@
+.qs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+}
+
+.qs-heading {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #D67CA5;
+  text-align: center;
+}
+
+.qs-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+  gap: 2rem;
+}
+
+.qs-text {
+  flex: 1;
+  text-align: justify;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.qs-image-container {
+  flex: 1;
+  text-align: center;
+}
+
+.qs-image {
+  max-width: 80%;
+  height: auto;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qs-values {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.qs-value-box {
+  background-color: #fde3f0;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  margin: 1rem;
+  flex: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  min-width: 250px;
+}
+
+.qs-testimonios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-around;
+}
+
+.qs-calltoaction {
+  background-color: #fce4ec;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.qs-btn {
+  padding: 1rem 2rem;
+  background-color: #d67ca5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.qs-btn:hover {
+  background-color: #c75c8b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .qs-section {
+    flex-direction: column;
+  }
+
+  .qs-image {
+    max-width: 100%;
+  }
+}

@@ -274,8 +274,9 @@ const puedeEditarAdicional =
   </div>
 </div>
 
-{/* 💰 Adicional solo si el pedido viene de la web */}
-{pedido.Descripcion?.includes("Este pedido fue realizado desde la web.") &&
+{/* 💰 Adicional solo si el pedido viene de la web o la app móvil */}
+{(pedido.Descripcion?.includes("Este pedido fue realizado desde la web.") ||
+  pedido.Descripcion?.includes("Este pedido fue realizado desde la app móvil.")) &&
   puedeEditarAdicional && (
 
   <>

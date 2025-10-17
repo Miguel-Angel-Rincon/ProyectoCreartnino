@@ -82,10 +82,23 @@ const total = compra.Total ?? totalDetalles;
             disabled
           />
         </div>
+        <div className="col-md-4 mt-4">
+          <label className="form-label">🪪 Documento del proveedor</label>
+          <input
+            className="form-control"
+            value={proveedores.find((p) => p.IdProveedor === compra.IdProveedor)
+              ? (() => {
+                  const prov = proveedores.find((p) => p.IdProveedor === compra.IdProveedor)!;
+                  return `${prov.TipoDocumento} - ${prov.NumDocumento}`;
+                })()
+              : "Desconocido"}
+            disabled
+          />
+        </div>
       </div>
 
       {/* Detalles */}
-      <div className="mb-3">
+      <div className="mb-3 mt-4">
         <h5 className="mb-3">📦 Productos</h5>
         {detallesCompra.length > 0 ? (
           <>

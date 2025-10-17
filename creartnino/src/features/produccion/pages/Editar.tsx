@@ -1,6 +1,6 @@
 // src/components/EditarProduccion.tsx
 import React, { useEffect, useState } from "react";
-import { Modal } from "react-bootstrap";
+
 import Swal from "sweetalert2";
 import "../styles/style.css";
 import { APP_SETTINGS } from "../../../settings/appsettings";
@@ -259,37 +259,72 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
               </div>
 
               {/* Submodal insumos */}
-              <Modal
-                show={mostrarSubmodal === index}
-                onHide={() => setMostrarSubmodal(null)}
-                centered
-                className="pastel-modal"
-              >
-                <Modal.Header closeButton className="pastel-header">
-                  <Modal.Title>🧪 Insumos del Producto</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  {ins.map((insumo, i) => (
-                    <div key={i} className="row align-items-center mb-2">
-                      <div className="col-md-6">
-                        <input type="text" className="form-control" value={insumo.Nombre} disabled />
-                      </div>
-                      <div className="col-md-6">
-                        <input type="number" className="form-control" value={d.CantidadInsumo ?? 0} min={0} disabled />
-                      </div>
-                    </div>
-                  ))}
-                  <div className="text-end mt-3">
-                    <button
-                      type="button"
-                      className="btn btn-sm pastel-btn-primary"
-                      onClick={() => setMostrarSubmodal(null)}
-                    >
-                      ✔ Listo
-                    </button>
-                  </div>
-                </Modal.Body>
-              </Modal>
+              {mostrarSubmodal === index && (
+  <div className="modal-overlay" onClick={() => setMostrarSubmodal(null)}>
+    <div className="modal-box-pastel" onClick={(e) => e.stopPropagation()}>
+      {/* Encabezado del modal */}
+      <div className="modal-header-pastel">
+        <h5>Gasto Insumos 🧪</h5>
+        <button className="close-btn" onClick={() => setMostrarSubmodal(null)}>✖</button>
+      </div>
+
+      {/* Cuerpo del modal */}
+      <div className="modal-body">
+        {ins.length > 0 ? (
+          <>
+            {ins.map((insumo, i) => (
+              <div key={i} className="row align-items-center mb-3">
+                <div className="col-md-6">
+                  <input
+                    type="text"
+                    className="form-control pastel-input"
+                    value={insumo.Nombre}
+                    disabled
+                  />
+                </div>
+                <div className="col-md-6">
+                  <input
+                    type="number"
+                    className="form-control pastel-input"
+                    value={d.CantidadInsumo ?? 0}
+                    min={0}
+                    disabled
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* Resumen de insumos */}
+            <div className="mt-3">
+              <h6 className="text-secondary fw-semibold mb-2">Resumen de Insumos:</h6>
+              <ul className="mb-0 ps-3">
+                {ins.map((insumo, i) => (
+                  <li key={i}>
+                    {insumo.Nombre}: Usado {d.CantidadInsumo ?? 0}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <p className="text-muted">Sin insumos registrados.</p>
+        )}
+
+        {/* Botón de cerrar */}
+        <div className="text-end mt-4">
+          <button
+            type="button"
+            className="pastel-btn-listo"
+            onClick={() => setMostrarSubmodal(null)}
+          >
+            ✓ Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
             </div>
           );
         })}

@@ -419,7 +419,7 @@ const mostrarAlertaInvalida = () => {
                 <option value="Transferencia">Transferencia</option>
               </select>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4 mb-3">
               <label className="form-label">📅 Fecha de Compra</label>
               <input
                 type="date"
@@ -429,6 +429,21 @@ const mostrarAlertaInvalida = () => {
                 readOnly
               />
             </div>
+            {proveedorIdSeleccionado && (
+              <div className="col-md-4 mb-3">
+                <label className="form-label">🪪 Documento del proveedor</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={
+                    proveedores.find((p) => p.IdProveedor === proveedorIdSeleccionado)
+                      ?.NumDocumento || ""
+                  }
+                  disabled
+                  readOnly
+                />
+              </div>
+            )}
           </div>
 
           {/* Detalle compra */}
