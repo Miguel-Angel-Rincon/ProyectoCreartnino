@@ -357,42 +357,72 @@ const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: strin
       total += subtotal;
 
       // 🩷 Buscar descripción real del producto dentro del texto completo del pedido
-      let descripcionFinal = "Sin descripción disponible.";
+      let descripcionFinal = "Sin personalizacion disponible.";
 
       if (descripcionPedido) {
-        const descCompleta = descripcionPedido.trim();
+  const descCompleta = descripcionPedido.trim();
 
-        // 🏬 Si es un pedido hecho desde el administrador (una sola palabra o texto corto)
-        if (!descCompleta.includes("(") && !descCompleta.includes("-") && descCompleta.length <= 50) {
-          descripcionFinal = `
-            <div style='text-align:left;'>
-              <div style='font-weight:600; color:#b73a93; margin-bottom:5px;'>🏬 Este pedido fue realizado desde administrador.</div>
-              <div style='margin-bottom:8px;'>Realizaste este pedido en el punto físico de la empresa.</div>
-              <div style='font-weight:600; color:#b73a93; margin-top:10px;'>🖌 Esto fue lo que personalizaste:</div>
-              <div style='background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #eee;'>${descCompleta}</div>
-            </div>
-          `;
+  // 🏬 Si es un pedido hecho desde el administrador (una sola palabra o texto corto)
+  if (!descCompleta.includes("(") && !descCompleta.includes("-") && descCompleta.length <= 50) {
+    descripcionFinal = `
+      <div style='text-align:left;'>
+        <div style='font-weight:600; color:#b73a93; margin-bottom:5px;'>🏬 Este pedido fue realizado desde administrador.</div>
+        <div style='margin-bottom:8px;'>Realizaste este pedido en el punto físico de la empresa.</div>
+        <div style='font-weight:600; color:#b73a93; margin-top:10px;'>🖌 Esto fue lo que personalizaste:</div>
+        <div style='background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #eee;'>${descCompleta}</div>
+      </div>
+    `;
+  } else {
+    // 📱 Si el pedido viene desde la app móvil
+    if (descCompleta.toLowerCase().includes("app móvil")) {
+      const regexProducto = new RegExp(
+        `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
+        "i"
+      );
+      const match = descCompleta.match(regexProducto);
+
+      if (match) {
+        const texto = match[1].trim();
+
+        if (texto.includes("Sin personalización")) {
+          descripcionFinal = "Este producto no lo personalizaste.";
+        } else if (texto.startsWith('"') && texto.endsWith('"')) {
+          descripcionFinal = texto.slice(1, -1);
         } else {
-          // 🔍 Buscar bloque que corresponde a este producto (pedidos hechos desde la web)
-          const regexProducto = new RegExp(
-            `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
-            "i"
-          );
-          const match = descCompleta.match(regexProducto);
+          descripcionFinal = texto;
+        }
 
-          if (match) {
-            const texto = match[1].trim();
+        // Agregar mensaje informativo
+        descripcionFinal = `
+          <div style='text-align:left;'>
+            <div style='font-weight:600; color:#b73a93; margin-top:10px;'>🖌 Personalización del producto:</div>
+            <div style='background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #eee;'>${descripcionFinal}</div>
+          </div>
+        `;
+      }
+    } else {
+      // 🔍 Buscar bloque que corresponde a este producto (pedidos hechos desde la web)
+      const regexProducto = new RegExp(
+        `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
+        "i"
+      );
+      const match = descCompleta.match(regexProducto);
 
-            if (texto.includes("Sin personalización")) {
-              descripcionFinal = "Este producto no lo personalizaste.";
-            } else if (texto.startsWith('"') && texto.endsWith('"')) {
-              descripcionFinal = texto.slice(1, -1); // quitar comillas
-            } else {
-              descripcionFinal = texto;
-            }
-          }
+      if (match) {
+        const texto = match[1].trim();
+
+        if (texto.includes("Sin personalización")) {
+          descripcionFinal = "Este producto no lo personalizaste.";
+        } else if (texto.startsWith('"') && texto.endsWith('"')) {
+          descripcionFinal = texto.slice(1, -1); // quitar comillas
+        } else {
+          descripcionFinal = texto;
         }
       }
+    }
+  }
+}
+
 
       // 🩷 Buscar imagen
       let urlImagen = "/placeholder.png";
@@ -817,7 +847,7 @@ const detalles = (allDetalles || []).filter(
                 </div>
 
                 <div>
-  <div className="titulo-productos">
+  <div>
     <FaBoxOpen  style={{ color: "#17b3a9ff" }}/> Productos:
   </div>
   <ul className="lista-productos">

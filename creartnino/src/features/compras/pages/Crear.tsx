@@ -401,7 +401,7 @@ const mostrarAlertaInvalida = () => {
             setProveedorBusqueda(p.NombreCompleto ?? ""); // ✅ así se muestra el nombre
           }}
         >
-          {p.NombreCompleto}
+          {p.NombreCompleto} - {p.TipoDocumento} - {p.NumDocumento}
         </li>
       ))}
     </ul>
@@ -431,17 +431,23 @@ const mostrarAlertaInvalida = () => {
             </div>
             {proveedorIdSeleccionado && (
               <div className="col-md-4 mb-3">
-                <label className="form-label">🪪 Documento del proveedor</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={
-                    proveedores.find((p) => p.IdProveedor === proveedorIdSeleccionado)
-                      ?.NumDocumento || ""
-                  }
-                  disabled
-                  readOnly
-                />
+              <label className="form-label">🪪 Documento del proveedor</label>
+              <input
+                type="text"
+                className="form-control"
+                value={
+                (() => {
+                  const proveedor = proveedores.find(
+                  (p) => p.IdProveedor === proveedorIdSeleccionado
+                  );
+                  return proveedor
+                  ? `${proveedor.TipoDocumento ?? ""}: ${proveedor.NumDocumento ?? ""}`
+                  : "";
+                })()
+                }
+                disabled
+                readOnly
+              />
               </div>
             )}
           </div>
