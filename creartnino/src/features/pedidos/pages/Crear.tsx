@@ -446,6 +446,9 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
         icon: "success",
         title: "Éxito",
         text: "Pedido creado correctamente.",
+        timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false, 
       });
       onCrear(nuevoPedido);
       onClose();

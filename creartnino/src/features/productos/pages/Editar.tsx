@@ -339,6 +339,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       icon: "success",
       title: "Éxito",
       text: "Producto actualizado correctamente.",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, 
     });
 
     onEditar(productoEditado);

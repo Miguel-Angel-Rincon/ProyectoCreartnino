@@ -149,7 +149,9 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
       icon: "success",
       title: "Éxito",
       text: "Categoría creada correctamente",
-      confirmButtonColor: "#e83e8c",
+      timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
     });
 
     onCrear(data);

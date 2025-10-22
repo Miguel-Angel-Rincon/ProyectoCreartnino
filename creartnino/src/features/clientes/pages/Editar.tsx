@@ -6,6 +6,8 @@ import { APP_SETTINGS } from "../../../settings/appsettings";
 import type { IClientes } from "../../interfaces/IClientes";
 import { useNavigate } from "react-router-dom";
 
+
+
 interface Props {
   cliente: IClientes; // Cliente que vamos a editar
   onClose: () => void;
@@ -16,24 +18,100 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<IClientes>(cliente);
-
+const [existeDocumento, setExisteDocumento] = useState<true | false | "actual" | null>(null);
+const [existeCorreo, setExisteCorreo] = useState<true | false | "actual" | null>(null);
+const [loading, setLoading] = useState(false);
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({
-    municipio: "",
+    Complementos: "",
     barrio: "",
     calle: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+   useEffect(() => {
+  const controller = new AbortController();
+  const { NumDocumento, Correo, IdCliente } = formData;
+
+  const validarDocumento = NumDocumento && NumDocumento.length > 4;
+  const validarCorreo = Correo && Correo.length > 5 && Correo.includes("@");
+
+  if (!validarDocumento && !validarCorreo) {
+    setExisteDocumento(null);
+    setExisteCorreo(null);
+    return;
+  }
+
+  setLoading(true);
+
+  const timeout = setTimeout(async () => {
+    try {
+      const res = await fetch("https://www.apicreartnino.somee.com/api/Clientes/Lista", {
+        signal: controller.signal,
+      });
+      const clientes = await res.json();
+
+      // 🧾 Buscar cliente actual
+      
+
+      // ✅ DOCUMENTO
+      if (validarDocumento) {
+        const clienteConMismoDoc = clientes.find(
+          (c: any) => String(c.NumDocumento) === String(NumDocumento)
+        );
+
+        if (!clienteConMismoDoc) {
+          setExisteDocumento(false); // no existe
+        } else if (clienteConMismoDoc.IdCliente === IdCliente) {
+          setExisteDocumento("actual"); // es su propio documento
+        } else {
+          setExisteDocumento(true); // existe en otro cliente
+        }
+      } else {
+        setExisteDocumento(null);
+      }
+
+      // ✅ CORREO
+      if (validarCorreo) {
+        const clienteConMismoCorreo = clientes.find(
+          (c: any) => c.Correo?.toLowerCase() === Correo.toLowerCase()
+        );
+
+        if (!clienteConMismoCorreo) {
+          setExisteCorreo(false);
+        } else if (clienteConMismoCorreo.IdCliente === IdCliente) {
+          setExisteCorreo("actual");
+        } else {
+          setExisteCorreo(true);
+        }
+      } else {
+        setExisteCorreo(null);
+      }
+    } catch (err) {
+      console.error("Error al verificar cliente:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, 500);
+
+  return () => {
+    clearTimeout(timeout);
+    controller.abort();
+  };
+}, [formData.NumDocumento, formData.Correo]);
+
+const botonDeshabilitado =
+  isSubmitting || loading || existeDocumento === true || existeCorreo === true;
+
   // 🔹 Inicializar dirección
   useEffect(() => {
     if (cliente.Direccion) {
       const partes = cliente.Direccion.split(",").map((p) => p.trim());
       setDireccionData({
-        municipio: partes[0] || "",
+        Complementos: partes[0] || "",
         barrio: partes[1] || "",
         calle: partes[2] || "",
       });
@@ -83,13 +161,13 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
 
   // 🔹 Guardar dirección desde submodal
   const handleDireccionModalSave = () => {
-    const { municipio, barrio, calle } = direccionData;
+    const { Complementos, barrio, calle } = direccionData;
 
-    if (municipio.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
+    if (Complementos.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Por favor completa Municipio, Barrio y Calle/Carrera.",
+        text: "Por favor completa Complementos, Barrio y Calle/Carrera.",
         confirmButtonColor: "#f78fb3",
       });
       return;
@@ -105,7 +183,7 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
       return;
     }
 
-    const direccionCompleta = `${municipio}, ${barrio}, ${calle}`;
+    const direccionCompleta = `${Complementos}, ${barrio}, ${calle}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
   };
@@ -218,7 +296,9 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
       Swal.fire({
         icon: "success",
         title: "Cliente actualizado correctamente",
-        confirmButtonColor: "#f78fb3",
+        timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
       });
       onEditar(actualizado ?? formData);
       onClose();
@@ -229,7 +309,9 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
         icon: "error",
         title: "Error al actualizar",
         text: data.message || "No se pudo actualizar el cliente. Verifique los datos.",
-        confirmButtonColor: "#f78fb3",
+        timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
       });
     }
   } catch (err: any) {
@@ -237,7 +319,9 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
       icon: "error",
       title: "Error de conexión",
       text: "No se pudo conectar con el servidor.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
     });
   } finally {
     setIsSubmitting(false);
@@ -272,19 +356,28 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                   </select>
                 </div>
 
-                <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
+                {/* 🔢 Número Documento */}
+<div className="col-md-6">
+  <label className="form-label">
+    🔢 Número Documento <span className="text-danger">*</span>
+  </label>
   <input
     name="NumDocumento"
     className="form-control"
     value={formData.NumDocumento}
     maxLength={11}
     onChange={(e) => {
-      // ✅ Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
   />
+  {loading && <p className="text-info mt-1">🔍 Verificando...</p>}
+{existeDocumento === true && !loading && (
+  <p className="text-danger mt-1">⚠️ Este documento ya pertenece a otro cliente</p>
+)}
+{existeDocumento === false && !loading && formData.NumDocumento && (
+  <p className="text-success mt-1">✅ Documento disponible</p>
+)}
 </div>
 
                 <div className="col-md-6">
@@ -301,20 +394,30 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                   />
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">📧 Correo Electrónico <span className="text-danger">*</span></label>
-                  <input
-                    type="email"
-                    name="Correo"
-                    className="form-control"
-                    value={formData.Correo}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                  />
-                </div>
+                {/* 📧 Correo Electrónico */}
+<div className="col-md-6">
+  <label className="form-label">
+    📧 Correo Electrónico <span className="text-danger">*</span>
+  </label>
+  <input
+    type="email"
+    name="Correo"
+    className="form-control"
+    value={formData.Correo}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (value.trim() === "" && value !== "") return;
+      handleChange(e);
+    }}
+  />
+  {loading && <p className="text-info mt-1">🔍 Verificando...</p>}
+{existeCorreo === true && !loading && (
+  <p className="text-danger mt-1">⚠️ Este correo ya pertenece a otro cliente</p>
+)}
+{existeCorreo === false && !loading && formData.Correo && (
+  <p className="text-success mt-1">✅ Correo disponible</p>
+)}
+</div>
 
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
@@ -382,9 +485,19 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Guardar Cambios"}
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={botonDeshabilitado}
+>
+  {isSubmitting
+    ? "Guardando..."
+    : loading
+    ? "Verificando..."
+    : existeDocumento === true || existeCorreo === true
+    ? "Corrige los datos"
+    : "Guardar Cambios"}
+</button>
             </div>
           </form>
 
@@ -398,31 +511,32 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                     <button
                       type="button"
                       className="btn-close"
-                      onClick={() => setShowDireccionModal(false)}
+                      onClick={() => {
+                        // Restaurar datos originales al cancelar
+                        if (cliente.Direccion) {
+                          const partes = cliente.Direccion.split(",").map((p) => p.trim());
+                          setDireccionData({
+                            Complementos: partes[0] || "",
+                            barrio: partes[1] || "",
+                            calle: partes[2] || "",
+                          });
+                        }
+                        setShowDireccionModal(false);
+                      }}
                     ></button>
                   </div>
                   <div className="modal-body px-4 py-3">
                     <div className="mb-3">
-                      <label>Municipio <span className="text-danger">*</span></label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))
-                        }
-                      />
-                    </div>
-                    <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
-                      className="form-control"
-                      value={direccionData.barrio}
-                      onChange={(e) =>
-                        setDireccionData((prev) => ({
-                        ...prev,
-                        barrio: e.target.value.replace(/\s+/g, "")
-                        }))
-                      }
+                        className="form-control"
+                        value={direccionData.barrio}
+                        onChange={(e) =>
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            barrio: e.target.value.replace(/\s+/g, "")
+                          }))
+                        }
                       />
                     </div>
                     <div className="mb-3">
@@ -431,7 +545,24 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                         className="form-control"
                         value={direccionData.calle}
                         onChange={(e) =>
-                          setDireccionData((prev) => ({ ...prev, calle: e.target.value.replace(/\s+/g, "") }))
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            calle: e.target.value.replace(/\s+/g, "")
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos <span className="text-danger">*</span></label>
+                      <input
+                        className="form-control"
+                        value={direccionData.Complementos}
+                        placeholder="Apartamento, edificio, referencia, etc."
+                        onChange={(e) =>
+                          setDireccionData((prev) => ({
+                            ...prev,
+                            Complementos: e.target.value.replace(/\s+/g, "")
+                          }))
                         }
                       />
                     </div>
@@ -440,7 +571,18 @@ const EditarClienteModal: React.FC<Props> = ({ cliente, onClose, onEditar }) => 
                     <button
                       type="button"
                       className="btn pastel-btn-secondary"
-                      onClick={() => setShowDireccionModal(false)}
+                      onClick={() => {
+                        // Restaurar datos originales al cancelar
+                        if (cliente.Direccion) {
+                          const partes = cliente.Direccion.split(",").map((p) => p.trim());
+                          setDireccionData({
+                            Complementos: partes[0] || "",
+                            barrio: partes[1] || "",
+                            calle: partes[2] || "",
+                          });
+                        }
+                        setShowDireccionModal(false);
+                      }}
                     >
                       Cancelar
                     </button>

@@ -186,11 +186,14 @@ const ListarCompras: React.FC = () => {
           )
         );
 
-        Swal.fire(
-          "Anulado",
-          "La compra fue anulada y el stock actualizado.",
-          "success"
-        );
+        Swal.fire({
+                    icon: "success",
+                    title: "Anulada",
+                    text: "La compra fue anulada y el stock actualizado.",
+                    timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+                  });
       } catch (err) {
         console.error("Error anulando compra:", err);
         Swal.fire("Error", "No se pudo anular la compra", "error");
@@ -225,11 +228,14 @@ const ListarCompras: React.FC = () => {
         )
       );
 
-      Swal.fire(
-        "Actualizado",
-        `Estado actualizado correctamente`,
-        "success"
-      );
+      Swal.fire({
+            icon: "success",
+            title: "Éxito",
+            text: "Estado actualizado correctamente.",
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
     } catch (err) {
       console.error("Error cambiando estado:", err);
       Swal.fire("Error", "No se pudo actualizar el estado", "error");

@@ -94,14 +94,16 @@ const ListarCatInsumos: React.FC = () => {
             icon: "success",
             title: "Eliminado",
             text: "La categoría ha sido eliminada correctamente",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, 
           });
         } catch (err) {
           console.error("eliminarCategoria:", err);
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "No se pudo eliminar la categoría.",
+            text: "No se pudo eliminar la categoría. Esta Asociada a insumos.",
             confirmButtonColor: "#e83e8c",
           });
         }
@@ -134,7 +136,9 @@ const ListarCatInsumos: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-        confirmButtonColor: "#f78fb3",
+        timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, 
 
       });
 

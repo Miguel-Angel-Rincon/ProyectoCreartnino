@@ -102,7 +102,9 @@ const ListarUsuarios: React.FC = () => {
             icon: "success",
             title: "Eliminado",
             text: "El Usuario ha sido eliminado correctamente",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
           });
         } catch (err) {
           console.error("Eliminar usuario:", err);
@@ -110,7 +112,9 @@ const ListarUsuarios: React.FC = () => {
             icon: "error",
             title: "Error",
             text: "No se pudo eliminar el usuario. Intenta de nuevo.",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
           });
         }
       }
@@ -119,42 +123,74 @@ const ListarUsuarios: React.FC = () => {
 
   // =================== CAMBIO DE ESTADO ===================
   const handleEstadoChange = async (id: number) => {
-    const target = Usuarios.find((u) => u.IdUsuarios === id);
-    if (!target) return;
+  const target = Usuarios.find((u) => u.IdUsuarios === id);
+  if (!target) return;
 
-    const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
+  // 🧩 Verificar si el usuario es un ADMIN
+  const rolAdmin = roles.find(
+    (r) =>
+      r.Rol.toLowerCase() === "admin" ||
+      r.Rol.toLowerCase() === "administrador"
+  );
+  const esAdmin = target.IdRol === rolAdmin?.IdRol;
 
-    try {
-      const resp = await fetch(
-        `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(actualizado),
-        }
-      );
+  // 🔒 Verificar si es el último admin activo
+  if (esAdmin && target.Estado) {
+    const adminsActivos = Usuarios.filter(
+      (u) => u.IdRol === rolAdmin?.IdRol && u.Estado
+    );
 
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      // Refrescar lista
-      await obtenerUsuarios();
-
+    if (adminsActivos.length <= 1) {
       Swal.fire({
-        icon: "success",
-        title: "Actualizado",
-        text: `Estado actualizado correctamente`,
-        confirmButtonColor: "#e83e8c",
+        icon: "warning",
+        title: "No permitido",
+        text: "Debe haber al menos un administrador activo.",
+        timer: 4000,
+      timerProgressBar: true,
+      showConfirmButton: false,
       });
-    } catch (err) {
-      console.error("actualizarEstado:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo actualizar el estado del usuario.",
-        confirmButtonColor: "#e83e8c",
-      });
+      return;
     }
-  };
+  }
+
+  // ✅ Si pasa la validación, proceder con el cambio
+  const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
+
+  try {
+    const resp = await fetch(
+      `https://apicreartnino.somee.com/api/Usuarios/Actualizar/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(actualizado),
+      }
+    );
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    await obtenerUsuarios();
+
+    Swal.fire({
+      icon: "success",
+      title: "Actualizado",
+      text: `Estado actualizado correctamente`,
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    console.error("actualizarEstado:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo actualizar el estado del usuario.",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+    });
+  }
+};
+
 
   // =================== CREAR, EDITAR, VER ===================
   const handleCrear = async (_nuevoUsuario: IUsuarios) => {

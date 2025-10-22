@@ -89,7 +89,9 @@ const ListarCatProductos: React.FC = () => {
           icon: "success",
           title: "Eliminado",
           text: "La categoría ha sido eliminada correctamente",
-          confirmButtonColor: "#e83e8c",
+          timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
         });
 
         obtenerCategorias();
@@ -127,9 +129,9 @@ const ListarCatProductos: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-
-        confirmButtonColor: "#f78fb3",
-
+        timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
       });
 
     } catch (err) {

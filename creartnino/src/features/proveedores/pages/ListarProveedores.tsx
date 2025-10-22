@@ -71,7 +71,9 @@ const ListarProveedores: React.FC = () => {
         icon: "warning",
         title: "Proveedor activo",
         text: "No puedes eliminar el proveedor que está activo. Desactívalo primero.",
-        confirmButtonColor: "#e83e8c",
+        timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
       });
       return;
     }
@@ -97,7 +99,9 @@ const ListarProveedores: React.FC = () => {
             icon: "success",
             title: "Eliminado",
             text: "El proveedor ha sido eliminado correctamente",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
           });
         } catch (err) {
           console.error("eliminarProveedor:", err);
@@ -105,7 +109,9 @@ const ListarProveedores: React.FC = () => {
             icon: "error",
             title: "Error",
             text: "No se pudo eliminar el proveedor.",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
           });
         }
       }
@@ -137,9 +143,9 @@ const ListarProveedores: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-
-        
-        confirmButtonColor: "#f78fb3",
+timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
 
       });
 
@@ -149,7 +155,9 @@ const ListarProveedores: React.FC = () => {
         icon: "error",
         title: "Error",
         text: "No se pudo actualizar el estado del proveedor.",
-        confirmButtonColor: "#e83e8c",
+        timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
       });
       // revertir
       setProveedores((prev) => prev.map((p) => (p.IdProveedor === id ? target : p)));
@@ -324,7 +332,9 @@ const ListarProveedores: React.FC = () => {
                 await obtenerProveedores();
               }
               setMostrarModal(false);
-              Swal.fire({ icon: "success", title: "Éxito", text: "Proveedor creado correctamente", confirmButtonColor: "#e83e8c" });
+              Swal.fire({ icon: "success", title: "Éxito", text: "Proveedor creado correctamente", timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, });
             } catch (err) {
               console.error("onCrear:", err);
             }
@@ -351,7 +361,9 @@ const ListarProveedores: React.FC = () => {
                 icon: "success",
                 title: "Éxito",
                 text: "Proveedor actualizado correctamente",
-                confirmButtonColor: "#e83e8c",
+                timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
               });
             } catch (err) {
               console.error("onEditar:", err);

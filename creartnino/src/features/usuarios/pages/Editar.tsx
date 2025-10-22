@@ -18,10 +18,13 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({
-    municipio: "",
     barrio: "",
-    calle: "",
+  calle: "",
+  Complementos: "",
   });
+  const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
+const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
+const [loadingCheck, setLoadingCheck] = useState(false);
 
   // 🔹 Estado para roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
@@ -46,6 +49,72 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+  useEffect(() => {
+  const controller = new AbortController();
+
+  // Si ambos campos están vacíos, no consultar
+  if (!formData.NumDocumento && !formData.Correo) {
+    setExisteDoc(null);
+    setExisteCorreo(null);
+    return;
+  }
+
+  setLoadingCheck(true);
+  const timeout = setTimeout(async () => {
+    try {
+      const res = await fetch("https://apicreartnino.somee.com/api/Usuarios/Lista", {
+        signal: controller.signal,
+      });
+      const data = await res.json();
+
+      // 🔹 Verificar documento
+      let docExiste = false;
+      if (formData.NumDocumento !== usuario.NumDocumento) {
+        docExiste = data.some(
+          (u: any) =>
+            u.NumDocumento === formData.NumDocumento &&
+            u.IdUsuarios !== usuario.IdUsuarios
+        );
+      }
+      setExisteDoc(docExiste ? true : false);
+
+      // 🔹 Verificar correo
+      let correoExiste = false;
+      if (formData.Correo.toLowerCase() !== usuario.Correo.toLowerCase()) {
+        correoExiste = data.some(
+          (u: any) =>
+            u.Correo.toLowerCase() === formData.Correo.toLowerCase() &&
+            u.IdUsuarios !== usuario.IdUsuarios
+        );
+      }
+      setExisteCorreo(correoExiste ? true : false);
+    } catch (err) {
+      console.error("Error validando datos:", err);
+    } finally {
+      setLoadingCheck(false);
+    }
+  }, 500);
+
+  return () => {
+    clearTimeout(timeout);
+    controller.abort();
+  };
+}, [formData.NumDocumento, formData.Correo, usuario]);
+
+
+const handleAbrirDireccionModal = () => {
+  // Si la dirección viene como "Barrio, Calle, Complementos"
+  const partes = formData.Direccion ? formData.Direccion.split(",") : [];
+
+  setDireccionData({
+    barrio: partes[0]?.trim() || "",
+    calle: partes[1]?.trim() || "",
+    Complementos: partes[2]?.trim() || "",
+  });
+
+  setShowDireccionModal(true);
+};
 
   useEffect(() => {
     fetch("https://api-colombia.com/api/v1/Department")
@@ -81,7 +150,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
   // 🔹 Guardar dirección
   const handleDireccionModalSave = () => {
-    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.municipio}`;
+    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.Complementos}`;
     setFormData((prev: any) => ({ ...prev, Direccion: full }));
     setShowDireccionModal(false);
   };
@@ -177,15 +246,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   if (!pwd) {
     return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
   }
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-  if (!passwordRegex.test(pwd)) {
-    return Swal.fire({
-      icon: "error",
-      title: "Contraseña inválida",
-      html: "Debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial",
-      confirmButtonColor: "#e83e8c"
-    });
-  }
+  
   if (isAllSameChar(pwd) || hasLongRepeatSequence(pwd) || hasLowVariety(pwd)) {
     return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
   }
@@ -223,9 +284,9 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
       icon: "success",
       title: "Éxito",
       text: "Usuario actualizado correctamente",
-      confirmButtonColor: "#e83e8c",
-      timerProgressBar: true,
-      allowOutsideClick: false,
+      timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false,
       allowEscapeKey: false,
     });
 
@@ -273,19 +334,55 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
                 {/* Número Documento */}
                 <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
+  <label className="form-label">
+    🔢 Número Documento <span className="text-danger">*</span>
+  </label>
   <input
     name="NumDocumento"
-    className="form-control"
+    className={`form-control ${
+      existeDoc === true ? "is-invalid" : existeDoc === false ? "is-valid" : ""
+    }`}
     value={formData.NumDocumento}
-    maxLength={11}
-    onChange={(e) => {
-      // ✅ Solo números, sin espacios
-      e.target.value = e.target.value.replace(/\D/g, "");
-      handleChange(e);
-    }}
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+  // ✅ Solo números (elimina letras, símbolos y espacios)
+  const soloNumeros = e.target.value.replace(/\D/g, "");
+  e.target.value = soloNumeros;
+
+  // ✅ Mantiene tu flujo original
+  handleChange(e);
+
+  // ✅ Actualiza automáticamente la contraseña (mismo número de documento)
+  handleChange({
+    target: {
+      name: "Contrasena",
+      value: soloNumeros,
+    },
+  } as React.ChangeEvent<HTMLInputElement>);
+}}
   />
+
+  {/* Ya existe */}
+  {existeDoc === true && (
+    <div className="text-danger mt-1" style={{ fontSize: "0.9em" }}>
+      ⚠️ Este documento ya está registrado.
+    </div>
+  )}
+
+  {/*  Es el actual */}
+  {existeDoc === false && formData.NumDocumento === usuario.NumDocumento && (
+    <div className="text-success mt-1" style={{ fontSize: "0.9em" }}>
+      🟢 Es el actual que estás usando.
+    </div>
+  )}
+
+  {/*  Disponible */}
+  {existeDoc === false && formData.NumDocumento !== usuario.NumDocumento && (
+    <div className="text-success mt-1" style={{ fontSize: "0.9em" }}>
+      ✅ Disponible para usar.
+    </div>
+  )}
 </div>
+
 
                 {/* Nombre */}
                 <div className="col-md-6">
@@ -310,7 +407,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     className="form-control"
                     value={formData.Celular}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      //  Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -320,19 +417,41 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
 
                 {/* Correo */}
                 <div className="col-md-6">
-                  <label className="form-label">📧 Correo Electrónico<span className="text-danger">*</span></label>
-                  <input
-                    type="email"
-                    name="Correo"
-                    className="form-control"
-                    value={formData.Correo}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                  />
-                </div>
+  <label className="form-label">
+    📧 Correo Electrónico <span className="text-danger">*</span>
+  </label>
+  <input
+    type="email"
+    name="Correo"
+    className={`form-control ${
+      existeCorreo === true ? "is-invalid" : existeCorreo === false ? "is-valid" : ""
+    }`}
+    value={formData.Correo}
+    onChange={handleChange}
+  />
+
+  {/*  Ya existe */}
+  {existeCorreo === true && (
+    <div className="text-danger mt-1" style={{ fontSize: "0.9em" }}>
+      ⚠️ Este correo ya existe.
+    </div>
+  )}
+
+  {/*  Es el actual */}
+  {existeCorreo === false && formData.Correo === usuario.Correo && (
+    <div className="text-success mt-1" style={{ fontSize: "0.9em" }}>
+      🟢 Es el actual que estás usando.
+    </div>
+  )}
+
+  {/* Disponible */}
+  {existeCorreo === false && formData.Correo !== usuario.Correo && (
+    <div className="text-success mt-1" style={{ fontSize: "0.9em" }}>
+      ✅Disponible para usar.
+    </div>
+  )}
+</div>
+
 
                 {/* Contraseña */}
                 <div className="col-md-6">
@@ -342,6 +461,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                       type={showPassword ? "text" : "password"}
                       name="Contrasena"
                       className="form-control"
+                      disabled
                       value={formData.Contrasena}
                       onChange={(e) => {
                     const value = e.target.value;
@@ -398,12 +518,13 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                 <div className="col-md-6">
                   <label className="form-label">🏡 Dirección<span className="text-danger">*</span></label>
                   <input
-                    name="Direccion"
-                    className="form-control"
-                    value={formData.Direccion}
-                    readOnly
-                    onClick={() => setShowDireccionModal(true)}
-                  />
+  name="Direccion"
+  className="form-control"
+  value={formData.Direccion}
+  readOnly
+  onClick={handleAbrirDireccionModal}
+/>
+
                 </div>
 
                 {/* Rol dinámico */}
@@ -434,9 +555,13 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Guardar Cambios
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={loadingCheck || existeDoc === true || existeCorreo === true}
+>
+  {loadingCheck ? "Verificando..." : "Guardar Cambios"}
+</button>
             </div>
           </form>
 
@@ -453,17 +578,6 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                     ></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label>Municipio<span className="text-danger">*</span></label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, municipio: value }));
-                      }}
-                      />
-                    </div>
                     <div className="mb-3">
                       <label>Barrio<span className="text-danger">*</span></label>
                       <input
@@ -483,6 +597,18 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
                         onChange={(e) => {
                         const value = e.target.value.replace(/\s+/g, "");
                         setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos<span className="text-danger">*</span></label>
+                      <input
+                        className="form-control"
+                        value={direccionData.Complementos}
+                        placeholder="Apartamento, edificio, referencia, etc."
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
                       }}
                       />
                     </div>

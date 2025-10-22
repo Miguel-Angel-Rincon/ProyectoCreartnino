@@ -28,12 +28,15 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
+  const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
+const [loadingCheck, setLoadingCheck] = useState(false);
+
 
   // ahora direccionData usa municipio, barrio, calle (coherente con CrearProveedorModal)
   const [direccionData, setDireccionData] = useState({
-    municipio: "",
     barrio: "",
     calle: "",
+    Complementos: "",
   });
 
   // sincronizar cuando cambia la prop proveedor
@@ -53,6 +56,43 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
       });
     }
   }, [proveedor]);
+
+  useEffect(() => {
+  const controller = new AbortController();
+
+  if (formData.NumDocumento.trim().length >= 5) {
+    setLoadingCheck(true);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch("https://apicreartnino.somee.com/api/Proveedores/Lista", {
+          signal: controller.signal,
+        });
+        const proveedores = await res.json();
+
+        const docExiste = proveedores.some(
+          (p: any) =>
+            String(p.NumDocumento) === formData.NumDocumento.trim() &&
+            p.IdProveedor !== formData.IdProveedor // 👈 permite su propio documento
+        );
+
+        setExisteDoc(docExiste);
+      } catch (err) {
+        console.error("Error verificando documento del proveedor:", err);
+      } finally {
+        setLoadingCheck(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  } else {
+    setExisteDoc(null);
+  }
+}, [formData.NumDocumento, formData.IdProveedor]);
+
 
   // cargar departamentos (API Colombia)
   useEffect(() => {
@@ -107,9 +147,9 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
   // guardar dirección desde submodal (sin codigo postal)
   const handleDireccionModalSave = () => {
-    const { municipio, barrio, calle } = direccionData;
+    const {barrio ,calle, Complementos } = direccionData;
 
-    if (municipio.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
+    if ( barrio.trim() === "" || calle.trim() === "" || Complementos.trim() === "" ) {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
@@ -130,7 +170,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
       return;
     }
 
-    const direccionCompleta = `${municipio}, ${barrio}, ${calle}`;
+    const direccionCompleta = `${barrio}, ${calle},${Complementos}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
   };
@@ -349,10 +389,10 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   // parsear dirección existente y abrir submodal (ahora municipio, barrio, calle)
   const openDireccionModalFromDireccion = () => {
     const partes = (formData.Direccion ?? "").split(",").map((p) => p.trim());
-    const municipio = partes[0] ?? "";
-    const barrio = partes[1] ?? "";
-    const calle = partes[2] ?? "";
-    setDireccionData({ municipio, barrio, calle });
+    const barrio = partes[0] ?? "";
+    const calle = partes[1] ?? "";
+    const Complementos = partes[2] ?? "";
+    setDireccionData({  barrio, calle,Complementos });
     setShowDireccionModal(true);
   };
 
@@ -395,6 +435,13 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }} required />
+    {existeDoc && (
+  <small className="text-danger">⚠️ Este número de documento ya está registrado por otro proveedor.</small>
+)}
+{existeDoc === false && formData.NumDocumento && (
+  <small className="text-success">✅ Documento disponible.</small>
+)}
+
                 </div>
 
                 <div className="col-md-6">
@@ -451,7 +498,14 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
 
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn pastel-btn-primary">Guardar Cambios</button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={loadingCheck || existeDoc === true}
+>
+  {loadingCheck ? "Verificando..." : "Guardar Cambios"}
+</button>
+
             </div>
           </form>
 
@@ -464,14 +518,6 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                     <button className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label>Municipio <span className="text-danger">*</span></label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, municipio: e.target.value.replace(/\s+/g, "") }))}
-                      />
-                    </div>
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
@@ -489,6 +535,15 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
                         const value = e.target.value.replace(/\s+/g, "");
                         setDireccionData((prev) => ({ ...prev, calle: value }));
                       }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos <span className="text-danger">*</span></label>
+                      <input
+                        className="form-control"
+                        value={direccionData.Complementos}
+                        placeholder="Apartamento, edificio, referencia, etc."
+                        onChange={(e) => setDireccionData(prev => ({ ...prev, Complementos: e.target.value.replace(/\s+/g, "") }))}
                       />
                     </div>
                   </div>

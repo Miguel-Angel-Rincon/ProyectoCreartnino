@@ -612,7 +612,14 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
     // ✅ 6. Confirmación
     onCrear(produccionCreada);
-    Swal.fire("Éxito", "Producción creada correctamente.", "success");
+    Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Producción creada correctamente.",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false, 
+        });
 
     // 🟢 Cerrar modal automáticamente
     if (typeof onClose === "function") {

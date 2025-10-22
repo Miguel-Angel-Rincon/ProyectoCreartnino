@@ -13,26 +13,34 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
   const [direccionData, setDireccionData] = useState({
     barrio: "",
     calle: "",
-    codigoPostal: "",
+    Complementos: "",
   });
 
   const abrirSubmodalDireccion = () => {
-    if (proveedor.Direccion) {
-      const partes = proveedor.Direccion.split(", ");
-      const barrio = partes[0] || "";
-      const calle = partes[1] || "";
-      const cp = partes[2]?.replace("CP ", "") || "";
-      setDireccionData({ barrio, calle, codigoPostal: cp });
-      setShowDireccionModal(true);
-    }
-  };
+  if (proveedor.Direccion) {
+    // ✅ Separar por coma y limpiar espacios extra
+    const partes = proveedor.Direccion.split(",").map((p) => p.trim());
+
+    setDireccionData({
+      // Primera parte = barrio
+      barrio: partes[0] || "",
+      // Segunda parte = calle
+      calle: partes.length >= 2 ? partes[1] : "",
+      // Resto (si existe) = complementos, por si hay más comas
+      Complementos: partes.length >= 3 ? partes.slice(2).join(", ") : "",
+    });
+
+    setShowDireccionModal(true);
+  }
+};
+
 
   return (
     <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content pastel-modal shadow-lg">
           <div className="modal-header pastel-header">
-            <h5 className="modal-title">👁️ Ver Detalle del Proveedor</h5>
+            <h5 className="modal-title">👁️ Ver Proveedor</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body px-4 py-3">
@@ -129,8 +137,8 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
                       <input className="form-control" value={direccionData.calle} disabled />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label">Código Postal</label>
-                      <input className="form-control" value={direccionData.codigoPostal} disabled />
+                      <label className="form-label">Complementos</label>
+                      <input className="form-control" value={direccionData.Complementos} disabled />
                     </div>
                   </div>
                   <div className="modal-footer pastel-footer">

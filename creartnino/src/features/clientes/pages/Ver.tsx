@@ -15,7 +15,7 @@ const VerClienteModal: React.FC<Props> = ({ cliente, onClose }) => {
   const partesDireccion = cliente.Direccion?.split(',') || [];
   const barrio = partesDireccion[0]?.trim() || '';
   const calle = partesDireccion[1]?.trim() || '';
-  const codigoPostal = partesDireccion[2]?.replace('CP', '').trim() || '';
+  const Complementos = partesDireccion[2]?.replace('CP', '').trim() || '';
 
   return (
     <div className="modal d-block overlay" tabIndex={-1}>
@@ -103,8 +103,8 @@ const VerClienteModal: React.FC<Props> = ({ cliente, onClose }) => {
                   <input className="form-control" value={calle} disabled />
                 </div>
                 <div className="mb-3">
-                  <label>Código Postal</label>
-                  <input className="form-control" value={codigoPostal} disabled />
+                  <label>Complementos</label>
+                  <input className="form-control" value={Complementos} disabled />
                 </div>
               </div>
               <div className="modal-footer pastel-footer">

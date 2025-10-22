@@ -203,15 +203,22 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
     const resPermisos = await fetch(
       `https://apicreartnino.somee.com/api/RolPermisos/ReemplazarPermisos/${rol.IdRol}`,
       {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(permisosIds),
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(permisosIds),
       }
     );
     if (!resPermisos.ok) throw new Error("Error al reemplazar permisos");
 
-    // 3) Éxito
-    await Swal.fire("Éxito", "Rol actualizado correctamente", "success");
+    // 3) Éxito con timer
+    await Swal.fire({
+      title: "Éxito",
+      text: "Rol actualizado correctamente",
+      icon: "success",
+      timer: 2000, // 2 segundos
+      timerProgressBar: true,
+      showConfirmButton: false
+    });
 
     // 4) Refrescar permisos si aplica
     if (usuario?.IdRol === rol.IdRol) {
@@ -224,8 +231,8 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
       Rol: nombreTrim,
       Descripcion: descripcionTrim,
       RolPermisos: permisosSeleccionados.map((p) => ({
-        IdRol: rol.IdRol,
-        IdPermisos: p.IdPermisos,
+      IdRol: rol.IdRol,
+      IdPermisos: p.IdPermisos,
       })),
     });
 

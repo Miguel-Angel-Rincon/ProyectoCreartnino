@@ -441,7 +441,8 @@ const puedeEditarAdicional =
                         }
                       )}.`,
                       timer: 2000,
-                      showConfirmButton: false,
+              timerProgressBar: true,
+              showConfirmButton: false, 
                     });
 
                     setMostrarAdicional(false);
@@ -593,7 +594,8 @@ const puedeEditarAdicional =
             title: "Éxito",
             text: mensaje,
             timer: 2000,
-            showConfirmButton: false,
+              timerProgressBar: true,
+              showConfirmButton: false, 
           });
 
           // 🔄 Refresca pantalla

@@ -76,7 +76,9 @@ const ListarClientes: React.FC = () => {
         icon: "warning",
         title: "Cliente activo",
         text: "No puedes eliminar un cliente activo. Desactívalo primero.",
-        confirmButtonColor: "#e83e8c",
+        timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
       });
       return;
     }
@@ -102,7 +104,9 @@ const ListarClientes: React.FC = () => {
             icon: "success",
             title: "Eliminado",
             text: "El cliente ha sido eliminado correctamente",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
           });
         } catch (err) {
           console.error("eliminarCliente:", err);
@@ -110,7 +114,9 @@ const ListarClientes: React.FC = () => {
             icon: "error",
             title: "Error",
             text: "No se pudo eliminar el cliente.",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
           });
         }
       }
@@ -142,9 +148,9 @@ const ListarClientes: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-                
-              
-      confirmButtonColor: "#f78fb3",
+timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
 
       });
 
@@ -154,7 +160,9 @@ const ListarClientes: React.FC = () => {
         icon: "error",
         title: "Error",
         text: "No se pudo actualizar el estado del cliente.",
-        confirmButtonColor: "#e83e8c",
+        timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
       });
       setClientes((prev) =>
         prev.map((c) => (c.IdCliente === id ? target : c))
@@ -342,7 +350,9 @@ const ListarClientes: React.FC = () => {
     icon: "success",
     title: "Éxito",
     text: "Cliente creado correctamente",
-    confirmButtonColor: "#e83e8c",
+    timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
   });
 }}
 
@@ -361,7 +371,9 @@ const ListarClientes: React.FC = () => {
               icon: "success",
               title: "Éxito",
               text: "Cliente actualizado correctamente",
-              confirmButtonColor: "#e83e8c",
+              timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
             });
           }}
         />

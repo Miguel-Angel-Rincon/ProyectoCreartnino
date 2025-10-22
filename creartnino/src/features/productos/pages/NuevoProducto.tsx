@@ -316,6 +316,9 @@ const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       icon: "success",
       title: "Éxito",
       text: "Producto creado correctamente",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, 
     });
 
     onCrear(nuevoProducto);

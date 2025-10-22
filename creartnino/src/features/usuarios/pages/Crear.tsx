@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 
 import '../style/acciones.css';
 import type { IUsuarios } from '../../interfaces/IUsuarios';
+import axios from 'axios';
 
 interface Props {
   onClose: () => void;
@@ -28,12 +29,58 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
-  const [direccionData, setDireccionData] = useState({ municipio: '', barrio: '', calle: '' });
+  const [direccionData, setDireccionData] = useState({ Complementos: '', barrio: '', calle: '' });
+  const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
+const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
+const [loadingCheck, setLoadingCheck] = useState(false);
+
 
   // Roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string; Descripcion?: string }[]>([]);
 
-  
+  useEffect(() => {
+  const controller = new AbortController();
+
+  // Solo ejecutar si hay suficiente información
+  if (formData.NumDocumento.length > 4 || formData.Correo.length > 5) {
+    setLoadingCheck(true);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await axios.get("https://apicreartnino.somee.com/api/Usuarios/Lista", {
+          signal: controller.signal,
+        });
+
+        const usuarios = res.data || [];
+
+        // 🔍 Buscar coincidencias
+        const docExiste = usuarios.some(
+          (u: any) => String(u.NumDocumento) === formData.NumDocumento
+        );
+        const correoExiste = usuarios.some(
+          (u: any) =>
+            u.Correo?.trim().toLowerCase() === formData.Correo?.trim().toLowerCase()
+        );
+
+        setExisteDoc(docExiste);
+        setExisteCorreo(correoExiste);
+      } catch (err) {
+        console.error("Error verificando duplicados:", err);
+      } finally {
+        setLoadingCheck(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  } else {
+    setExisteDoc(null);
+    setExisteCorreo(null);
+  }
+}, [formData.NumDocumento, formData.Correo]);
+
 
   // Departamentos
   useEffect(() => {
@@ -85,7 +132,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   };
 
   const handleDireccionModalSave = () => {
-    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.municipio}`;
+    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.Complementos}`;
     setFormData(prev => ({ ...prev, Direccion: full }));
     setShowDireccionModal(false);
   };
@@ -181,15 +228,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   if (!pwd) {
     return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
   }
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-  if (!passwordRegex.test(pwd)) {
-    return Swal.fire({
-      icon: "error",
-      title: "Contraseña inválida",
-      html: "Debe tener:<br>• Mínimo 8 caracteres<br>• Una mayúscula<br>• Una minúscula<br>• Un número<br>• Un carácter especial",
-      confirmButtonColor: "#e83e8c"
-    });
-  }
+  
   if (isAllSameChar(pwd) || hasLongRepeatSequence(pwd) || hasLowVariety(pwd)) {
     return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
   }
@@ -260,10 +299,9 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   icon: "success",
   title: "Éxito",
   text: "Usuario creado correctamente",
-  confirmButtonColor: "#e83e8c",
-  timerProgressBar: true,
-  allowOutsideClick: false,
-  allowEscapeKey: false,
+  timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
 });
 
 // 🔹 Notifica al padre para refrescar la lista
@@ -321,12 +359,31 @@ onClose();
     className="form-control"
     value={formData.NumDocumento}
     maxLength={11}
-    onChange={(e) => {
-      // ✅ Solo números, sin espacios
-      e.target.value = e.target.value.replace(/\D/g, "");
-      handleChange(e);
-    }}
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+  // ✅ Solo números (elimina letras, símbolos y espacios)
+  const soloNumeros = e.target.value.replace(/\D/g, "");
+  e.target.value = soloNumeros;
+
+  // ✅ Mantiene tu flujo original
+  handleChange(e);
+
+  // ✅ Actualiza automáticamente la contraseña (mismo número de documento)
+  handleChange({
+    target: {
+      name: "Contrasena",
+      value: soloNumeros,
+    },
+  } as React.ChangeEvent<HTMLInputElement>);
+}}
+
   />
+  {existeDoc && (
+  <small className="text-danger">⚠️ Este número de documento ya está registrado.</small>
+)}
+{existeDoc === false && formData.NumDocumento && (
+  <small className="text-success">✅ Documento disponible.</small>
+)}
+
 </div>
 
 
@@ -373,6 +430,13 @@ onClose();
                     handleChange(e);
                   }}
                   />
+                  {existeCorreo && (
+  <small className="text-danger">⚠️ Este correo ya está registrado.</small>
+)}
+{existeCorreo === false && formData.Correo && (
+  <small className="text-success">✅ Correo disponible.</small>
+)}
+
                 </div>
 
                 <div className="col-md-6">
@@ -382,6 +446,7 @@ onClose();
                       type={showPassword ? 'text' : 'password'}
                       name="Contrasena"
                       className="form-control"
+                      disabled
                       value={formData.Contrasena}
                      onChange={(e) => {
                     const value = e.target.value;
@@ -465,7 +530,13 @@ onClose();
 
             <div className="modal-footer pastel-footer">
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn pastel-btn-primary">Crear</button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={loadingCheck || existeDoc === true || existeCorreo === true}
+>
+  {loadingCheck ? "Verificando..." : "Crear"}
+</button>
             </div>
           </form>
 
@@ -483,17 +554,6 @@ onClose();
                     ></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label>Municipio <span className="text-danger">*</span></label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, municipio: value }));
-                      }}
-                      />
-                    </div>
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
@@ -513,6 +573,18 @@ onClose();
                         onChange={(e) => {
                         const value = e.target.value.replace(/\s+/g, "");
                         setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos <span className="text-danger">*</span></label>
+                      <input
+                        className="form-control"
+                        value={direccionData.Complementos}
+                        placeholder="Apartamento, edificio, referencia, etc."
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
                       }}
                       />
                     </div>

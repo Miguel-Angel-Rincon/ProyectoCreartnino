@@ -5,6 +5,7 @@ import "../styles/acciones.css";
 import { APP_SETTINGS } from "../../../settings/appsettings";
 import type { IClientes } from "../../interfaces/IClientes";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface Props {
   onClose: () => void;
@@ -25,18 +26,78 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
     Direccion: "",
     Estado: true,
   });
-
+const [loading, setLoading] = useState(false);
+  const [existeDocumento, setExisteDocumento] = useState(null);
+  const [existeCorreo, setExisteCorreo] = useState(null);
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [direccionData, setDireccionData] = useState({
-    municipio: "",
+    Complementos: "",
     barrio: "",
     calle: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const { NumDocumento, Correo } = formData;
+    const validarDocumento = NumDocumento && NumDocumento.length > 4;
+    const validarCorreo = Correo && Correo.length > 5 && Correo.includes("@");
+
+    // Si no hay nada que validar, limpiar estados
+    if (!validarDocumento && !validarCorreo) {
+      setExisteDocumento(null);
+      setExisteCorreo(null);
+      return;
+    }
+
+    setLoading(true);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await axios.get("https://www.apicreartnino.somee.com/api/Clientes/Lista", {
+          signal: controller.signal,
+        });
+
+        const clientes = res.data || [];
+
+        // Verificar documento
+        if (validarDocumento) {
+          const existeDoc = clientes.some(
+            (c: IClientes) => String(c.NumDocumento) === String(NumDocumento)
+          );
+          setExisteDocumento(existeDoc);
+        } else {
+          setExisteDocumento(null);
+        }
+
+        // Verificar correo
+        if (validarCorreo) {
+          const existeMail = clientes.some(
+            (c: IClientes) => c.Correo?.toLowerCase() === Correo.toLowerCase()
+          );
+          setExisteCorreo(existeMail);
+        } else {
+          setExisteCorreo(null);
+        }
+      } catch (err) {
+        console.error("Error al verificar cliente:", err);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [formData.NumDocumento, formData.Correo]);
+
+const botonDeshabilitado =
+    isSubmitting || loading || existeDocumento === true || existeCorreo === true;
   // 🔹 Cargar departamentos
   useEffect(() => {
     fetch("https://api-colombia.com/api/v1/Department")
@@ -80,13 +141,13 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
   // 🔹 Guardar dirección desde submodal
   const handleDireccionModalSave = () => {
-    const { municipio, barrio, calle } = direccionData;
+    const { Complementos, barrio, calle } = direccionData;
 
-    if (municipio.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
+    if (Complementos.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Por favor completa Municipio, Barrio y Calle/Carrera.",
+        text: "Por favor completa Complementos, Barrio y Calle/Carrera.",
         confirmButtonColor: "#f78fb3",
       });
       return;
@@ -102,7 +163,7 @@ const CrearClienteModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
-    const direccionCompleta = `${municipio}, ${barrio}, ${calle}`;
+    const direccionCompleta = `${Complementos}, ${barrio}, ${calle}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
   };
@@ -287,7 +348,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     Swal.fire({
       icon: "success",
       title: "Cliente creado correctamente",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
     });
 
     onCrear(clienteData);
@@ -299,7 +362,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       icon: "error",
       title: "Error",
       text: err.message || "No se pudo completar la operación.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
     });
   } finally {
     setIsSubmitting(false);
@@ -337,20 +402,29 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   </select>
                 </div>
 
-                <div className="col-md-6">
-  <label className="form-label">🔢 Número Documento <span className="text-danger">*</span></label>
-  <input
-    name="NumDocumento"
-    className="form-control"
-    value={formData.NumDocumento}
-    maxLength={11}
-    onChange={(e) => {
-      // ✅ Solo números, sin espacios
-      e.target.value = e.target.value.replace(/\D/g, "");
-      handleChange(e);
-    }}
-  />
-</div>
+                {/* 🔢 Documento */}
+      <div className="col-md-6">
+        <label className="form-label">
+          🔢 Número Documento <span className="text-danger">*</span>
+        </label>
+        <input
+          name="NumDocumento"
+          className="form-control"
+          value={formData.NumDocumento}
+          maxLength={11}
+          onChange={(e) => {
+            e.target.value = e.target.value.replace(/\D/g, "");
+            handleChange(e);
+          }}
+        />
+        {loading && <p className="text-info mt-1">🔍 Buscando...</p>}
+        {existeDocumento === true && !loading && (
+          <p className="text-danger mt-1">⚠️ Este documento ya existe</p>
+        )}
+        {existeDocumento === false && !loading && formData.NumDocumento && (
+          <p className="text-success mt-1">✅ Documento disponible</p>
+        )}
+      </div>
 
                 <div className="col-md-6">
                   <label className="form-label">
@@ -369,23 +443,31 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   />
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">
-                    📧 Correo Electrónico <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="Correo"
-                    className="form-control"
-                    value={formData.Correo}
-                    onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    handleChange(e);
-                  }}
-                    required
-                  />
-                </div>
+                {/* 📧 Correo */}
+      <div className="col-md-6">
+        <label className="form-label">
+          📧 Correo Electrónico <span className="text-danger">*</span>
+        </label>
+        <input
+          type="email"
+          name="Correo"
+          className="form-control"
+          value={formData.Correo}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value.trim() === "" && value !== "") return;
+            handleChange(e);
+          }}
+          required
+        />
+        {loading && <p className="text-info mt-1">🔍 Verificando...</p>}
+        {existeCorreo === true && !loading && (
+          <p className="text-danger mt-1">⚠️ Este correo ya está registrado</p>
+        )}
+        {existeCorreo === false && !loading && formData.Correo && (
+          <p className="text-success mt-1">✅ Correo disponible</p>
+        )}
+      </div>
 
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
@@ -463,9 +545,19 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Crear"}
-              </button>
+              <button
+          type="submit"
+          className="btn pastel-btn-primary"
+          disabled={botonDeshabilitado}
+        >
+          {isSubmitting
+            ? "Guardando..."
+            : loading
+            ? "Verificando..."
+            : existeDocumento === true || existeCorreo === true
+            ? "Corrige los datos"
+            : "Crear"}
+        </button>
             </div>
           </form>
 
@@ -483,17 +575,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     ></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label>Municipio <span className="text-danger">*</span></label>
-                      <input
-                      className="form-control"
-                      value={direccionData.municipio}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, municipio: value }));
-                      }}
-                      />
-                    </div>
+                    
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
@@ -513,6 +595,18 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       onChange={(e) => {
                         const value = e.target.value.replace(/\s+/g, "");
                         setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos <span className="text-danger">*</span></label>
+                      <input
+                      className="form-control"
+                      value={direccionData.Complementos}
+                      placeholder="Apartamento, edificio, referencia, etc."
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
                       }}
                       />
                     </div>

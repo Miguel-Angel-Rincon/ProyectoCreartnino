@@ -121,7 +121,14 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
 
       if (!resp.ok) throw new Error("No se pudo actualizar");
 
-      Swal.fire("Éxito", "Producción actualizada correctamente.", "success");
+      Swal.fire({
+            icon: "success",
+            title: "Éxito",
+            text: "Producción actualizada correctamente.",
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false, 
+          });
       onEdit(produccion);
       onClose();
     } catch (err) {

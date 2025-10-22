@@ -142,14 +142,16 @@ const ListarInsumos: React.FC = () => {
             icon: "success",
             title: "Eliminado",
             text: "El insumo ha sido eliminado correctamente",
-            confirmButtonColor: "#e83e8c",
+            timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
           });
         } catch (err) {
           console.error("eliminarInsumo:", err);
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "No se pudo eliminar el insumo.",
+            text: "No se pudo eliminar el insumo.Esta Asociado a alguna Compra o Produccion",
             confirmButtonColor: "#e83e8c",
           });
         }
@@ -192,7 +194,9 @@ const ListarInsumos: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: "Estado actualizado correctamente",
-        confirmButtonColor: "#f78fb3",
+       timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
       });
 
     } catch (err) {

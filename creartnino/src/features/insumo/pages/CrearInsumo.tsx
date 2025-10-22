@@ -200,9 +200,11 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
 
     Swal.fire({
       icon: "success",
-      title: "✅ Éxito",
+      title: "Éxito",
       text: "Insumo creado correctamente.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
     });
 
     onCrear(); // refresca lista en el padre

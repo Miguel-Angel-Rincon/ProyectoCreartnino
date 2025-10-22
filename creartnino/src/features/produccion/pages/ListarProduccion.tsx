@@ -378,7 +378,14 @@ const handleActualizarEstado = async (p: IProduccion, nuevoIdEstado: number) => 
     }
 
     await Promise.all([refreshProducciones(), refreshPedidos()]);
-    Swal.fire("Actualizado", "Estado actualizado correctamente.", "success");
+    Swal.fire({
+            icon: "success",
+            title: "Actualizado",
+            text: `Estado actualizado correctamente`,
+            timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false, 
+        });
   } catch (e) {
     console.error(e);
     Swal.fire("Error", "No se pudo actualizar el estado.", "error");
@@ -531,7 +538,14 @@ const handleAnularProduccion = (p: IProduccion) => {
         refreshPedidos?.(),
       ]);
 
-      Swal.fire("Anulado", "Producción anulada y pedido puesto en 'En proceso' (si aplica).", "success");
+                  Swal.fire({
+                    icon: "success",
+                    title: "Anulada",
+                    text: "Producción anulada y pedido puesto en 'En proceso' (si aplica).",
+                    timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false, 
+                  });
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Ocurrió un problema al anular. Revisa consola.", "error");

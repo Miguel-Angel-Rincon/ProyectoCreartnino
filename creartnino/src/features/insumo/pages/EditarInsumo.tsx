@@ -213,7 +213,9 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
       icon: "success",
       title: "Éxito",
       text: "Insumo actualizado correctamente.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
     });
 
     onEditar();

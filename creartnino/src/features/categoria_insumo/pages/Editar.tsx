@@ -153,7 +153,9 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
       icon: "success",
       title: "Éxito",
       text: "Categoría actualizada correctamente",
-      confirmButtonColor: "#e83e8c",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false, 
     });
 
     onEditar(data);

@@ -29,16 +29,54 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
   const [ciudades, setCiudades] = useState<{ id: number; name: string }[]>([]);
   const [showDireccionModal, setShowDireccionModal] = useState(false);
+  const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
+const [loadingCheck, setLoadingCheck] = useState(false);
+
 
   // 🔧 Dirección (correcto mapeo de campos)
   const [direccionData, setDireccionData] = useState({
-    municipio: "",
     barrio: "",
     calle: "",
+    Complementos: "",
   });
 
   // ----- NUEVO: estado para bloquear doble submit -----
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+  const controller = new AbortController();
+
+  if (formData.NumDocumento.trim().length >= 5) {
+    setLoadingCheck(true);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch("https://apicreartnino.somee.com/api/Proveedores/Lista", {
+          signal: controller.signal,
+        });
+        const proveedores = await res.json();
+
+        const docExiste = proveedores.some(
+          (p: any) => String(p.NumDocumento) === formData.NumDocumento.trim()
+        );
+
+        setExisteDoc(docExiste);
+      } catch (err) {
+        console.error("Error verificando documento del proveedor:", err);
+      } finally {
+        setLoadingCheck(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  } else {
+    setExisteDoc(null);
+  }
+}, [formData.NumDocumento]);
+
 
   // 🔹 Departamentos (API Colombia)
   useEffect(() => {
@@ -93,9 +131,9 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
 
   // 🔹 Submodal Dirección
   const handleDireccionModalSave = () => {
-    const { municipio, barrio, calle } = direccionData;
+    const { barrio, calle, Complementos } = direccionData;
 
-    if (municipio.trim() === "" || barrio.trim() === "" || calle.trim() === "") {
+    if ( barrio.trim() === "" || calle.trim() === ""||Complementos.trim() === "" ) {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
@@ -116,7 +154,7 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return;
     }
 
-    const direccionCompleta = `${municipio}, ${barrio}, ${calle}`;
+    const direccionCompleta = `${barrio}, ${calle},${Complementos}`;
     setFormData((prev) => ({ ...prev, Direccion: direccionCompleta }));
     setShowDireccionModal(false);
   };
@@ -321,7 +359,9 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
         icon: "error",
         title: "Error",
         text: msg || "Error al registrar el proveedor",
-        confirmButtonColor: "#f78fb3",
+        timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
       });
     }
   } catch (err) {
@@ -329,7 +369,9 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
       icon: "error",
       title: "Error de conexión",
       text: "No se pudo conectar con el servidor.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
     });
   } finally {
     setIsSubmitting(false);
@@ -411,6 +453,13 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     maxLength={11}
                     required
                   />
+                  {existeDoc && (
+  <small className="text-danger">⚠️ Este número de documento ya está registrado.</small>
+)}
+{existeDoc === false && formData.NumDocumento && (
+  <small className="text-success">✅ Documento disponible.</small>
+)}
+
                 </div>
 
                 <div className="col-md-6">
@@ -509,9 +558,14 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Crear"}
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={isSubmitting || loadingCheck || existeDoc === true}
+>
+  {loadingCheck ? "Verificando..." : isSubmitting ? "Guardando..." : "Crear"}
+</button>
+
             </div>
           </form>
 
@@ -525,17 +579,6 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                     <button type="button" className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
                   </div>
                   <div className="modal-body px-4 py-3">
-                    <div className="mb-3">
-                      <label>Municipio <span className="text-danger">*</span></label>
-                      <input
-                        className="form-control"
-                        value={direccionData.municipio}
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, municipio: value }));
-                      }}
-                      />
-                    </div>
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
@@ -555,6 +598,18 @@ const CrearProveedorModal: React.FC<Props> = ({ onClose, onCrear }) => {
                         onChange={(e) => {
                         const value = e.target.value.replace(/\s+/g, "");
                         setDireccionData((prev) => ({ ...prev, calle: value }));
+                      }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label>Complementos <span className="text-danger">*</span></label>
+                      <input
+                        className="form-control"
+                        value={direccionData.Complementos}
+                        placeholder="Apartamento, edificio, referencia, etc."
+                        onChange={(e) => {
+                        const value = e.target.value.replace(/\s+/g, "");
+                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
                       }}
                       />
                     </div>

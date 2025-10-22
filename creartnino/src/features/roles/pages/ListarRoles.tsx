@@ -93,7 +93,14 @@ const ListarRoles: React.FC = () => {
 
       await fetchRoles();
 
-      Swal.fire("Eliminado", "El rol ha sido eliminado correctamente", "success");
+      await Swal.fire({
+            title: "Eliminado",
+            text: "El rol ha sido eliminado correctamente",
+            icon: "success",
+            timer: 2000, // 2 segundos
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
     } catch (error) {
       console.error("Error eliminando rol:", error);
       Swal.fire(
@@ -141,7 +148,9 @@ const ListarRoles: React.FC = () => {
       icon: "success",
       title: "Actualizado",
       text: `Estado Actualizado correctamente`,
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false
     });
   } catch (err) {
     console.error("actualizarEstado:", err);
@@ -149,7 +158,9 @@ const ListarRoles: React.FC = () => {
       icon: "error",
       title: "Error",
       text: "No se pudo actualizar el estado del rol.",
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false
     });
 
     // ✅ Si falla, volvemos atrás
@@ -175,7 +186,9 @@ const ListarRoles: React.FC = () => {
     Swal.fire({
       icon: "success",
       title: `Rol "${rolConNombre.Rol}" creado correctamente`,
-      confirmButtonColor: "#f78fb3",
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false
     });
   } catch (error) {
     console.error("Error refrescando roles:", error);

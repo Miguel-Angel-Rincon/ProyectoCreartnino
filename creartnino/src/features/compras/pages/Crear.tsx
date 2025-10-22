@@ -322,11 +322,14 @@ const mostrarAlertaInvalida = () => {
       });
     }
 
-    Swal.fire(
-      "✅ Éxito",
-      "La compra y el stock de insumos se actualizaron correctamente.",
-      "success"
-    );
+    Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Compra creada correctamente.",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
     onCrear(compraCreada);
     onClose();
   } catch (err: any) {
