@@ -28,7 +28,7 @@ const Registrar: React.FC = () => {
   // direcciones (submodal)
   const [direccion, setDireccion] = useState("");
   const [showDireccionModal, setShowDireccionModal] = useState(false);
-  const [direccionData, setDireccionData] = useState({ municipio: "", barrio: "", calle: "" });
+  const [direccionData, setDireccionData] = useState({ Complementos: "", barrio: "", calle: "" });
 
   // departamentos / ciudades
   const [departamentos, setDepartamentos] = useState<{ id: number; name: string }[]>([]);
@@ -99,7 +99,7 @@ const Registrar: React.FC = () => {
 
   // Guardar dirección desde submodal
   const handleDireccionModalSave = () => {
-    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.municipio}`;
+    const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.Complementos}`;
     setDireccion(full);
     setShowDireccionModal(false);
   };
@@ -299,12 +299,33 @@ const reenviarCodigo = async () => {
                 <div className="col-md-6">
                   <label className="form-label">Número Documento <span className="text-danger">*</span></label>
                   <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  minLength={8}
+                  maxLength={11}
                   className="form-control"
                   value={documento}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    setDocumento(value);
+                    const onlyNums = e.target.value.replace(/\D/g, "");
+                    // aseguramos máximo 11 dígitos en el estado
+                    setDocumento(onlyNums.slice(0, 11));
+                  }}
+                  onBlur={() => {
+                    if (!documento) return;
+                    if (documento.length < 8) {
+                    showAlert(
+                      "Documento inválido",
+                      "El número de documento debe tener mínimo 8 dígitos.",
+                      "warning"
+                    );
+                    } else if (documento.length > 11) {
+                    showAlert(
+                      "Documento inválido",
+                      "El número de documento debe tener máximo 11 dígitos.",
+                      "warning"
+                    );
+                    }
                   }}
                   />
                 </div>
@@ -322,23 +343,37 @@ const reenviarCodigo = async () => {
                 {/* celular/correo */}
                 <div className="col-md-6">
                   <label className="form-label">Celular <span className="text-danger">*</span></label>
-                  <input 
+                  <input
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="\d{10}"
+                  maxLength={10}
                   className="form-control"
-                  value={celular} 
-                  onChange={(e) =>{
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    setCelular(value)}} />
+                  value={celular}
+                  onChange={(e) => {
+                    const onlyNums = e.target.value.replace(/\D/g, "");
+                    setCelular(onlyNums.slice(0, 10));
+                  }}
+                  />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Correo electrónico <span className="text-danger">*</span></label>
-                  <input type="email" 
-                  className="form-control" 
-                  value={correo} 
-                  onChange={(e) =>{
+                  <input
+                  type="email"
+                  className="form-control"
+                  value={correo}
+                  onChange={(e) => {
                     const value = e.target.value;
                     if (value.trim() === "" && value !== "") return;
-                    setCorreo(value)}} />
+                    setCorreo(value);
+                  }}
+                  onBlur={() => {
+                    if (!correo) return;
+                    if (!esCorreoValido(correo)) {
+                    showAlert("Correo inválido", "Ingresa un correo electrónico válido. Te falta el @", "error");
+                    }
+                  }}
+                  />
                 </div>
                 {/* dep/ciudad */}
                 <div className="col-md-6">
@@ -377,27 +412,88 @@ const reenviarCodigo = async () => {
                 {/* pass */}
                 <div className="col-md-6">
                   <label className="form-label">Contraseña <span className="text-danger">*</span></label>
+
+                  {/* CSS local para mostrar checklist al enfocar o cuando hay texto */}
+                  <style>{`
+                  .password-checklist { display: none; margin-top: 8px; font-size: 0.9rem; }
+                  .password-input:focus ~ .password-checklist,
+                  .password-checklist.show { display: block; }
+                  .password-checklist .item { display: flex; gap: 8px; align-items: center; margin: 4px 0; color: #6c757d; }
+                  .password-checklist .item.ok { color: #198754; } /* verde */
+                  `}</style>
+
                   <div className="input-group">
-                    <input type={verContrasena ? "text" : "password"} className="form-control" value={contrasena} onChange={(e) =>{
-                      const value = e.target.value;
+                  <input
+                    type={verContrasena ? "text" : "password"}
+                    className="form-control password-input"
+                    value={contrasena}
+                    onChange={(e) => {
+                    const value = e.target.value;
                     if (value.trim() === "" && value !== "") return;
-                      setContrasena(value)}} />
-                    <span className="input-group-text clickable" onClick={() => setVerContrasena((v) => !v)}>
-                      {verContrasena ? <FaEyeSlash /> : <FaEye />}
-                    </span>
+                    setContrasena(value);
+                    }}
+                    aria-describedby="passwordHelp"
+                  />
+                  <span className="input-group-text clickable" onClick={() => setVerContrasena((v) => !v)}>
+                    {verContrasena ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                  </div>
+
+                  {/* Checklist de validaciones (se muestra al enfocar o si ya hay texto) */}
+                  <div
+                  id="passwordHelp"
+                  className={`password-checklist ${contrasena ? "show" : ""}`}
+                  >
+                  <div
+                    className={`item ${contrasena.length >= 8 ? "ok" : ""}`}
+                  >
+                    {contrasena.length >= 8 ? "✓" : "•"} Debe tener mínimo 8 caracteres
+                  </div>
+                  <div
+                    className={`item ${/[A-Z]/.test(contrasena) ? "ok" : ""}`}
+                  >
+                    {/[A-Z]/.test(contrasena) ? "✓" : "•"} Una letra mayúscula
+                  </div>
+                  <div
+                    className={`item ${/[a-z]/.test(contrasena) ? "ok" : ""}`}
+                  >
+                    {/[a-z]/.test(contrasena) ? "✓" : "•"} Una letra minúscula
+                  </div>
+                  <div
+                    className={`item ${/\d/.test(contrasena) ? "ok" : ""}`}
+                  >
+                    {/\d/.test(contrasena) ? "✓" : "•"} Un número
+                  </div>
+                  <div
+                    className={`item ${/[\W_]/.test(contrasena) ? "ok" : ""}`}
+                  >
+                    {/[\W_]/.test(contrasena) ? "✓" : "•"} Un símbolo
+                  </div>
                   </div>
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Confirmar contraseña <span className="text-danger">*</span></label>
-                  <div className="input-group">
-                    <input type={verConfirmar ? "text" : "password"} className="form-control" value={confirmar} onChange={(e) => {
+                    <div className="input-group">
+                    <input
+                      type={verConfirmar ? "text" : "password"}
+                      className={`form-control ${confirmar && contrasena && confirmar !== contrasena ? "is-invalid" : ""}`}
+                      value={confirmar}
+                      onChange={(e) => {
                       const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                      setConfirmar(value)}} />
+                      if (value.trim() === "" && value !== "") return;
+                      setConfirmar(value);
+                      }}
+                      aria-describedby="confirmHelp"
+                    />
                     <span className="input-group-text clickable" onClick={() => setVerConfirmar((v) => !v)}>
                       {verConfirmar ? <FaEyeSlash /> : <FaEye />}
                     </span>
-                  </div>
+                    </div>
+                    {confirmar && contrasena && confirmar !== contrasena && (
+                    <div id="confirmHelp" className="text-danger small mt-1">
+                      Las contraseñas no coinciden
+                    </div>
+                    )}
                 </div>
                 
                 {/* dirección */}
@@ -468,43 +564,82 @@ const reenviarCodigo = async () => {
                 <h5 className="modal-title">🏠 Información de Dirección</h5>
                 <button type="button" className="btn-close" onClick={() => setShowDireccionModal(false)}></button>
               </div>
-              <div className="modal-body px-4 py-3">
-                <div className="mb-3">
-                  <label>Municipio</label>
-                  <input className="form-control"
-                  value={direccionData.municipio} 
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    setDireccionData((p) => ({ ...p, municipio: value }))}} />
-                </div>
+                <div className="modal-body px-4 py-3">
+                
                 <div className="mb-3">
                   <label>Barrio</label>
                   <input className="form-control" 
                   value={direccionData.barrio} 
                   onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    setDireccionData((p) => ({ ...p, barrio: value }))}} />
+                  const value = e.target.value;
+                  if (value.trim() === "" && value !== "") return;
+                  setDireccionData((p) => ({ ...p, barrio: value }))}} />
                 </div>
                 <div className="mb-3">
                   <label>Calle / Carrera</label>
                   <input className="form-control" 
                   value={direccionData.calle} 
                   onChange={(e) => {
-                    const value = e.target.value;
-                    if (value.trim() === "" && value !== "") return;
-                    setDireccionData((p) => ({ ...p, calle: value }))}} />
+                  const value = e.target.value;
+                  if (value.trim() === "" && value !== "") return;
+                  setDireccionData((p) => ({ ...p, calle: value }))}} />
                 </div>
-              </div>
-              <div className="modal-footer pastel-footer">
-                <button type="button" className="btn pastel-btn-secondary" onClick={() => setShowDireccionModal(false)}>
+                <div className="mb-3">
+                  <label>Complementos</label>
+                  <input className="form-control"
+                  value={direccionData.Complementos} 
+                  placeholder="Apartamento, edificio, referencia, etc."
+                  onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.trim() === "" && value !== "") return;
+                  setDireccionData((p) => ({ ...p, Complementos: value }))}} />
+                </div>
+                </div>
+                <div className="modal-footer pastel-footer">
+                <button
+                  type="button"
+                  className="btn pastel-btn-secondary"
+                  onClick={() => {
+                  // Al cancelar: cerrar sin guardar y descartar cambios (restauramos desde la dirección actual)
+                  const parts = (direccion || "")
+                    .split(",")
+                    .map((s) => s.trim());
+                  // asignar de forma segura
+                  const barrio = parts[0] ?? "";
+                  const calle = parts[1] ?? "";
+                  const complementos = parts.slice(2).join(", ") ?? "";
+                  setDireccionData({ barrio, calle, Complementos: complementos });
+                  setShowDireccionModal(false);
+                  }}
+                >
                   Cancelar
                 </button>
-                <button type="button" className="btn pastel-btn-primary" onClick={handleDireccionModalSave}>
+                <button
+                  type="button"
+                  className="btn pastel-btn-primary"
+                  onClick={() => {
+                  // Validar campos obligatorios antes de guardar
+                  if (!direccionData.barrio || !direccionData.calle || !direccionData.Complementos) {
+                    Swal.fire({
+                    title: "Campos incompletos",
+                    text: "Completa todos los campos antes de guardar. Si no quieres guardar los cambios, presiona Cancelar.",
+                    icon: "warning",
+                    confirmButtonColor: "#e83e8c",
+                    });
+                    return;
+                  }
+                  // Si está todo, guardamos
+                  handleDireccionModalSave();
+                  }}
+                >
                   Guardar Dirección
                 </button>
-              </div>
+                </div>
+
+                {/* Sobre el botón de cerrar en el header: si el usuario intenta cerrar con la X, no dejamos salir
+                  si los campos obligatorios no están completos. (El botón de la X está en el header y debe
+                  usar la misma lógica; en el header botón se debe llamar a setShowDireccionModal sólo cuando
+                  estén completos o comportarse como Cancel.) */}
             </div>
           </div>
         </div>
