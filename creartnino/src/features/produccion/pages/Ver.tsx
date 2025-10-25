@@ -5,6 +5,8 @@ import { APP_SETTINGS } from "../../../settings/appsettings";
 import type { IProduccion, detalleProduccion } from "../../interfaces/IProduccion";
 import type { IProductos } from "../../interfaces/IProductos";
 import type { IInsumos } from "../../interfaces/IInsumos";
+import type { IPedido } from "../../interfaces/IPedidos";
+import type { IClientes } from "../../interfaces/IClientes";
 
 interface InsumoGasto {
   insumo: string;
@@ -28,63 +30,74 @@ const VerProduccionVista: React.FC<Props> = ({ idProduccion, onClose }) => {
   const [productosDetalle, setProductosDetalle] = useState<DetalleUI[]>([]);
   const [mostrarSubmodal, setMostrarSubmodal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pedidos, setPedidos] = useState<IPedido[]>([]);
+const [clientes, setClientes] = useState<IClientes[]>([]);
+const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-        const respProd = await fetch(`${APP_SETTINGS.apiUrl}Produccion/Obtener/${idProduccion}`);
-        if (!respProd.ok) throw new Error("No se pudo obtener la producción");
-        const prod: IProduccion = await respProd.json();
-        setProduccion(prod);
+      const respProd = await fetch(`${APP_SETTINGS.apiUrl}Produccion/Obtener/${idProduccion}`);
+      if (!respProd.ok) throw new Error("No se pudo obtener la producción");
+      const prod: IProduccion = await respProd.json();
+      setProduccion(prod);
 
-        const respDet = await fetch(`${APP_SETTINGS.apiUrl}Detalles_Produccion/Lista`);
-        const detalles: detalleProduccion[] = await respDet.json();
-        const detallesProd = detalles.filter((d) => d.IdProduccion === idProduccion);
+      const respDet = await fetch(`${APP_SETTINGS.apiUrl}Detalles_Produccion/Lista`);
+      const detalles: detalleProduccion[] = await respDet.json();
+      const detallesProd = detalles.filter((d) => d.IdProduccion === idProduccion);
+      setDetalles(detallesProd); // 👈 GUARDAR DETALLES
 
-        const [respProdList, respIns] = await Promise.all([
-          fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
-          fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
-        ]);
-        const productos: IProductos[] = await respProdList.json();
-        const insumos: IInsumos[] = await respIns.json();
+      const [respProdList, respIns, respPedidos, respClientes] = await Promise.all([
+        fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
+        fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`), // 👈 NUEVO
+        fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`), // 👈 NUEVO
+      ]);
+      const productos: IProductos[] = await respProdList.json();
+      const insumos: IInsumos[] = await respIns.json();
+      const dataPedidos: IPedido[] = await respPedidos.json(); // 👈 NUEVO
+      const dataClientes: IClientes[] = await respClientes.json(); // 👈 NUEVO
 
-        const agrupados: Record<number, DetalleUI> = {};
-        for (const d of detallesProd) {
-          const producto = productos.find((p) => p.IdProducto === d.IdProducto);
-          const insumo = insumos.find((i) => i.IdInsumo === d.IdInsumo);
+      setPedidos(dataPedidos); // 👈 NUEVO
+      setClientes(dataClientes); // 👈 NUEVO
 
-          if (!agrupados[d.IdProducto]) {
-            agrupados[d.IdProducto] = {
-              producto: producto?.Nombre ?? `Producto #${d.IdProducto}`,
-              cantidad: 0,
-              insumos: [],
-            };
-          }
+      const agrupados: Record<number, DetalleUI> = {};
+      for (const d of detallesProd) {
+        const producto = productos.find((p) => p.IdProducto === d.IdProducto);
+        const insumo = insumos.find((i) => i.IdInsumo === d.IdInsumo);
 
-          agrupados[d.IdProducto].cantidad += d.CantidadProducir ?? 0;
-
-          if (insumo) {
-            agrupados[d.IdProducto].insumos.push({
-              insumo: insumo.Nombre,
-              cantidadUsada: d.CantidadInsumo ?? 0,
-              disponible: insumo.Cantidad ?? 0,
-            });
-          }
+        if (!agrupados[d.IdProducto]) {
+          agrupados[d.IdProducto] = {
+            producto: producto?.Nombre ?? `Producto #${d.IdProducto}`,
+            cantidad: 0,
+            insumos: [],
+          };
         }
 
-        setProductosDetalle(Object.values(agrupados));
-      } catch (err) {
-        console.error(err);
-        Swal.fire("Error", "No se pudieron cargar los datos de la producción", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
+        agrupados[d.IdProducto].cantidad += d.CantidadProducir ?? 0;
 
-    fetchData();
-  }, [idProduccion]);
+        if (insumo) {
+          agrupados[d.IdProducto].insumos.push({
+            insumo: insumo.Nombre,
+            cantidadUsada: d.CantidadInsumo ?? 0,
+            disponible: insumo.Cantidad ?? 0,
+          });
+        }
+      }
+
+      setProductosDetalle(Object.values(agrupados));
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "No se pudieron cargar los datos de la producción", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [idProduccion]);
 
   const resumenInsumos = (insumos: InsumoGasto[]) => {
     if (!insumos || insumos.length === 0) return null;
@@ -118,26 +131,70 @@ const VerProduccionVista: React.FC<Props> = ({ idProduccion, onClose }) => {
       <h2 className="titulo mb-4">🔍 Detalle de Producción</h2>
 
       <div className="row g-3">
-        <div className="col-md-6">
-          <label className="form-label">🏷️ Nombre</label>
-          <input type="text" className="form-control" value={produccion.NombreProduccion ?? ""} disabled />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">⚙️ Tipo de Producción</label>
-          <input type="text" className="form-control" value={produccion.TipoProduccion ?? ""} disabled />
-        </div>
-      </div><br />
+  <div className="col-md-6">
+    <label className="form-label">🏷️ Nombre</label>
+    <input type="text" className="form-control" value={produccion.NombreProduccion ?? ""} disabled />
+  </div>
+  <div className="col-md-6">
+    <label className="form-label">⚙️ Tipo de Producción</label>
+    <input type="text" className="form-control" value={produccion.TipoProduccion ?? ""} disabled />
+  </div>
+</div>
 
-      <div className="row g-3">
-        <div className="col-md-6">
-          <label className="form-label">📅 Fecha de Inicio</label>
-          <input type="text" className="form-control" value={produccion.FechaInicio ?? ""} disabled />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">📦 Fecha de Finalización</label>
-          <input type="text" className="form-control" value={produccion.FechaFinal ?? ""} disabled />
-        </div>
-      </div>
+{/* 👇 NUEVO: Campo de Pedido */}
+{produccion.TipoProduccion === "Pedido" && (
+  <div className="row g-3 mt-2">
+    <div className="col-md-12">
+      <label className="form-label">📋 Pedido</label>
+      <input
+        type="text"
+        className="form-control"
+        value={(() => {
+          // Obtener el IdPedido desde los detalles
+          const idPedidoReal = detalles.length > 0 ? detalles[0].IdPedido : null;
+          
+          if (!idPedidoReal) {
+            return "No se encontró información del pedido";
+          }
+          
+          // Buscar el pedido
+          const pedido = pedidos.find((p) => p.IdPedido === idPedidoReal);
+          
+          if (!pedido) {
+            return `Pedido #${idPedidoReal} - No encontrado`;
+          }
+          
+          // Buscar el cliente
+          const cliente = clientes.find((c) => c.IdCliente === pedido.IdCliente);
+          
+          if (!cliente) {
+            return `Pedido #${idPedidoReal} - Cliente no encontrado`;
+          }
+          
+          // Construir el texto completo
+          const nombreCliente = cliente.NombreCompleto || "Sin nombre";
+          const documento = cliente.NumDocumento || "Sin documento";
+          
+          return `Pedido #${idPedidoReal} - ${nombreCliente} (Doc: ${documento})`;
+        })()}
+        disabled
+      />
+    </div>
+  </div>
+)}
+
+<br />
+
+<div className="row g-3">
+  <div className="col-md-6">
+    <label className="form-label">📅 Fecha de Inicio</label>
+    <input type="text" className="form-control" value={produccion.FechaInicio ?? ""} disabled />
+  </div>
+  <div className="col-md-6">
+    <label className="form-label">📦 Fecha de Finalización</label>
+    <input type="text" className="form-control" value={produccion.FechaFinal ?? ""} disabled />
+  </div>
+</div>
 
       <div className="mt-4">
         <h5 className="mb-2">📦 Detalle de la Producción</h5>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal } from "react-bootstrap";
 import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import logorina from "../../assets/Imagenes/logorina.png";
@@ -6,17 +6,6 @@ import logorina from "../../assets/Imagenes/logorina.png";
 const Footer = () => {
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        window.location.reload();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
 
   return (
     <footer

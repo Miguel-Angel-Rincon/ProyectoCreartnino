@@ -54,6 +54,7 @@ const CrearProduccion: React.FC<CrearProduccionProps> = ({ onClose, onCrear }) =
 
   // --- Fecha del servidor (para validaciones de fecha) ---
   const [fechaServidor, setFechaServidor] = useState("");
+  const [creando, setCreando] = useState(false);
   
 
   // --- Cargar datos iniciales ---
@@ -489,6 +490,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
   // --- Crear producción + detalles + actualizar pedido ---
   const handleSubmit = async () => {
   if (!validarCampos()) return;
+  setCreando(true);
 
   try {
     // ✅ 1. Validación previa de stock antes de crear producción
@@ -647,7 +649,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
         <ul className="mb-0 ps-3">
           {Object.entries(totales).map(([nombre, datos], i) => (
             <li key={i}>
-              {nombre}: Usado {datos.usado} / Disponible {datos.disponible}
+              {nombre}:  Disponible {datos.disponible}
             </li>
           ))}
         </ul>
@@ -962,21 +964,27 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
   <div className="col-md-3 d-flex gap-2">
     <button
-      type="button"
-      className="btn btn-outline-secondary btn-sm"
-      onClick={() => setMostrarSubmodal(index)}
-    >
-      Gasto Insumos🧪
-    </button>
+    type="button"
+    className={`btn btn-sm ${
+      item.insumos && item.insumos.length > 0
+        ? "btn-success"
+        : "btn-outline-secondary"
+    }`}
+    onClick={() => setMostrarSubmodal(index)}
+  >
+    {item.insumos && item.insumos.length > 0
+      ? "Insumos agregados 🧪"
+      : "Gasto Insumos 🧪"}
+  </button>
 
-    {tipoProduccion !== "Pedido" && (
-      <button
-        type="button"
-        className="btn btn-danger btn-sm"
-        onClick={() => eliminarDetalle(index)}
-      >
-        ✖
-      </button>
+  {tipoProduccion !== "Pedido" && (
+    <button
+      type="button"
+      className="btn btn-danger btn-sm"
+      onClick={() => eliminarDetalle(index)}
+    >
+      <span style={{ color: "white", fontWeight: "bold" }}>X</span>
+    </button>
     )}
   </div>
 
@@ -1096,7 +1104,7 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
                   className="btn btn-sm btn-danger"
                   onClick={() => eliminarInsumo(index, i)}
                 >
-                  ✖
+                  <span style={{ color: "white", fontWeight: "bold" }}>X</span>
                 </button>
               </div>
             </div>
@@ -1150,7 +1158,14 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
 
       <div className="text-end mt-4">
         <button className="btn pastel-btn-secondary me-2" onClick={onClose}>Cancelar</button>
-        <button className="btn pastel-btn-primary" onClick={handleSubmit}>Crear</button>
+        <button
+      className="btn pastel-btn-primary"
+      onClick={handleSubmit}
+      disabled={creando}
+    >
+      {creando ? "Creando..." : "Crear"}
+    </button>
+        
       </div>
     </div>
   );

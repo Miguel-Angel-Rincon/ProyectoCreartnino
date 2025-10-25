@@ -342,6 +342,45 @@ input:checked + .slider:before {
   transition: all 0.2s;
 }
 
+.pastel-btn-guardar,
+.pastel-btn-cerrar {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.3rem 0.9rem;
+  border-radius: 0.5rem;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 2.2rem; /* 🔹 altura fija para que estén exactamente iguales */
+}
+
+/* 🎀 Botón Guardar */
+.pastel-btn-guardar {
+  background-color: #f06292;
+  color: black;
+}
+
+.pastel-btn-guardar:hover {
+  background-color: #f0d7d7;
+  transform: scale(1.05);
+}
+
+/* 💚 Botón Cerrar */
+.pastel-btn-cerrar {
+  background-color: #d5f6e3;
+  color: #3d3d3d;
+}
+
+.pastel-btn-cerrar:hover {
+  background-color: #bff0d6;
+  transform: scale(1.05);
+}
+
+
 .pastel-btn-listo:hover {
   background-color: #bff0cf;
   transform: scale(1.03);
