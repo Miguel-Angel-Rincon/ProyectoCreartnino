@@ -156,6 +156,7 @@ const handleNavegarAProducto = (productoId: number) => {
     const producto = productos.find((p) => p.IdProducto === id);
     if (!producto) return;
 
+    // No permitir desactivar si aún tiene existencias
     if (producto.Estado && producto.Cantidad > 0) {
       Swal.fire({
         icon: "warning",
@@ -166,7 +167,26 @@ const handleNavegarAProducto = (productoId: number) => {
       return;
     }
 
+    // Si está activo y se va a desactivar, pedir confirmación
+    if (producto.Estado) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará el producto. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     const actualizado = { ...producto, Estado: !producto.Estado };
+
+    // Optimista: actualizar UI inmediatamente
+    setProductos((prev) =>
+      prev.map((p) => (p.IdProducto === id ? actualizado : p))
+    );
 
     try {
       const response = await fetch(`${APP_SETTINGS.apiUrl}Productos/Actualizar/${id}`, {
@@ -174,21 +194,29 @@ const handleNavegarAProducto = (productoId: number) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(actualizado),
       });
-      if (response.ok) {
-        await obtenerProductos();
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      await obtenerProductos();
 
       Swal.fire({
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
         timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false, 
-    });
-
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error("Error actualizando estado producto", error);
+      // Revertir cambio en UI si falla la petición
+      setProductos((prev) =>
+        prev.map((p) => (p.IdProducto === id ? producto : p))
+      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el estado del producto.",
+      });
     }
   };
 

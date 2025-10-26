@@ -208,6 +208,31 @@ const ListarCompras: React.FC = () => {
     );
     if (!nuevoEstado) return;
 
+    // Si se intenta marcar como "Anulada", reutilizar la confirmación y la lógica
+    if (nuevoEstadoNombre === "Anulada") {
+      confirmarAnulacion(compra);
+      return;
+    }
+
+    // Obtener nombre de estado actual
+    const estadoActualObj = estadosCompra.find((e) => e.IdEstado === compra.IdEstado);
+    const nombreActual = estadoActualObj ? estadoActualObj.NombreEstado : "Desconocido";
+
+    // Si no hay cambio, salir
+    if (nombreActual === nuevoEstadoNombre) return;
+
+    // Confirmación antes de cambiar a otro estado
+    const confirmacion = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Se cambiará el estado de "${nombreActual}" a "${nuevoEstadoNombre}". ¿Deseas continuar?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cambiar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!confirmacion.isConfirmed) return;
+
     try {
       const resp = await fetch(buildUrl(`Compras/Actualizar/${compra.IdCompra}`), {
         method: "PUT",
@@ -229,13 +254,13 @@ const ListarCompras: React.FC = () => {
       );
 
       Swal.fire({
-            icon: "success",
-            title: "Éxito",
-            text: "Estado actualizado correctamente.",
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-          });
+        icon: "success",
+        title: "Éxito",
+        text: "Estado actualizado correctamente.",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch (err) {
       console.error("Error cambiando estado:", err);
       Swal.fire("Error", "No se pudo actualizar el estado", "error");
@@ -531,7 +556,24 @@ const generarPDF = async (
         nombreEstado
       )}`}
       value={nombreEstado}
-      onChange={(e) => cambiarEstado(c, e.target.value)}
+      onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const nuevoEstado = e.target.value;
+        if (nuevoEstado === nombreEstado) return;
+
+        const confirmacion = await Swal.fire({
+          title: "¿Estás seguro?",
+          text: `Se cambiará el estado de "${nombreEstado}" a "${nuevoEstado}". ¿Deseas continuar?`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Sí, cambiar",
+          cancelButtonText: "Cancelar",
+          confirmButtonColor: "#d33",
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        cambiarEstado(c, nuevoEstado);
+      }}
     >
       {estadosCompra
         .filter((e) => e.NombreEstado !== "Anulada") // no mostrar anulada como opción

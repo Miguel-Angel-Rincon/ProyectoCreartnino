@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import {
-  FaMoneyBillWave,
-  FaPercent,
   FaCalculator,
   FaTrash,
 } from "react-icons/fa";
@@ -24,22 +22,18 @@ interface CompraDetalle {
   subtotal?: number;
 }
 
-
-
 const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const [proveedores, setProveedores] = useState<IProveedores[]>([]);
   const [insumos, setInsumos] = useState<IInsumos[]>([]);
-  const [proveedorIdSeleccionado, setProveedorIdSeleccionado] = useState<
-    number | null
-  >(null);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [proveedorIdSeleccionado, setProveedorIdSeleccionado] = useState<number | null>(null);
   const [proveedorBusqueda, setProveedorBusqueda] = useState("");
   const [metodoPago, setMetodoPago] = useState("");
   const [detalleCompra, setDetalleCompra] = useState<CompraDetalle[]>([]);
   const [insumoQuery, setInsumoQuery] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [fechaCompra, setFechaCompra] = useState<string>(""); // ✅ antes era getToday()
-
+  const [fechaCompra, setFechaCompra] = useState<string>("");
 
   const buildApiUrl = (path: string) => {
     const base = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
@@ -48,90 +42,76 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   };
   
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      // 🔹 Llamadas simultáneas al backend
-      const [provRes, insuRes, fechaRes] = await Promise.all([
-        fetch(buildApiUrl("Proveedores/Lista")),
-        fetch(buildApiUrl("Insumos/Lista")),
-        fetch(buildApiUrl("Utilidades/FechaServidor")), // ✅ Nueva API para la fecha
-      ]);
+    const fetchData = async () => {
+      try {
+        const [provRes, insuRes, fechaRes, catRes] = await Promise.all([
+          fetch(buildApiUrl("Proveedores/Lista")),
+          fetch(buildApiUrl("Insumos/Lista")),
+          fetch(buildApiUrl("Utilidades/FechaServidor")),
+          fetch(buildApiUrl("Categoria_Insumos/Lista")),
+        ]);
 
-      // 🔹 Validar todas las respuestas
-      if (!provRes.ok) throw new Error(`Proveedor: ${provRes.status}`);
-      if (!insuRes.ok) throw new Error(`Insumo: ${insuRes.status}`);
-      if (!fechaRes.ok) throw new Error(`Fecha servidor: ${fechaRes.status}`);
+        if (!provRes.ok) throw new Error(`Proveedor: ${provRes.status}`);
+        if (!insuRes.ok) throw new Error(`Insumo: ${insuRes.status}`);
+        if (!fechaRes.ok) throw new Error(`Fecha servidor: ${fechaRes.status}`);
+        if (!catRes.ok) throw new Error(`Categorías: ${catRes.status}`);
 
-      // 🔹 Convertir a JSON
-      const [prov, insu, fecha] = await Promise.all([
-        provRes.json(),
-        insuRes.json(),
-        fechaRes.json(),
-      ]);
+        const [prov, insu, fecha, cat] = await Promise.all([
+          provRes.json(),
+          insuRes.json(),
+          fechaRes.json(),
+          catRes.json(),
+        ]);
 
-      // 🔹 Asignar datos
-      setProveedores(prov);
-      setInsumos(insu);
+        setProveedores(prov);
+        setInsumos(insu);
+        setCategorias(Array.isArray(cat) ? cat : []);
 
-      // 🔹 Extraer y formatear la fecha del servidor (YYYY-MM-DD)
-      const fechaServidor = new Date(fecha.FechaServidor);
-      const fechaISO = fechaServidor.toISOString().split("T")[0];
-      setFechaCompra(fechaISO);
-    } catch (err: any) {
-      console.error("❌ Error al cargar datos:", err);
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar proveedores, insumos o fecha del servidor.",
-        "error"
-      );
-    } finally {
-      setLoading(false);
+        const fechaServidor = new Date(fecha.FechaServidor);
+        const fechaISO = fechaServidor.toISOString().split("T")[0];
+        setFechaCompra(fechaISO);
+      } catch (err: any) {
+        console.error("❌ Error al cargar datos:", err);
+        Swal.fire("Error", "No se pudieron cargar proveedores, insumos o fecha del servidor.", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  let alertaMostrada = false;
+  const mostrarAlertaInvalida = () => {
+    if (!alertaMostrada) {
+      alertaMostrada = true;
+      Swal.fire({
+        icon: "warning",
+        title: "Entrada no válida",
+        text: "Solo se permiten letras y espacios. No use números ni caracteres especiales.",
+        timer: 2500,
+        showConfirmButton: false,
+      }).then(() => {
+        alertaMostrada = false;
+      });
     }
   };
 
-  fetchData();
-}, []);
-
-let alertaMostrada = false;
-const mostrarAlertaInvalida = () => {
-  if (!alertaMostrada) {
-    alertaMostrada = true;
-    Swal.fire({
-      icon: "warning",
-      title: "Entrada no válida",
-      text: "Solo se permiten letras y espacios. No use números ni caracteres especiales.",
-      timer: 2500,
-      showConfirmButton: false,
-    }).then(() => {
-      alertaMostrada = false;
-    });
-  }
-};
-
   const proveedoresFiltrados = proveedorBusqueda
     ? proveedores.filter((p) =>
-        (p.NombreCompleto ?? "")
-          .toLowerCase()
-          .includes(proveedorBusqueda.toLowerCase())
+        (p.NombreCompleto ?? "").toLowerCase().includes(proveedorBusqueda.toLowerCase())
       )
     : [];
 
   const agregarDetalle = () => {
-    setDetalleCompra((prev) => [
-      ...prev,
-      { insumo: "", cantidad: 1, precio: 0, subtotal: 0 },
-    ]);
+    setDetalleCompra((prev) => [...prev, { insumo: "", cantidad: 1, precio: 0, subtotal: 0 }]);
     setInsumoQuery((prev) => [...prev, ""]);
   };
 
   const calcularSubtotalFila = (cantidad: number, precio: number) =>
     Math.round(cantidad * precio * 100) / 100;
 
-  const actualizarDetalle = (
-    index: number,
-    campo: keyof CompraDetalle,
-    valor: string | number
-  ) => {
+  const actualizarDetalle = (index: number, campo: keyof CompraDetalle, valor: string | number) => {
     const copia = [...detalleCompra];
     if (!copia[index]) return;
 
@@ -149,10 +129,7 @@ const mostrarAlertaInvalida = () => {
       });
     }
 
-    copia[index].subtotal = calcularSubtotalFila(
-      copia[index].cantidad,
-      copia[index].precio
-    );
+    copia[index].subtotal = calcularSubtotalFila(copia[index].cantidad, copia[index].precio);
     setDetalleCompra(copia);
   };
 
@@ -181,242 +158,184 @@ const mostrarAlertaInvalida = () => {
     setInsumoQuery((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const calcularSubtotal = () =>
+  const calcularTotal = () =>
     detalleCompra.reduce(
-      (acc, item) =>
-        acc + (item.subtotal ?? calcularSubtotalFila(item.cantidad, item.precio)),
+      (acc, item) => acc + (item.subtotal ?? calcularSubtotalFila(item.cantidad, item.precio)),
       0
     );
-  const calcularIVA = () => {
-  const subtotal = calcularSubtotal();
-  return subtotal >= 300000 ? Math.round(subtotal * 0.19 * 100) / 100 : 0;
-};
 
-  const calcularTotal = () =>
-    Math.round((calcularSubtotal() + calcularIVA()) * 100) / 100;
-
-  // === Guardar compra y actualizar stock de insumos ===
   const handleSubmit = async () => {
-  if (submitting) return;
+    if (submitting) return;
 
-  // 🧾 Validar proveedor
-  if (!proveedorIdSeleccionado) {
-    Swal.fire("⚠ Atención", "Debes seleccionar un proveedor válido.", "warning");
-    return;
-  }
-
-  // 💳 Validar método de pago
-  if (!metodoPago) {
-    Swal.fire("⚠ Atención", "Selecciona un método de pago.", "warning");
-    return;
-  }
-
-  // 📅 Validar fecha de compra
-  if (!fechaCompra) {
-    Swal.fire("⚠ Atención", "No se pudo obtener la fecha de compra.", "warning");
-    return;
-  }
-
-  // 📦 Validar detalle
-  if (detalleCompra.length === 0) {
-    Swal.fire("⚠ Atención", "Debes agregar al menos un insumo.", "warning");
-    return;
-  }
-
-  // 🔍 Validar filas del detalle
-  const nombresInsumos = new Set<number>(); // para detectar duplicados
-
-  for (let i = 0; i < detalleCompra.length; i++) {
-    const item = detalleCompra[i];
-    const insumo = insumos.find((ins) => ins.Nombre === item.insumo);
-
-    if (!insumo || !item.idInsumo) {
-      Swal.fire(
-        "⚠ Error",
-        `Fila #${i + 1}: el insumo "${item.insumo || "(vacío)"}" no es válido.`,
-        "warning"
-      );
+    if (!proveedorIdSeleccionado) {
+      Swal.fire("⚠ Atención", "Debes seleccionar un proveedor válido.", "warning");
       return;
     }
 
-    if (nombresInsumos.has(item.idInsumo)) {
-      Swal.fire(
-        "⚠ Error",
-        `El insumo "${item.insumo}" está duplicado. Verifica las filas.`,
-        "warning"
-      );
+    if (!metodoPago) {
+      Swal.fire("⚠ Atención", "Selecciona un método de pago.", "warning");
       return;
     }
 
-    nombresInsumos.add(item.idInsumo);
-
-    if (item.cantidad <= 0) {
-      Swal.fire(
-        "⚠ Error",
-        `Fila #${i + 1}: la cantidad debe ser mayor que 0.`,
-        "warning"
-      );
+    if (!fechaCompra) {
+      Swal.fire("⚠ Atención", "No se pudo obtener la fecha de compra.", "warning");
       return;
     }
 
-    if (item.precio <= 0) {
-      Swal.fire(
-        "⚠ Error",
-        `Fila #${i + 1}: el precio debe ser mayor que 0.`,
-        "warning"
-      );
+    if (detalleCompra.length === 0) {
+      Swal.fire("⚠ Atención", "Debes agregar al menos un insumo.", "warning");
       return;
     }
-  }
 
-  // 💰 Validar total > 0
-  const total = calcularTotal();
-  if (total <= 0) {
-    Swal.fire("⚠ Atención", "El total de la compra debe ser mayor a 0.", "warning");
-    return;
-  }
+    const nombresInsumos = new Set<number>();
 
-  // ✅ Payload final
-  const payload = {
-    IdCompra: 0,
-    IdProveedor: proveedorIdSeleccionado,
-    MetodoPago: metodoPago,
-    FechaCompra: fechaCompra,
-    Total: total,
-    IdEstado: 1,
-    DetallesCompras: detalleCompra.map((d) => ({
-      IdDetalleCompra: 0,
+    for (let i = 0; i < detalleCompra.length; i++) {
+      const item = detalleCompra[i];
+      const insumo = insumos.find((ins) => ins.Nombre === item.insumo);
+
+      if (!insumo || !item.idInsumo) {
+        Swal.fire("⚠ Error", `Fila #${i + 1}: el insumo "${item.insumo || "(vacío)"}" no es válido.`, "warning");
+        return;
+      }
+
+      if (nombresInsumos.has(item.idInsumo)) {
+        Swal.fire("⚠ Error", `El insumo "${item.insumo}" está duplicado. Verifica las filas.`, "warning");
+        return;
+      }
+
+      nombresInsumos.add(item.idInsumo);
+
+      if (item.cantidad <= 0) {
+        Swal.fire("⚠ Error", `Fila #${i + 1}: la cantidad debe ser mayor que 0.`, "warning");
+        return;
+      }
+
+      if (item.precio <= 0) {
+        Swal.fire("⚠ Error", `Fila #${i + 1}: el precio debe ser mayor que 0.`, "warning");
+        return;
+      }
+    }
+
+    const total = calcularTotal();
+    if (total <= 0) {
+      Swal.fire("⚠ Atención", "El total de la compra debe ser mayor a 0.", "warning");
+      return;
+    }
+
+    const payload = {
       IdCompra: 0,
-      IdInsumo: d.idInsumo,
-      Cantidad: d.cantidad,
-      PrecioUnitario: d.precio,
-      Subtotal: d.subtotal,
-    })),
-  };
+      IdProveedor: proveedorIdSeleccionado,
+      MetodoPago: metodoPago,
+      FechaCompra: fechaCompra,
+      Total: total,
+      IdEstado: 1,
+      DetallesCompras: detalleCompra.map((d) => ({
+        IdDetalleCompra: 0,
+        IdCompra: 0,
+        IdInsumo: d.idInsumo,
+        Cantidad: d.cantidad,
+        PrecioUnitario: d.precio,
+        Subtotal: d.subtotal,
+      })),
+    };
 
-  setSubmitting(true);
-  try {
-    // 🛰 Crear compra
-    const resp = await fetch(buildApiUrl("Compras/Crear"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) throw new Error("Error al crear la compra");
-
-    const compraCreada = await resp.json();
-
-    // 🏷 Actualizar stock de insumos
-    for (let detalle of detalleCompra) {
-      if (!detalle.idInsumo) continue;
-      const insumo = insumos.find((i) => i.IdInsumo === detalle.idInsumo);
-      if (!insumo) continue;
-
-      const nuevaCantidad = (insumo.Cantidad ?? 0) + detalle.cantidad;
-
-      await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
-        method: "PUT",
+    setSubmitting(true);
+    try {
+      const resp = await fetch(buildApiUrl("Compras/Crear"), {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
+        body: JSON.stringify(payload),
       });
-    }
 
-    Swal.fire({
-          icon: "success",
-          title: "Éxito",
-          text: "Compra creada correctamente.",
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false,
+      if (!resp.ok) throw new Error("Error al crear la compra");
+
+      const compraCreada = await resp.json();
+
+      for (let detalle of detalleCompra) {
+        if (!detalle.idInsumo) continue;
+        const insumo = insumos.find((i) => i.IdInsumo === detalle.idInsumo);
+        if (!insumo) continue;
+
+        const nuevaCantidad = (insumo.Cantidad ?? 0) + detalle.cantidad;
+
+        await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
         });
-    onCrear(compraCreada);
-    onClose();
-  } catch (err: any) {
-    console.error("❌ Error al guardar la compra:", err);
-    Swal.fire(
-      "❌ Error",
-      err.message || "No se pudo guardar la compra.",
-      "error"
-    );
-  } finally {
-    setSubmitting(false);
-  }
-};
+      }
 
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "Compra creada correctamente.",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      onCrear(compraCreada);
+      onClose();
+    } catch (err: any) {
+      console.error("❌ Error al guardar la compra:", err);
+      Swal.fire("❌ Error", err.message || "No se pudo guardar la compra.", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="container-fluid pastel-contenido">
       <h2 className="titulo mb-4">Crear Compra</h2>
       {loading ? (
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ minHeight: 180 }}
-        >
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 180 }}>
           <div className="spinner-border" role="status" aria-hidden="true" />
           <span className="ms-2">Cargando datos...</span>
         </div>
       ) : (
         <>
-          {/* Proveedor y método */}
           <div className="row mb-3">
             <div className="col-md-4 position-relative">
               <label className="form-label">🧑 Proveedor *</label>
               <input
-  type="text"
-  value={proveedorBusqueda}
-  placeholder="Buscar proveedor..."
-  onChange={(e) => {
-    let valor = e.target.value;
+                type="text"
+                value={proveedorBusqueda}
+                placeholder="Buscar proveedor..."
+                onChange={(e) => {
+                  let valor = e.target.value;
+                  valor = valor.replace(/^\s+/, "");
+                  valor = valor.replace(/\s{2,}/g, " ");
+                  if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+                    mostrarAlertaInvalida();
+                    valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+                  }
+                  valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+                  setProveedorBusqueda(valor);
+                  setProveedorIdSeleccionado(null);
+                }}
+                className="form-control"
+              />
 
-    // permitir espacios intermedios, pero no al inicio ni doble consecutivo
-    valor = valor.replace(/^\s+/, ""); // sin espacio al inicio
-    valor = valor.replace(/\s{2,}/g, " "); // máximo un espacio entre palabras
-
-    // eliminar caracteres especiales o números
-    if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-      mostrarAlertaInvalida();
-      valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-    }
-
-    // limitar repeticiones tipo eeeee
-    valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-
-    setProveedorBusqueda(valor);
-    setProveedorIdSeleccionado(null);
-  }}
-  className="form-control"
-/>
-
-
-              {/* lista de sugerencias */}
-{!proveedorIdSeleccionado &&
-  proveedorBusqueda &&
-  proveedoresFiltrados.length > 0 && (
-    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
-      {proveedoresFiltrados.map((p) => (
-        <li
-          key={p.IdProveedor}
-          className="list-group-item list-group-item-action"
-          style={{ cursor: "pointer" }}
-          onClick={() => {
-            setProveedorIdSeleccionado(p.IdProveedor!);
-            setProveedorBusqueda(p.NombreCompleto ?? ""); // ✅ así se muestra el nombre
-          }}
-        >
-          {p.NombreCompleto} - {p.TipoDocumento} - {p.NumDocumento}
-        </li>
-      ))}
-    </ul>
-  )}
+              {!proveedorIdSeleccionado && proveedorBusqueda && proveedoresFiltrados.length > 0 && (
+                <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                  {proveedoresFiltrados.map((p) => (
+                    <li
+                      key={p.IdProveedor}
+                      className="list-group-item list-group-item-action"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setProveedorIdSeleccionado(p.IdProveedor!);
+                        setProveedorBusqueda(p.NombreCompleto ?? "");
+                      }}
+                    >
+                      {p.NombreCompleto} - {p.TipoDocumento} - {p.NumDocumento}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="col-md-4">
               <label className="form-label">💳 Método de Pago *</label>
-              <select
-                className="form-select"
-                value={metodoPago}
-                onChange={(e) => setMetodoPago(e.target.value)}
-              >
+              <select className="form-select" value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
                 <option value="">Seleccione</option>
                 <option value="Efectivo">Efectivo</option>
                 <option value="Transferencia">Transferencia</option>
@@ -424,38 +343,25 @@ const mostrarAlertaInvalida = () => {
             </div>
             <div className="col-md-4 mb-3">
               <label className="form-label">📅 Fecha de Compra</label>
-              <input
-                type="date"
-                className="form-control"
-                value={fechaCompra}
-                disabled
-                readOnly
-              />
+              <input type="date" className="form-control" value={fechaCompra} disabled readOnly />
             </div>
             {proveedorIdSeleccionado && (
               <div className="col-md-4 mb-3">
-              <label className="form-label">🪪 Documento del proveedor</label>
-              <input
-                type="text"
-                className="form-control"
-                value={
-                (() => {
-                  const proveedor = proveedores.find(
-                  (p) => p.IdProveedor === proveedorIdSeleccionado
-                  );
-                  return proveedor
-                  ? `${proveedor.TipoDocumento ?? ""}: ${proveedor.NumDocumento ?? ""}`
-                  : "";
-                })()
-                }
-                disabled
-                readOnly
-              />
+                <label className="form-label">🪪 Documento del proveedor</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={(() => {
+                    const proveedor = proveedores.find((p) => p.IdProveedor === proveedorIdSeleccionado);
+                    return proveedor ? `${proveedor.TipoDocumento ?? ""}: ${proveedor.NumDocumento ?? ""}` : "";
+                  })()}
+                  disabled
+                  readOnly
+                />
               </div>
             )}
           </div>
 
-          {/* Detalle compra */}
           <div className="mb-3">
             <h5 className="mb-3">📦 Detalle de la compra</h5>
             <div className="row fw-bold text-secondary mb-1">
@@ -466,198 +372,368 @@ const mostrarAlertaInvalida = () => {
               <div className="col-md-2 text-end">Acción</div>
             </div>
 
-            {detalleCompra.map((item, index) => {
+            {detalleCompra.map((item, index) => (
+              <div key={index} className="row align-items-center mb-2 position-relative">
+                <div className="col-md-3 position-relative">
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Buscar insumo..."
+                    value={insumoQuery[index] || item.insumo || ""}
+                    onChange={(e) => {
+                      let valor = e.target.value;
+                      valor = valor.replace(/^\s+/, "");
+                      valor = valor.replace(/\s{2,}/g, " ");
+                      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+                        mostrarAlertaInvalida();
+                        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+                      }
+                      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+                      handleInsumoQueryChange(index, valor);
+                    }}
+                  />
 
-              return (
-                <div
-                  key={index}
-                  className="row align-items-center mb-2 position-relative"
-                >
-                  <div className="col-md-3 position-relative">
-  <input
-    type="text"
-    className="form-control form-control-sm"
-    placeholder="Buscar insumo..."
-    value={insumoQuery[index] || item.insumo || ""}
-    onChange={(e) => {
-      let valor = e.target.value;
-
-      // permitir espacios intermedios pero no al inicio ni dobles
-      valor = valor.replace(/^\s+/, "");
-      valor = valor.replace(/\s{2,}/g, " ");
-
-      // bloquear caracteres especiales o números
-      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-        mostrarAlertaInvalida();
-        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
-
-      // limitar repeticiones tipo eeeee
-      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-
-      handleInsumoQueryChange(index, valor);
-    }}
-  />
-
-  {insumoQuery[index] && (
-    <ul
-      className="list-group position-absolute w-100"
-      style={{ zIndex: 1000, top: "38px" }}
-    >
-      {insumos
-        // ✅ filtrar insumos que coincidan con la búsqueda
-        .filter(
-          (i) =>
-            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
-            // ✅ evitar duplicados ya seleccionados
-            !detalleCompra.some(
-              (d, di) => d.idInsumo === i.IdInsumo && di !== index
-            )
-        )
-        .map((i) => (
-          <li
-            key={i.IdInsumo}
-            className="list-group-item list-group-item-action"
-            style={{ cursor: "pointer" }}
-            onClick={() => {
-              // ✅ aplicar selección
-              seleccionarInsumo(index, i.Nombre);
-
-              // ✅ mostrar el nombre del insumo en el input
-              setInsumoQuery((prev) => {
-                const copy = [...prev];
-                copy[index] = i.Nombre;
-                return copy;
-              });
-
-              // ✅ ocultar la lista de sugerencias
-              setTimeout(() => {
-                setInsumoQuery((prev) => {
-                  const copy = [...prev];
-                  copy[index] = ""; // limpiar búsqueda visual
-                  return copy;
-                });
-              }, 200);
-            }}
-          >
-            {i.Nombre} – $
-            {(
-              (i as any).PrecioUnitario ?? (i as any).Precio
-            ).toLocaleString("es-CO")}
-          </li>
-        ))}
-    </ul>
-  )}
-</div>
-
-                  <div className="col-md-2">
-                    <input
-  type="number"
-  className="form-control form-control-sm"
-  min={1}
-  step={1}
-  value={item.cantidad}
-  onChange={(e) => {
-    let valor = e.target.value;
-
-    // ❌ Evita más de 4 cifras
-    if (valor.length > 4) return;
-
-    // ✅ Si borra todo, se mantiene en 1
-    if (valor === "" || Number(valor) < 1) {
-      valor = "1";
-    }
-
-    actualizarDetalle(index, "cantidad", valor);
-  }}
-  onKeyDown={(e) => {
-    // ❌ Bloquea letras, signos y punto
-    if (["e", "E", "+", "-", "."].includes(e.key)) {
-      e.preventDefault();
-    }
-  }}
-  onPaste={(e) => {
-    // ❌ Bloquea pegar texto no numérico o mayor a 9999
-    const pasted = e.clipboardData.getData("Text");
-    if (!/^\d+$/.test(pasted) || Number(pasted) < 1 || pasted.length > 4) {
-      e.preventDefault();
-    }
-  }}
-/>
-
-
-                  </div>
-                  <div className="col-md-2">
-        <input
-          type="number"
-          className="form-control form-control-sm"
-          value={item.precio}
-          readOnly
-        />
-      </div>
-                  <div className="col-md-3">
-                    <input
-                      className="form-control form-control-sm"
-                      value={`$${Math.round(
-                        (item.subtotal ?? item.cantidad * item.precio) || 0
-                      ).toLocaleString("es-CO")}`}
-                      disabled
-                    />
-                  </div>
-                  <div className="col-md-2 text-end">
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm"
-                      onClick={() => eliminarDetalle(index)}
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  {insumoQuery[index] && (
+                    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
+                      {insumos
+                        .filter(
+                          (i) =>
+                            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
+                            !detalleCompra.some((d, di) => d.idInsumo === i.IdInsumo && di !== index)
+                        )
+                        .map((i) => (
+                          <li
+                            key={i.IdInsumo}
+                            className="list-group-item list-group-item-action"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              seleccionarInsumo(index, i.Nombre);
+                              setInsumoQuery((prev) => {
+                                const copy = [...prev];
+                                copy[index] = i.Nombre;
+                                return copy;
+                              });
+                              setTimeout(() => {
+                                setInsumoQuery((prev) => {
+                                  const copy = [...prev];
+                                  copy[index] = "";
+                                  return copy;
+                                });
+                              }, 200);
+                            }}
+                          >
+                            {i.Nombre} – ${((i as any).PrecioUnitario ?? (i as any).Precio).toLocaleString("es-CO")}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
                 </div>
-              );
-            })}
 
-            <button
-              type="button"
-              className="btn btn-sm pastel-btn-secondary mt-2"
-              onClick={agregarDetalle}
-            >
-              + Agregar Insumo
-            </button>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    min={1}
+                    step={1}
+                    value={item.cantidad}
+                    onChange={(e) => {
+                      let valor = e.target.value;
+                      if (valor.length > 4) return;
+                      if (valor === "" || Number(valor) < 1) valor = "1";
+                      actualizarDetalle(index, "cantidad", valor);
+                    }}
+                    onKeyDown={(e) => {
+                      if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
+                    }}
+                    onPaste={(e) => {
+                      const pasted = e.clipboardData.getData("Text");
+                      if (!/^\d+$/.test(pasted) || Number(pasted) < 1 || pasted.length > 4) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                </div>
+                <div className="col-md-2">
+                <input
+                  className="form-control form-control-sm"
+                  value={`$${item.precio.toLocaleString("es-CO")}`}
+                  readOnly
+                />
+              </div>
+
+                <div className="col-md-3">
+                  <input
+                    className="form-control form-control-sm"
+                    value={`$${Math.round((item.subtotal ?? item.cantidad * item.precio) || 0).toLocaleString("es-CO")}`}
+                    disabled
+                  />
+                </div>
+                <div className="col-md-2 text-end">
+                  <button type="button" className="btn btn-danger btn-sm" onClick={() => eliminarDetalle(index)}>
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <div className="d-flex gap-2 mt-2">
+              <button type="button" className="btn btn-sm pastel-btn-secondary" onClick={agregarDetalle}>
+                + Agregar Insumo
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-sm pastel-btn-secondary"
+                onClick={() => {
+                  // Crear modal HTML personalizado
+                  const categoriasHTML = categorias
+                    .map((c) => `<option value="${c.IdCatInsumo}">${c.NombreCategoria}</option>`)
+                    .join("");
+
+                    
+
+                  const modalHTML = `
+                    <div class="modal d-block overlay" style="background-color: rgba(0,0,0,0.5);">
+                      <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content pastel-modal shadow-lg">
+                          <form id="formCrearInsumo">
+                            <div class="modal-header pastel-header" style="background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); color: white; border-radius: 12px 12px 0 0;">
+                              <h5 class="modal-title">🧰 Crear Insumo</h5>
+                            </div>
+                            <div class="modal-body px-4 py-3">
+                              <div class="row g-4">
+                                <div class="col-md-6">
+                                  <label class="form-label">📝 Nombre <span class="text-danger">*</span></label>
+                                  <input class="form-control" id="nombre" name="nombre" required>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">📦 Categoría <span class="text-danger">*</span></label>
+                                  <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="">-- Selecciona --</option>
+                                    ${categoriasHTML}
+                                  </select>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">⚖ Unidad de Medida <span class="text-danger">*</span></label>
+                                  <select class="form-select" id="unidad" name="unidadMedida" required>
+                                    <option value="">-- Selecciona --</option>
+                                    <option value="kg">Kilogramos (kg)</option>
+                                    <option value="g">Gramos (g)</option>
+                                    <option value="L">Litros (L)</option>
+                                    <option value="mL">Mililitros (mL)</option>
+                                    <option value="m">Metros (m)</option>
+                                    <option value="cm">Centímetros (cm)</option>
+                                  </select>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">💲 Precio Unitario (COP) <span class="text-danger">*</span></label>
+                                  <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" inputMode="numeric" class="form-control" id="precio" name="precioUnitario" required placeholder="Ej: 15000">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer pastel-footer" style="border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem;">
+                              <button type="button" class="btn pastel-btn-secondary" id="btnCancelar">Cancelar</button>
+                              <button type="submit" class="btn pastel-btn-primary">Crear</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+
+                  
+
+                  // Inyectar modal en el DOM
+                  const modalContainer = document.createElement("div");
+                  modalContainer.innerHTML = modalHTML;
+                  document.body.appendChild(modalContainer);
+
+                  // Función para formatear precio
+                  const formatearCOPInput = (valor: string) => {
+                    const num = parseInt(valor);
+                    if (isNaN(num)) return "";
+                    return num.toLocaleString("es-CO");
+                  };
+
+                  // Agregar evento al input de precio
+                  const precioInput = document.getElementById("precio") as HTMLInputElement;
+                  precioInput.addEventListener("input", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    const soloNumeros = target.value.replace(/[^\d]/g, "");
+                    if (soloNumeros.length > 7) {
+                      target.value = target.value.slice(0, -1);
+                      return;
+                    }
+                    if (soloNumeros === "" || parseInt(soloNumeros) === 0) {
+                      target.value = "";
+                    } else {
+                      target.value = formatearCOPInput(soloNumeros);
+                    }
+                  });
+
+                  // Botón cancelar
+                  document.getElementById("btnCancelar")?.addEventListener("click", () => {
+                    modalContainer.remove();
+                  });
+
+                  // Manejar submit del formulario
+                  const form = document.getElementById("formCrearInsumo") as HTMLFormElement;
+                  form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+
+                    const nombre = (document.getElementById("nombre") as HTMLInputElement).value.trim();
+                    const idCatInsumo = parseInt((document.getElementById("categoria") as HTMLSelectElement).value);
+                    const unidad = (document.getElementById("unidad") as HTMLSelectElement).value;
+                    const precioLimpio = (document.getElementById("precio") as HTMLInputElement).value.replace(/[^\d]/g, "");
+                    const precio = parseFloat(precioLimpio);
+
+                    // Funciones auxiliares para validaciones
+                    const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+                    const hasLongRepeatSequence = (s: string, n = 4) =>
+                      new RegExp(`(.)\\1{${n - 1},}`).test(s);
+                    const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+                    const hasTooManySpecialChars = (s: string, maxPercent = 0.4) => {
+                      const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+                      return specials / s.length > maxPercent;
+                    };
+                    const hasLowVariety = (s: string, minUnique = 3) =>
+                      new Set(s).size < minUnique;
+
+                    // Validación: nombre vacío
+                    if (!nombre) {
+                      Swal.fire("⚠️ Campo requerido", "El nombre del insumo no puede estar vacío.", "warning");
+                      return;
+                    }
+
+                    // Validación: caracteres permitidos
+                    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
+                      Swal.fire("❌ Nombre inválido", "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).", "error");
+                      return;
+                    }
+
+                    // Validaciones de estructura del nombre
+                    if (
+                      nombre.length < 3 ||
+                      nombre.length > 50 ||
+                      isAllSameChar(nombre) ||
+                      hasLongRepeatSequence(nombre) ||
+                      isOnlySpecialChars(nombre) ||
+                      hasTooManySpecialChars(nombre) ||
+                      hasLowVariety(nombre)
+                    ) {
+                      Swal.fire("❌ Nombre inválido", "Debe tener entre 3 y 50 caracteres, sin repeticiones excesivas ni baja variedad.", "error");
+                      return;
+                    }
+
+                    // Validación: duplicado
+                    const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
+                    const existeDuplicado = insumos.some(
+                      (i) => i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado
+                    );
+
+                    if (existeDuplicado) {
+                      Swal.fire("❌ Nombre duplicado", "Ya existe un insumo con ese nombre.", "error");
+                      return;
+                    }
+
+                    if (!idCatInsumo) {
+                      Swal.fire("⚠️ Error", "Debe seleccionar una categoría.", "warning");
+                      return;
+                    }
+
+                    if (!unidad) {
+                      Swal.fire("⚠️ Error", "Debe seleccionar una unidad de medida.", "warning");
+                      return;
+                    }
+
+                    // Validaciones de precio
+                    if (isNaN(precio) || precio <= 0) {
+                      Swal.fire("❌ Precio inválido", "El precio unitario debe ser mayor a cero.", "error");
+                      return;
+                    }
+
+                    if (precio > 9999999) {
+                      Swal.fire("❌ Precio inválido", "El precio no puede superar 9.999.999.", "error");
+                      return;
+                    }
+
+                    // Crear insumo
+                    try {
+                      const resp = await fetch(buildApiUrl("Insumos/Crear"), {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          IdCatInsumo: idCatInsumo,
+                          Nombre: nombre,
+                          UnidadesMedidas: unidad,
+                          PrecioUnitario: precio,
+                          Cantidad: 0,
+                          Estado: true,
+                        }),
+                      });
+
+                      if (!resp.ok) throw new Error("Error al crear el insumo");
+                      const nuevo = await resp.json();
+
+                      // 🔹 Refrescar lista completa desde API para asegurar datos actualizados
+                      const insumosActualizadosRes = await fetch(buildApiUrl("Insumos/Lista"));
+                      const insumosActualizados = await insumosActualizadosRes.json();
+                      setInsumos(insumosActualizados);
+
+                      // 🔹 Buscar el insumo recién creado por nombre
+                      const insumoRecienCreado = insumosActualizados.find(
+                        (i: any) => i.IdInsumo === nuevo.IdInsumo
+                      );
+
+                      if (insumoRecienCreado) {
+                        setDetalleCompra((prev) => [
+                          ...prev,
+                          {
+                            idInsumo: insumoRecienCreado.IdInsumo,
+                            insumo: insumoRecienCreado.Nombre,
+                            cantidad: 1,
+                            precio: insumoRecienCreado.PrecioUnitario,
+                            subtotal: insumoRecienCreado.PrecioUnitario,
+                          },
+                        ]);
+
+                        setInsumoQuery((prev) => [...prev, ""]);
+
+                        Swal.fire({
+                          icon: "success",
+                          title: "Insumo creado",
+                          text: `El insumo "${insumoRecienCreado.Nombre}" fue agregado al detalle.`,
+                          timer: 2000,
+                          showConfirmButton: false,
+                        });
+                      }
+
+                      modalContainer.remove();
+                    } catch (err) {
+                      console.error(err);
+                      Swal.fire("Error", "No se pudo crear el insumo. Intente nuevamente.", "error");
+                    }
+                  });
+                }}
+              >
+                + Crear Insumo
+              </button>
+            </div>
           </div>
 
-          {/* Resumen */}
           <div className="row mb-4">
-            <div className="col-md-4">
-              <div className="pastel-card text-center">
-                <FaMoneyBillWave size={18} className="mb-1" />
-                <small className="d-block">Subtotal</small>
-                <small>
-                  ${Math.round(calcularSubtotal()).toLocaleString("es-CO")}
-                </small>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="pastel-card text-center">
-                <FaPercent size={18} className="mb-1" />
-                <small className="d-block">IVA (19%)</small>
-                <small>
-                  ${Math.round(calcularIVA()).toLocaleString("es-CO")}
-                </small>
-              </div>
-            </div>
-            <div className="col-md-4">
+            <div className="col-md-12">
               <div className="pastel-card text-center">
                 <FaCalculator size={18} className="mb-1" />
                 <small className="d-block">Total</small>
-                <small>
-                  ${Math.round(calcularTotal()).toLocaleString("es-CO")}
-                </small>
+                <small>${Math.round(calcularTotal()).toLocaleString("es-CO")}</small>
               </div>
             </div>
           </div>
 
-          {/* Botones */}
           <div className="text-end">
             <button
               type="button"
@@ -675,11 +751,7 @@ const mostrarAlertaInvalida = () => {
             >
               {submitting ? (
                 <>
-                  <span
-                    className="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                  />{" "}
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                   Creando...
                 </>
               ) : (

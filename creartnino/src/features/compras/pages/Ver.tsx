@@ -1,5 +1,5 @@
 import React from "react";
-import { FaMoneyBillWave, FaPercent, FaCalculator } from "react-icons/fa";
+import { FaCalculator } from "react-icons/fa";
 import type { ICompras, IDetalleCompra } from "../../interfaces/ICompras";
 import type { IProveedores } from "../../interfaces/IProveedores";
 import type { IInsumos } from "../../interfaces/IInsumos";
@@ -29,28 +29,12 @@ const VerCompra: React.FC<Props> = ({
     return found?.Nombre || `Insumo ${id}`;
   };
 
-  const subtotalDetalles = detallesCompra.reduce(
-  (acc, d) => acc + Number(d.Subtotal ?? 0),
-  0
-);
+  const totalDetalles = detallesCompra.reduce(
+    (acc, d) => acc + Number(d.Subtotal ?? 0),
+    0
+  );
 
-// ✅ IVA solo si el subtotal es mayor o igual a 300 000
-const ivaDetalles = subtotalDetalles >= 300000 ? subtotalDetalles * 0.19 : 0;
-const totalDetalles = subtotalDetalles + ivaDetalles;
-
-const subtotal =
-  subtotalDetalles > 0 ? subtotalDetalles : (compra.Total ?? 0) / 1.19;
-
-// ✅ Si el subtotal no llega a 300 000, el IVA será 0
-const iva =
-  subtotalDetalles > 0
-    ? ivaDetalles
-    : (compra.Total ?? 0) >= 300000
-    ? (compra.Total ?? 0) - (compra.Total ?? 0) / 1.19
-    : 0;
-
-const total = compra.Total ?? totalDetalles;
-
+  const total = totalDetalles > 0 ? totalDetalles : (compra.Total ?? 0);
 
   const proveedor =
     proveedores.find((p) => p.IdProveedor === compra.IdProveedor)
@@ -150,28 +134,9 @@ const total = compra.Total ?? totalDetalles;
         )}
       </div>
 
-      {/* Totales */}
+      {/* Total */}
       <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="pastel-card text-center">
-            <FaMoneyBillWave size={18} className="mb-1 text-success" />
-            <small className="d-block">Subtotal</small>
-            <small>${Math.round(subtotal).toLocaleString("es-CO")}</small>
-          </div>
-        </div>
-        <div className="col-md-4">
-  <div className="pastel-card text-center">
-    <FaPercent size={18} className="mb-1 text-warning" />
-    <small className="d-block">IVA (19%)</small>
-    <small>
-      {iva > 0
-        ? `$${Math.round(iva).toLocaleString("es-CO")}`
-        : "0"}
-    </small>
-  </div>
-</div>
-
-        <div className="col-md-4">
+        <div className="col-md-12">
           <div className="pastel-card text-center">
             <FaCalculator size={18} className="mb-1 text-primary" />
             <small className="d-block">Total</small>

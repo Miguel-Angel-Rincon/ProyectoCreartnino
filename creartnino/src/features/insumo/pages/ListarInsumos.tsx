@@ -50,7 +50,7 @@ const ListarInsumos: React.FC = () => {
 
   // Filtrar insumos con stock bajo
   const insumosStockBajo = insumos.filter(
-    (i) => getEstado(i) && i.Cantidad <= STOCK_MINIMO
+    (i) => i.Cantidad <= STOCK_MINIMO
   );
 
   // --- Cargar insumos y categorías ---
@@ -164,17 +164,26 @@ const ListarInsumos: React.FC = () => {
     const target = insumos.find((i) => i.IdInsumo === id);
     if (!target) return;
 
-    if (getEstado(target) && target.Cantidad > 0) {
-      Swal.fire({
+    const current = getEstado(target);
+    
+    // Si vamos a desactivar, mostrar confirmación
+    if (current) {
+      const result = await Swal.fire({
+        title: "¿Desactivar insumo?",
+        text: "¿Estás seguro de que deseas desactivar este insumo?",
         icon: "warning",
-        title: "No permitido",
-        text: "No puedes desactivar un insumo que aún tiene existencias.",
-        confirmButtonColor: "#e83e8c",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar"
       });
-      return;
+
+      if (!result.isConfirmed) {
+        return;
+      }
     }
 
-    const current = getEstado(target);
     const actualizado = setEstadoKey({ ...target } as any, !current) as IInsumos;
 
     setInsumos((prev) =>
@@ -473,10 +482,10 @@ const ListarInsumos: React.FC = () => {
                   ref={esResaltado ? filaResaltadaRef : null}
                   className={index % 2 === 0 ? "fila-par" : "fila-impar"}
                   style={{
-                    backgroundColor: esResaltado ? "#ffe6e6" : undefined,
+                    backgroundColor: esResaltado ? "#f7d8d8ff" : undefined,
                     border: esResaltado ? "2px solid #dc3545" : undefined,
                     transition: "all 0.3s ease",
-                    boxShadow: esResaltado ? "0 4px 12px rgba(220, 53, 69, 0.3)" : undefined,
+                    boxShadow: esResaltado ? "0 4px 12px rgba(255, 217, 221, 0.3)" : undefined,
                   }}
                 >
                   <td>
@@ -490,15 +499,16 @@ const ListarInsumos: React.FC = () => {
                   <td>{categoriaNombre}</td>
                   <td>
                     {i.Cantidad}
-                    {getEstado(i) && i.Cantidad <= STOCK_MINIMO && (
-                      <FaExclamationTriangle
-                        style={{
-                          color: i.Cantidad === 0 ? "#dc3545" : "#ff6b6b",
-                          marginLeft: "8px",
-                        }}
-                        title="Stock bajo"
-                      />
-                    )}
+                    {i.Cantidad <= STOCK_MINIMO && (
+  <FaExclamationTriangle
+    style={{
+      color: i.Cantidad === 0 ? "#ff6b6b" : "#ff6b6b",
+      marginLeft: "8px",
+    }}
+    title="Stock bajo"
+  />
+)}
+
                   </td>
                   <td>
                     {Number(i.PrecioUnitario).toLocaleString("es-CO", {

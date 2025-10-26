@@ -53,6 +53,7 @@ const ListarPedidos: React.FC = () => {
   const [productos, setProductos] = useState<IProductos[]>([]);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<IPedido | null>(null);
   const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const pedidosPorPagina = 6;
 
   useEffect(() => {
@@ -184,6 +185,8 @@ const ListarPedidos: React.FC = () => {
   }, [clientes]);
 
   const actualizarEstadoAPI = async (pedido: Pedidos, nuevoEstado: string) => {
+    if (updatingId !== null) return; // evita múltiples updates simultáneos globales
+    setUpdatingId(pedido.IdPedido ?? null);
     const estadoId =
       nuevoEstado === "primer pago"
         ? 1
@@ -221,7 +224,9 @@ const ListarPedidos: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: "Estado actualizado correctamente",
-        confirmButtonColor: "#e83e8c",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
     } catch (error) {
       console.error("Error actualizando estado:", error);
@@ -230,6 +235,8 @@ const ListarPedidos: React.FC = () => {
         title: "Error",
         text: "No se pudo actualizar el estado en la API",
       });
+    } finally {
+     setUpdatingId(null);
     }
   };
 
@@ -591,13 +598,34 @@ const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
                       p.Estado
                     )}`}
                     value={p.Estado}
-                    onChange={(e) => actualizarEstadoAPI(p, e.target.value)}
+                    onChange={async (e) => {
+                      const nuevo = e.target.value;
+                      if (nuevo === p.Estado) return;
+
+                      const confirmacion = await Swal.fire({
+                        title: "¿Estás seguro?",
+                        text: `Se cambiará el estado de "${p.Estado}" a "${nuevo}". ¿Deseas continuar?`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, cambiar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#d33",
+                      });
+                      if (!confirmacion.isConfirmed) return;
+
+                      actualizarEstadoAPI(p, nuevo);
+                    }}
                     disabled={
                       p.Estado === "anulado" ||
                       p.Estado === "entregado" ||
                       p.Estado === "en producción" ||
                       p.Estado === "venta directa"
+                      || updatingId === p.IdPedido
                     }
+                    style={{
+                      cursor: updatingId === p.IdPedido ? "wait" : undefined,
+                      opacity: updatingId === p.IdPedido ? 0.6 : undefined,
+                    }}
                   >
                     <option value={p.Estado}>
                       {p.Estado.charAt(0).toUpperCase() + p.Estado.slice(1)}

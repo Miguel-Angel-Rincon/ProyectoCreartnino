@@ -717,7 +717,26 @@ const handleAnularProduccion = (p: IProduccion) => {
                      <select
   className={`form-select estado-select ${claseEstado(estadoActual)}`}
   value={estadoActual}
-  onChange={(e) => handleActualizarEstado(p, Number(e.target.value))}
+  onChange={async (e) => {
+    const nuevoId = Number(e.target.value);
+    if (nuevoId === estadoActual) return;
+
+    const nombreActual = nombreEstadoProduccion(estadoActual) || "Desconocido";
+    const nombreNuevo = nombreEstadoProduccion(nuevoId) || "Desconocido";
+
+    const confirmacion = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Se cambiará el estado de "${nombreActual}" a "${nombreNuevo}". ¿Deseas continuar?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cambiar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!confirmacion.isConfirmed) return;
+
+    await handleActualizarEstado(p, nuevoId);
+  }}
   disabled={
     nombreEstadoProduccion(estadoActual).toLowerCase().includes("anul") ||
     nombreEstadoProduccion(estadoActual).toLowerCase().includes("complet")

@@ -116,6 +116,20 @@ const ListarCatInsumos: React.FC = () => {
     const target = categorias.find((c) => c.IdCatInsumo === id);
     if (!target) return;
 
+    // Si se intenta DESACTIVAR (estado actual true) pedir confirmación
+    if (target.Estado) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará la categoría. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     const actualizado = { ...target, Estado: !target.Estado };
 
     // Optimista en UI
@@ -135,13 +149,11 @@ const ListarCatInsumos: React.FC = () => {
       Swal.fire({
         icon: "success",
         title: "Actualizado",
-        text: `Estado actualizado correctamente`,
+        text: "Estado actualizado correctamente",
         timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false, 
-
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
-
     } catch (err) {
       console.error("actualizarEstado:", err);
       Swal.fire({
@@ -150,6 +162,7 @@ const ListarCatInsumos: React.FC = () => {
         text: "No se pudo actualizar el estado de la categoría.",
         confirmButtonColor: "#e83e8c",
       });
+      // Revertir cambio en UI si falla la petición
       setCategorias((prev) =>
         prev.map((c) => (c.IdCatInsumo === id ? target : c))
       );

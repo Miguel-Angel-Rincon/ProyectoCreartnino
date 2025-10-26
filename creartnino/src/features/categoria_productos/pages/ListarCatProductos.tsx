@@ -107,8 +107,23 @@ const ListarCatProductos: React.FC = () => {
     const target = categorias.find((c) => c.IdCategoriaProducto === id);
     if (!target) return;
 
+    // Si el estado actual es true (activo) y se va a desactivar, pedir confirmación
+    if (target.Estado) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará la categoría. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     const actualizado = { ...target, Estado: !target.Estado };
 
+    // Optimista: actualizar UI inmediatamente
     setCategorias((prev) =>
       prev.map((c) => (c.IdCategoriaProducto === id ? actualizado : c))
     );
@@ -130,10 +145,9 @@ const ListarCatProductos: React.FC = () => {
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
         timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
-
     } catch (err) {
       console.error("Error al actualizar estado:", err);
       Swal.fire(
@@ -142,6 +156,7 @@ const ListarCatProductos: React.FC = () => {
         "error"
       );
 
+      // Revertir cambio en UI si falla la petición
       setCategorias((prev) =>
         prev.map((c) => (c.IdCategoriaProducto === id ? target : c))
       );

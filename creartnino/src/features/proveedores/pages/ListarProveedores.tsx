@@ -124,6 +124,21 @@ const ListarProveedores: React.FC = () => {
     if (!target) return;
 
     const current = getEstado(target);
+
+    // Si se intenta DESACTIVAR (estado actual true) pedir confirmación
+    if (current) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará el proveedor. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     const actualizado = setEstadoKey({ ...target } as any, !current) as IProveedores;
 
     // Optimista en UI
@@ -143,10 +158,9 @@ const ListarProveedores: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
 
     } catch (err) {
@@ -156,8 +170,8 @@ timer: 2000,
         title: "Error",
         text: "No se pudo actualizar el estado del proveedor.",
         timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
       // revertir
       setProveedores((prev) => prev.map((p) => (p.IdProveedor === id ? target : p)));

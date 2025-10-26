@@ -113,60 +113,66 @@ const ListarRoles: React.FC = () => {
 
   // =================== CAMBIO DE ESTADO ===================
   const handleEstadoChange = async (id: number, nombre: string) => {
-  if (esProtegido(nombre)) return;
+    if (esProtegido(nombre)) return;
 
-  
+    const target = roles.find((r) => r.IdRol === id);
+    if (!target) return;
 
-  const target = roles.find((r) => r.IdRol === id);
-  if (!target) return;
+    // Si el rol está activo y se intenta desactivar, pedir confirmación
+    if (target.Estado) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará el rol. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
 
-  
+      if (!confirmacion.isConfirmed) return;
+    }
 
-  const actualizado: IRol = { ...target, Estado: !target.Estado };
-  
+    const actualizado: IRol = { ...target, Estado: !target.Estado };
 
-  // ✅ Actualiza en memoria
-  setRoles((prev) => prev.map((r) => (r.IdRol === id ? actualizado : r)));
+    // ✅ Actualiza en memoria (optimista)
+    setRoles((prev) => prev.map((r) => (r.IdRol === id ? actualizado : r)));
 
-  try {
-    const resp = await fetch(
-      `https://apicreartnino.somee.com/api/Roles/Actualizar/${id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(actualizado),
-      }
-    );
+    try {
+      const resp = await fetch(
+        `https://apicreartnino.somee.com/api/Roles/Actualizar/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(actualizado),
+        }
+      );
 
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: `Estado actualizado correctamente`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error("actualizarEstado:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el estado del rol.",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
 
-    // ❌ Ya no sobreescribimos con fetchRoles() aquí
-    // ✅ dejamos el cambio local, que ya refleja el estado
-    Swal.fire({
-      icon: "success",
-      title: "Actualizado",
-      text: `Estado Actualizado correctamente`,
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false
-    });
-  } catch (err) {
-    console.error("actualizarEstado:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo actualizar el estado del rol.",
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false
-    });
-
-    // ✅ Si falla, volvemos atrás
-    setRoles((prev) => prev.map((r) => (r.IdRol === id ? target : r)));
-  }
-};
+      // Revertir cambio en UI si falla la petición
+      setRoles((prev) => prev.map((r) => (r.IdRol === id ? target : r)));
+    }
+  };
 
 
   

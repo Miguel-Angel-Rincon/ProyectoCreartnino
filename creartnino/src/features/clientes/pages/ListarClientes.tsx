@@ -129,8 +129,24 @@ const ListarClientes: React.FC = () => {
     if (!target) return;
 
     const current = getEstado(target);
+
+    // Si se intenta DESACTIVAR (estado actual true) pedir confirmación
+    if (current) {
+      const confirmacion = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desactivará el cliente. ¿Deseas continuar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desactivar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     const actualizado = setEstadoKey({ ...target }, !current) as IClientes;
 
+    // Optimista: actualizar UI inmediatamente
     setClientes((prev) =>
       prev.map((c) => (c.IdCliente === id ? actualizado : c))
     );
@@ -148,22 +164,21 @@ const ListarClientes: React.FC = () => {
         icon: "success",
         title: "Actualizado",
         text: `Estado actualizado correctamente`,
-timer: 2000, // 2 segundos
-            timerProgressBar: true,
-            showConfirmButton: false
-
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
-
     } catch (err) {
       console.error("actualizarEstado:", err);
       Swal.fire({
         icon: "error",
         title: "Error",
         text: "No se pudo actualizar el estado del cliente.",
-        timer: 2000, // 2 segundos
-            timerProgressBar: true,
-            showConfirmButton: false
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
+      // Revertir cambio en UI si falla la petición
       setClientes((prev) =>
         prev.map((c) => (c.IdCliente === id ? target : c))
       );
