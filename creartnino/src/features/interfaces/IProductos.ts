@@ -4,6 +4,7 @@ export interface IProductos {
     Nombre: string;
     Imagen: number;
     Cantidad: number;
+    Descripcion?: string;
     Marca: string;
     Precio: number;
     Estado: boolean;

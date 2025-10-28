@@ -5,6 +5,56 @@
   padding: 0;
   margin: 0;
 }
+/* 🌸 Shimmer elegante pastel */
+.card-loader {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #fbeaff 0%, #f8dfff 40%, #fdefff 100%);
+  box-shadow: 0 2px 8px rgba(240, 150, 240, 0.1);
+}
+
+.shimmer {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.2) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmerMove 1.5s infinite ease-in-out;
+  border-radius: inherit;
+}
+
+@keyframes shimmerMove {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+/* Simula los textos debajo de la imagen */
+.card-loader::after {
+  content: "";
+  display: block;
+  height: 40px;
+  margin: 12px 10px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    #f8e7ff 0%,
+    #f6d8ff 50%,
+    #f8e7ff 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerMove 1.5s infinite ease-in-out;
+}
+
 
 /* Carrusel */
 .carousel-inner img {

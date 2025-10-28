@@ -1,6 +1,167 @@
 /* src/styles/CategoriasProductos.css */
 
+.card-precio {
+  font-size: 1rem;
+  color: #b73a93; /* rosa pastel */
+  font-weight: 600;
+  text-align: center;
+}
 
+/* ✨ Efecto shimmer */
+.shimmer-wrapper {
+  position: relative;
+  width: 100%;
+  height: 230px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.shimmer {
+  width: 100%;
+  height: 100%;
+  animation: shimmer 1.6s infinite;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e2e2e2 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 1200px 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1200px 0;
+  }
+  100% {
+    background-position: 1200px 0;
+  }
+}
+
+/* ✨ Suave aparición de la imagen */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 📸 Estilos para el carrusel de imágenes en CardProducto */
+
+.card-imagen-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.card-imagen-container .imagen-producto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* 🎯 Flechas de navegación */
+.card-flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+  opacity: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.categoria-card:hover .card-flecha {
+  opacity: 1;
+}
+
+.card-flecha:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.card-flecha-izq {
+  left: 8px;
+}
+
+.card-flecha-der {
+  right: 8px;
+}
+
+/* 📍 Indicadores de imagen */
+.card-indicadores {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+.card-indicador {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-indicador.activo {
+  background: white;
+  width: 20px;
+  border-radius: 4px;
+}
+
+.card-indicador:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.categoria-card:hover .imagen-producto {
+  transform: scale(1.05);
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .card-flecha {
+    opacity: 0.7;
+  }
+  
+  .card-flecha-izq {
+    left: 4px;
+  }
+  
+  .card-flecha-der {
+    right: 4px;
+  }
+}
 /* 🩷 Select de Categorías */
 .select-categorias {
   appearance: none;
@@ -428,4 +589,104 @@
   .categorias-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 🌸 Botón "Ver más" con estilo pastel */
+.ver-mas-btn {
+  display: block;
+  margin: 40px auto 20px auto;
+  padding: 12px 28px;
+  background-color: #ffe6ef; /* rosa pastel claro */
+  color: black; /* rosa principal */
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(255, 192, 203, 0.4);
+}
+
+.ver-mas-btn:hover {
+  background-color: #ffd6e8; /* un poco más oscuro al pasar */
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(255, 182, 193, 0.5);
+}
+
+.ver-mas-btn:active {
+  transform: scale(0.96);
+  background-color: #ffb6c1; /* rosa medio */
+  color: white;
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.7);
+}
+
+/* 💫 Efecto al deshabilitar el botón */
+.ver-mas-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #ffe6ef;
+  box-shadow: none;
+}
+
+
+/* 🌸 Paginación moderna pastel */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 40px 0;
+  padding: 10px;
+}
+
+.pagina-boton {
+  background-color: #ffe6ef; /* rosa pastel claro */
+  color: #000000; /* rosa principal */
+  border: 2px solid transparent;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(255, 192, 203, 0.4);
+}
+
+.pagina-boton:hover {
+  background-color: #ffd6e8; /* un poco más oscuro al pasar */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 182, 193, 0.5);
+}
+
+.pagina-boton.activa {
+  background-color: #ffb6c1; /* rosa pastel medio */
+  color: white;
+  border-color: #ff9ecb;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.7);
+  transform: scale(1.05);
+}
+
+/* ✨ Animación al hacer clic */
+.pagina-boton:active {
+  transform: scale(0.96);
+}
+
+/* 🌺 Flechas (si las agregas luego) */
+.paginacion-container .flecha {
+  background-color: #ffeef5;
+  color: #d63384;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+.paginacion-container .flecha:hover {
+  background-color: #ffd6e8;
+  transform: translateY(-2px);
 }

@@ -11,6 +11,119 @@
   animation: fadeIn 0.25s ease-in-out;
 }
 
+/* 📸 Estilos para el carrusel de imágenes en VerProductoModal */
+
+/* Contenedor de imágenes con posición relativa */
+.pastel-img-container {
+  position: relative;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🎯 Flechas de navegación en modal */
+.modal-flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-flecha:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.modal-flecha-izq {
+  left: 15px;
+}
+
+.modal-flecha-der {
+  right: 15px;
+}
+
+/* 📍 Miniaturas de imágenes */
+.modal-miniaturas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.modal-miniatura {
+  transition: all 0.3s ease;
+}
+
+.modal-miniatura:hover {
+  opacity: 1 !important;
+  transform: scale(1.05);
+  border-color: #007bff !important;
+}
+
+.modal-miniatura.activa {
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* 📱 Responsive para móviles */
+@media (max-width: 768px) {
+  .modal-flecha {
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+  }
+  
+  .modal-flecha-izq {
+    left: 10px;
+  }
+  
+  .modal-flecha-der {
+    right: 10px;
+  }
+
+  .modal-miniatura {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .pastel-img-container img {
+    max-height: 250px !important;
+  }
+}
+
+/* Animación suave al cambiar de imagen */
+.pastel-img-container img {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

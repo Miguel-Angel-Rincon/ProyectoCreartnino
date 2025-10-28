@@ -8,6 +8,7 @@ import PublicLayout from "./web/layouts/PublicLayouts";
 import Perfil from "./web/pages/Acceso/perfil.tsx";
 
 import ProductosPorCategoria from "./web/pages/categorias/ProductosPorCategoria.tsx";
+import DetalleProducto from "./web/pages/categorias/DetalleProducto.tsx";
 import Carrito from "./web/pages/categorias/Carrito";
 import MisCompras from "./web/pages/Acceso/MisCompras";
 
@@ -24,6 +25,8 @@ export default function Routesweb() {
       <Route path="/registrar" element={<PublicLayout><Registrar/></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><Quienes /></PublicLayout>} />
       <Route path="/productos/:categoria" element={<PublicLayout><ProductosPorCategoria /></PublicLayout>} />
+     <Route path="/Detalle_Producto/:nombreProducto" element={<PublicLayout><DetalleProducto /></PublicLayout>} />
+
 
       {/* 🔒 Perfil accesible a admin y clientes */}
       <Route

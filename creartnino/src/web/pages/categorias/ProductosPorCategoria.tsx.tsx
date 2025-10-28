@@ -17,10 +17,11 @@ const ProductosPorCategoria = () => {
   // 🔍 Filtros
   const [busqueda, setBusqueda] = useState("");
   const [rangoPrecio, setRangoPrecio] = useState<[number, number]>([0, 0]);
-  const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
 
-  const abrirImagen = (url: string) => setImagenSeleccionada(url);
-  const cerrarImagen = () => setImagenSeleccionada(null);
+  // 🔢 Paginación / Ver más
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [mostrarVerMasGlobal, setMostrarVerMasGlobal] = useState(true); // si false => modo global 20 por página
+  const [extraShownForPage, setExtraShownForPage] = useState<Record<number, number>>({});
 
   const categoriaSlug = categoria?.toLowerCase() || "todos";
 
@@ -76,8 +77,7 @@ const ProductosPorCategoria = () => {
         ? productos
         : productos.filter((p) => {
             const categoriaEncontrada = categorias.find(
-              (c) =>
-                normalizarTexto(c.CategoriaProducto1) === categoriaSlug
+              (c) => normalizarTexto(c.CategoriaProducto1) === categoriaSlug
             );
             return p.CategoriaProducto === categoriaEncontrada?.IdCategoriaProducto;
           });
@@ -88,6 +88,11 @@ const ProductosPorCategoria = () => {
       const nuevoMax = Math.max(...preciosCat);
       setRangoPrecio([nuevoMin, nuevoMax]);
     }
+
+    // Reinicia estados al cambiar categoría
+    setPaginaActual(1);
+    setMostrarVerMasGlobal(true);
+    setExtraShownForPage({});
   }, [categoriaSlug, productos, categorias]);
 
   if (cargando) {
@@ -126,17 +131,114 @@ const ProductosPorCategoria = () => {
     if (tipo === "max" && valor >= rangoPrecio[0]) setRangoPrecio([rangoPrecio[0], valor]);
   };
 
-  // 📏 Posiciones de los puntos
+  // 📏 Posiciones del rango
   const rangoVisual = Math.max(precioMaximoTotal - precioMinimoTotal, 1);
   const minPos = ((rangoPrecio[0] - precioMinimoTotal) / rangoVisual) * 100;
   const maxPos = ((rangoPrecio[1] - precioMinimoTotal) / rangoVisual) * 100;
 
-  // 🔽 Cambiar categoría desde el select
+  // 🔽 Cambiar categoría
   const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    navigate(`/productos/${value}`);
+    navigate(`/productos/${e.target.value}`);
   };
 
+  // -------------------------
+  // LÓGICA DE PAGINACIÓN Y "VER MÁS" CORRECTA
+  // -------------------------
+  const basePageSize = 10;
+
+  // Si mostrarVerMasGlobal === false, usamos tamaño global (20 por página)
+  // Si true, cada página base = 10, pero puede tener extras (extraShownForPage)
+  // ---------
+  // Calcular cantidad mostrada por página (para páginas ya con extras)
+  const getCountForPage = (pageNumber: number) => {
+    if (!mostrarVerMasGlobal) return basePageSize * 2;
+    return basePageSize + (extraShownForPage[pageNumber] || 0);
+  };
+
+  // Calcula total de páginas necesarias según el estado actual (considera extras por página)
+  const computeTotalPages = () => {
+    if (!mostrarVerMasGlobal) {
+      return Math.max(1, Math.ceil(productosFiltrados.length / (basePageSize * 2)));
+    }
+    let remaining = productosFiltrados.length;
+    let page = 0;
+    // itera sumando páginas hasta cubrir todos los items
+    while (remaining > 0) {
+      page++;
+      remaining -= getCountForPage(page);
+      // safety break to avoid infinite loops (no debería ocurrir)
+      if (page > 10000) break;
+    }
+    return Math.max(1, page);
+  };
+
+  // Para sacar los items de la página actual necesitamos calcular el índice de inicio
+  // sumando lo mostrado en páginas anteriores (según counts calculadas)
+  const computeStartIndexForPage = (pageNumber: number) => {
+    if (!mostrarVerMasGlobal) {
+      // cada página tiene size = basePageSize*2
+      return (pageNumber - 1) * basePageSize * 2;
+    }
+    let start = 0;
+    for (let p = 1; p < pageNumber; p++) {
+      start += getCountForPage(p);
+    }
+    return start;
+  };
+
+  const startIndex = computeStartIndexForPage(paginaActual);
+  const countThisPage = getCountForPage(paginaActual);
+  const productosPagina = productosFiltrados.slice(startIndex, startIndex + countThisPage);
+
+  // Remaining after shown (para decidir si se muestra botón Ver más en esta página)
+  const remainingAfterShown = Math.max(0, productosFiltrados.length - (startIndex + productosPagina.length));
+
+  // Manejo del botón Ver más:
+  // - Si estamos en la página 1 y queremos "combinar" => hacemos modo global 20 (opcional, pero conservamos comportamiento previo)
+  // - Si estamos en página >1 => añadimos el siguiente bloque de basePageSize a esta página
+  const handleVerMas = () => {
+    if (!mostrarVerMasGlobal) {
+      // Ya estamos en modo global 20; nada que hacer
+      return;
+    }
+
+    if (paginaActual === 1) {
+      // comportamiento histórico: convertir a modo global 20 por página
+      setMostrarVerMasGlobal(false);
+      // limpiar extras (no necesarios en modo global)
+      setExtraShownForPage({});
+      // aseguramos que la página 1 muestre desde inicio
+      setPaginaActual(1);
+      return;
+    }
+
+    // página > 1: añadimos el siguiente bloque de 10 a la página actual
+    const alreadyExtra = extraShownForPage[paginaActual] || 0;
+
+    // calcular cuántos quedan realmente después de lo ya mostrado en páginas anteriores + base + alreadyExtra
+    const startNext = computeStartIndexForPage(paginaActual) + basePageSize + alreadyExtra;
+    const remaining = Math.max(0, productosFiltrados.length - startNext);
+    if (remaining <= 0) {
+      return; // no hay nada para agregar
+    }
+    const toAdd = Math.min(basePageSize, remaining);
+
+    setExtraShownForPage({
+      ...extraShownForPage,
+      [paginaActual]: alreadyExtra + toAdd,
+    });
+  };
+
+  const cambiarPagina = (num: number) => {
+    // si la página pedida supera el total recalculado, ajustamos al máximo
+    const total = computeTotalPages();
+    const to = Math.max(1, Math.min(num, total));
+    setPaginaActual(to);
+  };
+
+  // -------------------------
+  // Render
+  // -------------------------
   return (
     <div className="categorias-container">
       <h2 className="titulo">
@@ -155,7 +257,6 @@ const ProductosPorCategoria = () => {
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
-        {/* 🧭 Select de Categorías */}
         <select
           className="select-categorias"
           value={categoriaSlug}
@@ -208,25 +309,38 @@ const ProductosPorCategoria = () => {
         </div>
       </div>
 
-      {/* 🛍️ Productos */}
+      {/* 🛍️ Productos (lista mostrada según la lógica) */}
       <div className="categorias-grid">
-        {productosFiltrados.length > 0 ? (
-          productosFiltrados.map((producto) => (
-            <CardProducto key={producto.IdProducto} producto={producto} overImagen={abrirImagen} />
+        {productosPagina.length > 0 ? (
+          productosPagina.map((producto) => (
+            <CardProducto key={producto.IdProducto} producto={producto} />
           ))
         ) : (
           <p>No hay productos que coincidan con los filtros.</p>
         )}
       </div>
 
-      {/* 🖼️ Modal de imagen */}
-      {imagenSeleccionada && (
-        <div className="modal-imagen" onClick={cerrarImagen}>
-          <div className="modal-imagen-contenido">
-            <img src={imagenSeleccionada} alt="Vista ampliada" />
-          </div>
-        </div>
-      )}
+      {/* 🌸 Botón "Ver más": aparece solo si hay productos restantes después de lo mostrado en la página actual */}
+      {/* 🌸 Botón "Ver más": aparece solo si hay productos restantes y la página actual tiene menos de 20 */}
+{remainingAfterShown > 0 && productosPagina.length < 20 && (
+  <button className="ver-mas-btn" onClick={handleVerMas}>
+    Ver más
+  </button>
+)}
+
+
+      {/* 🔢 Paginación siempre visible (recalcula según extras) */}
+      <div className="paginacion-container">
+        {Array.from({ length: computeTotalPages() }, (_, i) => (
+          <button
+            key={i + 1}
+            className={`pagina-boton ${paginaActual === i + 1 ? "activa" : ""}`}
+            onClick={() => cambiarPagina(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

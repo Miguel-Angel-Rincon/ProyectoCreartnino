@@ -343,3 +343,69 @@
   from { background-color: rgba(0, 0, 0, 0); }
   to { background-color: rgba(0, 0, 0, 0.4); }
 }
+.overlay-carrusel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.carrusel {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 90%;
+  max-height: 85%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imagen-carrusel {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.cerrar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 22px;
+  color: #555;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.cerrar:hover {
+  color: #b73a93;
+}
+
+.btn-carrusel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 10px;
+  transition: 0.3s;
+}
+
+.btn-carrusel.prev { left: 15px; }
+.btn-carrusel.next { right: 15px; }
+
+.btn-carrusel:hover {
+  background: #b73a93;
+  color: white;
+}
+

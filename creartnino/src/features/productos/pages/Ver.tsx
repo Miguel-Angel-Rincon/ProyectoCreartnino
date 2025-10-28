@@ -13,20 +13,23 @@ interface Props {
 }
 
 const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
-  const [imagenUrl, setImagenUrl] = useState<string>("");
+  const [imagenes, setImagenes] = useState<string[]>([]);
+  const [imagenActual, setImagenActual] = useState(0);
   const [cargandoImagen, setCargandoImagen] = useState(false);
   const [nombreCategoria, setNombreCategoria] = useState<string>("");
 
-  // 🔹 Cargar imagen del producto
+  // 🔹 Cargar imágenes del producto
   useEffect(() => {
     let mounted = true;
 
-    const cargarImagen = async () => {
+    const cargarImagenes = async () => {
+      // Si la imagen ya es una URL directa
       if (typeof producto.Imagen === "string" && (producto.Imagen as string).startsWith("http")) {
-        if (mounted) setImagenUrl(producto.Imagen);
+        if (mounted) setImagenes([producto.Imagen]);
         return;
       }
 
+      // Si es un ID, buscar en la API
       if (typeof producto.Imagen === "number" && producto.Imagen > 0) {
         setCargandoImagen(true);
         try {
@@ -34,19 +37,30 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
             `https://apicreartnino.somee.com/api/Imagenes_Productos/Obtener/${producto.Imagen}`
           );
           if (!mounted) return;
-          setImagenUrl(res.data?.Url ?? "");
+
+          // 📸 Separar las URLs por |||
+          if (res.data?.Url) {
+            const urlsSeparadas = res.data.Url.split("|||")
+              .map(url => url.trim())
+              .filter(url => url.length > 0)
+              .map(url => url.startsWith("http") ? url : `https://apicreartnino.somee.com/${url}`);
+            
+            setImagenes(urlsSeparadas.length > 0 ? urlsSeparadas : []);
+          } else {
+            setImagenes([]);
+          }
         } catch (err) {
-          console.error("Error cargando imagen:", err);
-          if (mounted) setImagenUrl("");
+          console.error("Error cargando imágenes:", err);
+          if (mounted) setImagenes([]);
         } finally {
           if (mounted) setCargandoImagen(false);
         }
       } else {
-        if (mounted) setImagenUrl("");
+        if (mounted) setImagenes([]);
       }
     };
 
-    cargarImagen();
+    cargarImagenes();
     return () => {
       mounted = false;
     };
@@ -66,7 +80,7 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
         }
       } catch (error) {
         console.error("Error cargando categoría", error);
-        if (mounted) setNombreCategoria(String(producto.CategoriaProducto)); // fallback al id
+        if (mounted) setNombreCategoria(String(producto.CategoriaProducto));
       }
     };
 
@@ -78,6 +92,16 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
       mounted = false;
     };
   }, [producto]);
+
+  // ◀️ Imagen anterior
+  const imagenAnterior = () => {
+    setImagenActual((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
+  };
+
+  // ▶️ Imagen siguiente
+  const imagenSiguiente = () => {
+    setImagenActual((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <div className="modal d-block overlay" tabIndex={-1}>
@@ -121,23 +145,86 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
                 <label className="form-label">🏷️ Marca</label>
                 <input className="form-control" value={producto.Marca ?? ""} disabled />
               </div>
-              
 
-              {/* Imagen */}
+              {/* Descripción */}
+              <div className="col-6">
+                <label className="form-label">📝 Descripción</label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  value={producto.Descripcion ?? "Sin descripción disponible"}
+                  disabled
+                ></textarea>
+              </div>
+
+              {/* Imágenes con Carrusel */}
               <div className="col-md-12">
-                <label className="form-label">🖼️ Imagen</label>
-                <div className="border rounded pastel-img-container p-2 text-center">
+                <label className="form-label">
+                  🖼️ Imágenes {imagenes.length > 0 && `(${imagenActual + 1}/${imagenes.length})`}
+                </label>
+                <div className="border rounded pastel-img-container p-2 text-center position-relative">
                   {cargandoImagen ? (
-                    <div>Loading image...</div>
-                  ) : imagenUrl ? (
-                    <img
-                      src={imagenUrl}
-                      alt={producto.Nombre}
-                      className="img-fluid rounded"
-                      style={{ maxHeight: "250px", objectFit: "contain" }}
-                    />
+                    <div style={{ padding: "100px 0" }}>Cargando imágenes...</div>
+                  ) : imagenes.length > 0 ? (
+                    <>
+                      {/* Imagen principal */}
+                      <img
+                        src={imagenes[imagenActual]}
+                        alt={`${producto.Nombre} - Imagen ${imagenActual + 1}`}
+                        className="img-fluid rounded"
+                        style={{ maxHeight: "350px", objectFit: "contain" }}
+                      />
+
+                      {/* Flechas de navegación (solo si hay más de 1 imagen) */}
+                      {imagenes.length > 1 && (
+                        <>
+                          <button
+                            className="modal-flecha modal-flecha-izq"
+                            onClick={imagenAnterior}
+                            aria-label="Imagen anterior"
+                          >
+                            ‹
+                          </button>
+                          <button
+                            className="modal-flecha modal-flecha-der"
+                            onClick={imagenSiguiente}
+                            aria-label="Imagen siguiente"
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
+
+                      {/* Miniaturas (si hay más de 1 imagen) */}
+                      {imagenes.length > 1 && (
+                        <div className="modal-miniaturas mt-3">
+                          {imagenes.map((url, index) => (
+                            <img
+                              key={index}
+                              src={url}
+                              alt={`Miniatura ${index + 1}`}
+                              className={`modal-miniatura ${index === imagenActual ? "activa" : ""}`}
+                              onClick={() => setImagenActual(index)}
+                              style={{
+                                width: "60px",
+                                height: "60px",
+                                objectFit: "cover",
+                                cursor: "pointer",
+                                margin: "0 5px",
+                                border: index === imagenActual ? "3px solid #007bff" : "2px solid #ddd",
+                                borderRadius: "8px",
+                                opacity: index === imagenActual ? 1 : 0.6,
+                                transition: "all 0.3s ease"
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div style={{ padding: 40, color: "#666" }}>No hay imagen disponible</div>
+                    <div style={{ padding: "100px 0", color: "#666" }}>
+                      No hay imágenes disponibles
+                    </div>
                   )}
                 </div>
               </div>
