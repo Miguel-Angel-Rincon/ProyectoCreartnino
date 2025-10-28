@@ -169,6 +169,18 @@ const ListarUsuarios: React.FC = () => {
         confirmButtonColor: "#d33",
       });
       if (!confirmacion.isConfirmed) return;
+    } else {
+      // Si se va a ACTIVAR (estado actual false), pedir confirmación
+      const confirmacion = await Swal.fire({
+        title: "¿Activar usuario?",
+        text: "¿Deseas activar este usuario y permitirle el acceso al sistema?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!confirmacion.isConfirmed) return;
     }
 
     // 🧩 Verificar si el usuario es un ADMIN

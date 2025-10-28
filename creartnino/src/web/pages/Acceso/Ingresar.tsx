@@ -55,6 +55,37 @@ const Ingresar = () => {
     }
     setLoading(true);
     try {
+      // Consultar usuario por correo para verificar estado
+      const userResp = await fetch("https://www.apicreartnino.somee.com/api/Usuarios/Lista");
+      if (!userResp.ok) throw new Error("No se pudo verificar el usuario");
+      const listaUsuarios = await userResp.json();
+      const usuario = listaUsuarios.find((u: any) => u.Correo?.toLowerCase() === correo.trim().toLowerCase());
+      if (!usuario) {
+        showAlert("Error", "Usuario no encontrado", "error");
+        setLoading(false);
+        return;
+      }
+      if (usuario.Estado === false) {
+        Swal.fire({
+          icon: "error",
+          title: "Acceso denegado",
+          html: `
+            <div style="text-align:center;">
+              <strong>Tu cuenta ha sido desactivada</strong><br/><br/>
+              Por favor, contacta al administrador para más información.<br/><br/>
+              <div style="margin-top:10px;">
+                <span style="display:block;margin-bottom:4px;"><b>Teléfono:</b> <a href='tel:+573246272022'>+57 324 627 2022</a></span>
+                <span style="display:block;"><b>Correo:</b> <a href='mailto:creartnino23@gmail.com'>creartnino23@gmail.com</a></span>
+              </div>
+            </div>
+          `,
+          confirmButtonText: "Cerrar",
+          confirmButtonColor: "#d33",
+        });
+        setLoading(false);
+        return;
+      }
+      // Si está activo, proceder con el login normal
       const resp = await fetch(`${API}/LoginPaso1`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

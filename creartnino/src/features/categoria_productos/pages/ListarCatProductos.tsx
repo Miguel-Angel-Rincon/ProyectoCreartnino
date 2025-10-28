@@ -119,6 +119,18 @@ const ListarCatProductos: React.FC = () => {
         confirmButtonColor: "#d33",
       });
       if (!confirmacion.isConfirmed) return;
+    } else {
+      // Si el estado actual es false (inactivo) y se va a activar, pedir confirmación
+      const confirmacion = await Swal.fire({
+        title: "¿Activar categoría?",
+        text: "¿Deseas activar esta categoría de producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!confirmacion.isConfirmed) return;
     }
 
     const actualizado = { ...target, Estado: !target.Estado };

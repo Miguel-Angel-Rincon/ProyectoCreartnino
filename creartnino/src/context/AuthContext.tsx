@@ -65,6 +65,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // 🚫 Bloquear login si el usuario está desactivado
+    if (usuarioConId.Estado === false) {
+      Swal.fire({
+        icon: "error",
+        title: "Usuario desactivado",
+        text: "Tu cuenta está desactivada. Contacta al administrador.",
+        confirmButtonColor: "#d33",
+      });
+      return;
+    }
+
     setUsuario(usuarioConId);
     localStorage.setItem("usuario", JSON.stringify(usuarioConId));
     setToken(token);

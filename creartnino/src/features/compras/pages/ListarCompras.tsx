@@ -221,18 +221,6 @@ const ListarCompras: React.FC = () => {
     // Si no hay cambio, salir
     if (nombreActual === nuevoEstadoNombre) return;
 
-    // Confirmación antes de cambiar a otro estado
-    const confirmacion = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: `Se cambiará el estado de "${nombreActual}" a "${nuevoEstadoNombre}". ¿Deseas continuar?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, cambiar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
-    });
-    if (!confirmacion.isConfirmed) return;
-
     try {
       const resp = await fetch(buildUrl(`Compras/Actualizar/${compra.IdCompra}`), {
         method: "PUT",

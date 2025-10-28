@@ -137,6 +137,18 @@ const ListarProveedores: React.FC = () => {
         confirmButtonColor: "#d33",
       });
       if (!confirmacion.isConfirmed) return;
+    } else {
+      // Si se va a ACTIVAR (estado actual false), pedir confirmación
+      const confirmacion = await Swal.fire({
+        title: "¿Activar proveedor?",
+        text: "¿Deseas activar este proveedor y permitirle el acceso al sistema?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!confirmacion.isConfirmed) return;
     }
 
     const actualizado = setEstadoKey({ ...target } as any, !current) as IProveedores;

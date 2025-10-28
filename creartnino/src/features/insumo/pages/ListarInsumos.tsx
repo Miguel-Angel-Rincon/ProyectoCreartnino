@@ -182,6 +182,20 @@ const ListarInsumos: React.FC = () => {
       if (!result.isConfirmed) {
         return;
       }
+    } else {
+      // Si se va a ACTIVAR (estado actual false), pedir confirmación
+      const result = await Swal.fire({
+        title: "¿Activar insumo?",
+        text: "¿Deseas activar este insumo y permitir su uso en el sistema?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!result.isConfirmed) {
+        return;
+      }
     }
 
     const actualizado = setEstadoKey({ ...target } as any, !current) as IInsumos;

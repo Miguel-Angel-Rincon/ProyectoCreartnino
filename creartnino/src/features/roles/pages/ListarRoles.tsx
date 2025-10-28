@@ -131,6 +131,18 @@ const ListarRoles: React.FC = () => {
       });
 
       if (!confirmacion.isConfirmed) return;
+    } else {
+      // Si se va a ACTIVAR (estado actual false), pedir confirmación
+      const confirmacion = await Swal.fire({
+        title: "¿Activar rol?",
+        text: "¿Deseas activar este rol y permitir su uso en el sistema?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!confirmacion.isConfirmed) return;
     }
 
     const actualizado: IRol = { ...target, Estado: !target.Estado };

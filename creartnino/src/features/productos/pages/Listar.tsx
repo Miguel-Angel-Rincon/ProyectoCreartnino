@@ -179,6 +179,18 @@ const handleNavegarAProducto = (productoId: number) => {
         confirmButtonColor: "#d33",
       });
       if (!confirmacion.isConfirmed) return;
+    } else {
+      // Si está inactivo y se va a activar, pedir confirmación
+      const confirmacion = await Swal.fire({
+        title: "¿Activar producto?",
+        text: "¿Deseas activar este producto?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, activar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+      });
+      if (!confirmacion.isConfirmed) return;
     }
 
     const actualizado = { ...producto, Estado: !producto.Estado };
