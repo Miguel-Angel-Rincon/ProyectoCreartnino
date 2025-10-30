@@ -30,6 +30,38 @@ const MisCompras: React.FC = () => {
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
   const [pagina, setPagina] = useState(1);
+  // 🔹 Estado global para guardar el mapa de imágenes
+const [, setImagenes] = useState<string[]>([]);
+const [, setImagenUrl] = useState("/placeholder.png");
+const [imagenesMap, setImagenesMap] = useState<Record<number, string>>({});
+
+// 🔹 Cargar todas las imágenes solo una vez
+useEffect(() => {
+  const cargarImagenes = async () => {
+    try {
+      const resp = await fetch("https://www.apicreartnino.somee.com/api/Imagenes_Productos/Lista");
+      if (!resp.ok) throw new Error("No se pudieron cargar las imágenes");
+      const data: any[] = await resp.json();
+
+      // Crear mapa: { IdImagen: URLCompleta }
+      const mapa: Record<number, string> = {};
+      data.forEach((img) => {
+        const id = Number(img.IdImagen);
+        const url = img.Url.startsWith("http")
+          ? img.Url
+          : `https://www.apicreartnino.somee.com/${img.Url}`;
+        mapa[id] = url;
+      });
+
+      setImagenesMap(mapa);
+    } catch (err) {
+      console.error("❌ Error al cargar imágenes:", err);
+    }
+  };
+
+  cargarImagenes();
+}, []);
+
   // 🟢 Mantenemos en memoria las imágenes
 // 🔹 Cargar imágenes una sola vez
   /** =====================
@@ -85,37 +117,46 @@ const MisCompras: React.FC = () => {
       detRes.json(),
     ]);
 
-    // Map estados
+    // 🧩 Map estados
     const eMap: Record<number, any> = {};
     (Array.isArray(estData) ? estData : []).forEach((e: any) => {
-      const k = getKeyFrom(e, [
-        'IdEstadoPedidos',
-        'IdEstado',
-        'idEstado',
-        'id',
-      ]);
+      const k = getKeyFrom(e, ['IdEstadoPedidos', 'IdEstado', 'idEstado', 'id']);
       if (k) eMap[k] = e;
     });
     setEstadosMap(eMap);
 
-    // Map productos
+    // 🧩 Map productos (solo primera imagen válida)
     const pMap: Record<number, any> = {};
     (Array.isArray(prodData) ? prodData : []).forEach((p: any) => {
       const k = getKeyFrom(p, ['IdProducto', 'idProducto', 'id']);
-      if (k) pMap[k] = p;
+      if (!k) return;
+
+      let imagenFinal = '/placeholder.png';
+
+      if (p.Imagen && typeof p.Imagen === 'string') {
+  const partes = p.Imagen.split('|||').map((x: string) => x.trim());
+  const valida = partes.find(
+    (url: string) => url.startsWith('http') && url.includes('cloudinary')
+  );
+  if (valida) imagenFinal = valida;
+}
+
+
+      pMap[k] = {
+        ...p,
+        ImagenUrl: imagenFinal, // 👈 usamos esta propiedad para mostrar la imagen
+      };
     });
     setProductosMap(pMap);
 
     // 🚀 Cruzar pedidos con sus detalles
-    const pedidosConDetalles = (Array.isArray(pedData) ? pedData : []).map(
-      (p: any) => {
-        const idPedido = Number(p.IdPedido ?? p.idPedido ?? 0);
-        const detalles = (detData || []).filter(
-          (d: any) => Number(d.IdPedido ?? d.idPedido ?? 0) === idPedido
-        );
-        return { ...p, detalles };
-      }
-    );
+    const pedidosConDetalles = (Array.isArray(pedData) ? pedData : []).map((p: any) => {
+      const idPedido = Number(p.IdPedido ?? p.idPedido ?? 0);
+      const detalles = (detData || []).filter(
+        (d: any) => Number(d.IdPedido ?? d.idPedido ?? 0) === idPedido
+      );
+      return { ...p, detalles };
+    });
 
     setPedidos(pedidosConDetalles);
     setClientes(Array.isArray(cliData) ? cliData : []);
@@ -125,6 +166,7 @@ const MisCompras: React.FC = () => {
     setIsLoading(false);
   }
 }, []);
+
 
 
   useEffect(() => {
@@ -357,9 +399,9 @@ const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: strin
       total += subtotal;
 
       // 🩷 Buscar descripción real del producto dentro del texto completo del pedido
-      let descripcionFinal = "Sin personalizacion disponible.";
+      let descripcionFinal = "Sin personalización disponible.";
 
-      if (descripcionPedido) {
+if (descripcionPedido) {
   const descCompleta = descripcionPedido.trim();
 
   // 🏬 Si es un pedido hecho desde el administrador (una sola palabra o texto corto)
@@ -375,10 +417,7 @@ const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: strin
   } else {
     // 📱 Si el pedido viene desde la app móvil
     if (descCompleta.toLowerCase().includes("app móvil")) {
-      const regexProducto = new RegExp(
-        `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
-        "i"
-      );
+      const regexProducto = new RegExp(`${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`, "i");
       const match = descCompleta.match(regexProducto);
 
       if (match) {
@@ -402,19 +441,69 @@ const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: strin
       }
     } else {
       // 🔍 Buscar bloque que corresponde a este producto (pedidos hechos desde la web)
-      const regexProducto = new RegExp(
-        `${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`,
-        "i"
-      );
+      const regexProducto = new RegExp(`${nombre}\\s*\\([^)]*\\)\\s*-\\s*([^,\n]+)`, "i");
       const match = descCompleta.match(regexProducto);
 
       if (match) {
         const texto = match[1].trim();
 
-        if (texto.includes("Sin personalización")) {
+        // 🎨 Nuevo formato de personalización con varios campos
+        if (texto.includes("Nombres personalizados:")) {
+          const partes = texto.split("|").map((p) => p.trim());
+          let htmlTabla = `
+            <table style="width:100%; border-collapse:collapse; font-size:14px;">
+              <tbody>
+          `;
+
+          partes.forEach((parte) => {
+            const [campoRaw, valorRaw] = parte.split(":").map((x: string) => x?.trim() || "");
+            if (!campoRaw || !valorRaw) return;
+
+            let valorHtml = valorRaw;
+
+            // 🎨 Mostrar colores
+            if (campoRaw.toLowerCase().includes("color")) {
+              const colores = valorRaw.split("-").map((c: string) => c.trim());
+              valorHtml = colores
+                .map(
+                  (c: string) =>
+                    `<span style="display:inline-block;width:20px;height:20px;background:${c};border-radius:4px;border:1px solid #ccc;margin-right:6px;" title="${c}"></span>`
+                )
+                .join("");
+            }
+
+            // 🖼️ Mostrar imágenes
+            else if (campoRaw.toLowerCase().includes("imagen")) {
+              const urls = valorRaw.split("-").map((u: string) => u.trim());
+              valorHtml = urls
+                .map(
+                  (url: string) =>
+                    `<img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #eee;margin-right:6px;" />`
+                )
+                .join("");
+            }
+
+            htmlTabla += `
+              <tr>
+                <td style="padding:6px 4px; font-weight:600; color:#b73a93; width:45%;">${campoRaw}</td>
+                <td style="padding:6px 4px;">${valorHtml}</td>
+              </tr>
+            `;
+          });
+
+          htmlTabla += `
+              </tbody>
+            </table>
+          `;
+
+          descripcionFinal = `
+            <div style='text-align:left;'>
+              <div style='font-weight:600; color:#b73a93; margin-top:10px;'>🖌 Personalización del producto:</div>
+              <div style='background:#fff; padding:10px 12px; border-radius:8px; border:1px solid #eee;'>${htmlTabla}</div>
+            </div>
+          `;
+        } else if (texto.includes("Sin personalización")) {
           descripcionFinal = "Este producto no lo personalizaste.";
-        } else if (texto.startsWith('"') && texto.endsWith('"')) {
-          descripcionFinal = texto.slice(1, -1); // quitar comillas
         } else {
           descripcionFinal = texto;
         }
@@ -424,25 +513,22 @@ const mostrarDetalleProducto = async (idPedido: number, descripcionPedido: strin
 }
 
 
-      // 🩷 Buscar imagen
-      let urlImagen = "/placeholder.png";
-      try {
-        if (producto.Imagen) {
-          const resp = await fetch("https://www.apicreartnino.somee.com/api/Imagenes_Productos/Lista");
-          if (resp.ok) {
-            const data: any[] = await resp.json();
-            const idImagen = Number(producto.Imagen);
-            const img = data.find((img) => img.IdImagen === idImagen);
-            if (img) {
-              urlImagen = img.Url.startsWith("http")
-                ? img.Url
-                : `https://www.apicreartnino.somee.com/${img.Url}`;
-            }
-          }
-        }
-      } catch (e) {
-        console.error("❌ Error cargando imagen:", e);
-      }
+
+     let urlImagen = "/placeholder.png";
+
+if (producto.Imagen && imagenesMap[producto.Imagen]) {
+  urlImagen = imagenesMap[producto.Imagen];
+}
+
+// 🧠 Si la cadena tiene múltiples URLs separadas por "|||", tomar la primera válida
+if (urlImagen.includes("|||")) {
+  urlImagen = urlImagen.split("|||")[0].trim();
+}
+
+// ✅ Aplicar valores finales
+setImagenes([urlImagen]);
+setImagenUrl(urlImagen);
+
 
       // 🩷 Construir fila HTML
       return `
@@ -630,6 +716,7 @@ const detalles = (allDetalles || []).filter(
     case 5: return 'estado estado-entregado';
     case 6: return 'estado estado-anulado';
     case 7: return 'estado estado-venta-directa';
+    case 1007: return 'estado estado-pedido-pagado';
     default: return 'estado estado-otro';
   }
 };

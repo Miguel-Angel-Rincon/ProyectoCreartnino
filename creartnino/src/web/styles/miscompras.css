@@ -274,6 +274,11 @@
   border-color: #7a47e6;
 }
 
+.estado-pedido-pagado {
+  background-color: #aadfe6;   /* cian */
+  border-color: #0097a7;
+}
+
 /* Clase por defecto */
 .estado-otro {
   background-color: #e6e6e6;
