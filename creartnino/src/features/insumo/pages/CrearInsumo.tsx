@@ -54,7 +54,6 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
   const form = e.currentTarget;
 
   const nombre = form.nombre.value.trim();
-  const cantidad = parseInt(form.cantidad.value.replace(/[^\d]/g, ""));
   const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, "");
   const precioUnitario = parseFloat(precioLimpio);
   const unidadMedida = form.unidadMedida.value;
@@ -127,26 +126,6 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
     return;
   }
 
-  // ✅ Validaciones de cantidad
-  if (isNaN(cantidad) || cantidad <= 0) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Cantidad inválida",
-      text: "La cantidad debe ser mayor a cero.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-  if (cantidad > 9999) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Cantidad inválida",
-      text: "La cantidad no puede superar 9999.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
   // ✅ Validaciones de precio
   if (isNaN(precioUnitario) || precioUnitario <= 0) {
     Swal.fire({
@@ -179,12 +158,12 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
     return;
   }
 
-  // ✅ Crear objeto final
+  // ✅ Crear objeto final (cantidad inicia en 0)
   const nuevoInsumo = {
     IdCatInsumo: idCatInsumo,
     Nombre: nombre,
     UnidadesMedidas: unidadMedida,
-    Cantidad: cantidad,
+    Cantidad: 0, // 👈 Inicia en 0
     PrecioUnitario: precioUnitario,
     Estado: form.estado?.checked ?? true, // por defecto activo
   };
@@ -275,36 +254,6 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
                     <option value="cm">Centímetros (cm)</option>
                   </select>
                 </div>
-
-                {/* Cantidad */}
-                <div className="col-md-6">
-  <label className="form-label">
-    🔢 Cantidad <span className="text-danger">*</span>
-  </label>
-  <input
-    type="number"
-    className="form-control"
-    name="cantidad"
-    required
-    min={1}
-    max={9999} // límite superior de 4 cifras
-    onInput={(e: React.FormEvent<HTMLInputElement>) => {
-      const input = e.currentTarget;
-      const value = parseInt(input.value, 10);
-
-      // ✅ No permitir valores menores a 1
-      if (value < 1 || isNaN(value)) {
-        input.value = "";
-      }
-
-      // ✅ No permitir valores mayores a 9999
-      if (value > 9999) {
-        input.value = "9999";
-      }
-    }}
-  />
-</div>
-
 
                 {/* Precio */}
                 <div className="col-md-6">

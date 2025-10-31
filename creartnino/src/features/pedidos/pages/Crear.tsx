@@ -19,14 +19,13 @@ interface PedidoDetalle {
   subtotal?: number;
 }
 
-// ahora solo omite DOMINGOS (day === 0)
 const sumarDiasHabiles = (fechaStr: string, diasHabiles: number) => {
   const fecha = new Date(fechaStr);
   let sumados = 0;
   while (sumados < diasHabiles) {
     fecha.setDate(fecha.getDate() + 1);
-    const dia = fecha.getDay(); // 0 domingo, 6 sabado
-    if (dia !== 0) sumados++; // solo omitimos domingo
+    const dia = fecha.getDay();
+    if (dia !== 0) sumados++;
   }
   return fecha.toISOString().split("T")[0];
 };
@@ -35,7 +34,7 @@ const formatISO = (d: Date) => d.toISOString().split("T")[0];
 
 const siguienteNoDomingo = (fecha: Date) => {
   const f = new Date(fecha);
-  while (f.getDay() === 0) { // 0 = domingo
+  while (f.getDay() === 0) {
     f.setDate(f.getDate() + 1);
   }
   return f;
@@ -56,88 +55,82 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [clientes, setClientes] = useState<IClientes[]>([]);
   const [fechaServidor, setFechaServidor] = useState<string>("");
   const [clienteDocumento, setClienteDocumento] = useState("");
-
+  const [valorInicialPersonalizado, setValorInicialPersonalizado] = useState<number | string>("");
+  const [helperText, setHelperText] = useState<string>("");
 
   useEffect(() => {
-  const fetchFechaServidor = async () => {
-    try {
-      // usa APP_SETTINGS.apiUrl (ya lo importaste)
-      const res = await fetch(`${APP_SETTINGS.apiUrl}Utilidades/FechaServidor`);
-      if (!res.ok) throw new Error("No se pudo obtener la fecha del servidor");
-      const data = await res.json();
+    const fetchFechaServidor = async () => {
+      try {
+        const res = await fetch(`${APP_SETTINGS.apiUrl}Utilidades/FechaServidor`);
+        if (!res.ok) throw new Error("No se pudo obtener la fecha del servidor");
+        const data = await res.json();
 
-      // Extraer YYYY-MM-DD
-      const fechaSrv = new Date(data.FechaServidor).toISOString().split("T")[0];
-      setFechaServidor(fechaSrv);
-      setFechaPedido(fechaSrv); // <-- la fecha del pedido es la fecha del servidor (actual)
-      setFechaEntrega(sumarDiasHabiles(fechaSrv, 3)); // entrega 3 días hábiles por defecto
-    } catch (err) {
-      console.error("Error obteniendo fecha del servidor:", err);
-      // fallback a la fecha local si falla la API
-      const hoy = new Date().toISOString().split("T")[0];
-      setFechaServidor(hoy);
-      setFechaPedido(hoy);
-      setFechaEntrega(sumarDiasHabiles(hoy, 3));
-    }
-  };
+        const fechaSrv = new Date(data.FechaServidor).toISOString().split("T")[0];
+        setFechaServidor(fechaSrv);
+        setFechaPedido(fechaSrv);
+        setFechaEntrega(sumarDiasHabiles(fechaSrv, 3));
+      } catch (err) {
+        console.error("Error obteniendo fecha del servidor:", err);
+        const hoy = new Date().toISOString().split("T")[0];
+        setFechaServidor(hoy);
+        setFechaPedido(hoy);
+        setFechaEntrega(sumarDiasHabiles(hoy, 3));
+      }
+    };
 
-  const fetchProductos = async () => {
-    try {
-      const res = await fetch("https://apicreartnino.somee.com/api/Productos/Lista");
-      const data = await res.json();
-      setProductosApi(
-        data.map((p: any) => ({
-          IdProducto: p.IdProducto,
-          Nombre: p.Nombre,
-          Precio: p.Precio,
-          Cantidad: p.Cantidad ?? 0,
-        }))
-      );
-    } catch (error) {
-      console.error("Error al cargar productos", error);
-    }
-  };
+    const fetchProductos = async () => {
+      try {
+        const res = await fetch("https://apicreartnino.somee.com/api/Productos/Lista");
+        const data = await res.json();
+        setProductosApi(
+          data.map((p: any) => ({
+            IdProducto: p.IdProducto,
+            Nombre: p.Nombre,
+            Precio: p.Precio,
+            Cantidad: p.Cantidad ?? 0,
+          }))
+        );
+      } catch (error) {
+        console.error("Error al cargar productos", error);
+      }
+    };
 
-  const fetchClientes = async () => {
-    try {
-      const res = await fetch("https://apicreartnino.somee.com/api/Clientes/Lista");
-      const data = await res.json();
-      setClientes(
-  data.map((c: any) => ({
-    IdCliente: c.IdCliente ?? c.IdClientes ?? c.id ?? 0, // usar siempre IdCliente
-    Nombre: c.Nombre ?? "",
-    Apellido: c.Apellido ?? "",
-    NombreCompleto: c.NombreCompleto ?? `${c.Nombre ?? ""} ${c.Apellido ?? ""}`.trim(),
-    Direccion: c.Direccion ?? "",
-    NumDocumento: c.NumDocumento ?? "",
-    TipoDocumento: c.TipoDocumento ?? "",
-  }))
-);
+    const fetchClientes = async () => {
+      try {
+        const res = await fetch("https://apicreartnino.somee.com/api/Clientes/Lista");
+        const data = await res.json();
+        setClientes(
+          data.map((c: any) => ({
+            IdCliente: c.IdCliente ?? c.IdClientes ?? c.id ?? 0,
+            Nombre: c.Nombre ?? "",
+            Apellido: c.Apellido ?? "",
+            NombreCompleto: c.NombreCompleto ?? `${c.Nombre ?? ""} ${c.Apellido ?? ""}`.trim(),
+            Direccion: c.Direccion ?? "",
+            NumDocumento: c.NumDocumento ?? "",
+            TipoDocumento: c.TipoDocumento ?? "",
+          }))
+        );
+      } catch (error) {
+        console.error("Error al cargar clientes", error);
+        setClientes([]);
+      }
+    };
 
-    } catch (error) {
-      console.error("Error al cargar clientes", error);
-      setClientes([]);
-    }
-  };
-
-  fetchFechaServidor();
-  fetchProductos();
-  fetchClientes();
-}, []);
+    fetchFechaServidor();
+    fetchProductos();
+    fetchClientes();
+  }, []);
 
   const clientesFiltrados = clienteBusqueda
-  ? clientes.filter((c) =>
-      (c.NombreCompleto?.toLowerCase().includes(clienteBusqueda.toLowerCase()) ||
-       c.NumDocumento?.toString().includes(clienteBusqueda))
-    )
-  : [];
+    ? clientes.filter((c) =>
+        (c.NombreCompleto?.toLowerCase().includes(clienteBusqueda.toLowerCase()) ||
+         c.NumDocumento?.toString().includes(clienteBusqueda))
+      )
+    : [];
 
   const handleClienteSeleccionado = (c: IClientes) => {
     setClienteSeleccionado(c);
-
-    setClienteBusqueda(
-      c.NombreCompleto 
-    );
+    setClienteBusqueda(c.NombreCompleto);
     setDireccionCliente(c.Direccion);
     setClienteDocumento(`${c.TipoDocumento}: ${c.NumDocumento ?? "N/A"}`);
   };
@@ -151,126 +144,112 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   };
 
   const actualizarDetalle = (
-  index: number,
-  campo: keyof PedidoDetalle,
-  valor: string | number
-) => {
-  const copia = [...detallePedido];
-  if (!copia[index]) return;
+    index: number,
+    campo: keyof PedidoDetalle,
+    valor: string | number
+  ) => {
+    const copia = [...detallePedido];
+    if (!copia[index]) return;
 
-  // 🧮 Validar y actualizar producto
-  if (campo === "producto") {
-    const prod = productosApi.find((p) => p.Nombre === valor);
-    copia[index].producto = prod?.Nombre || (valor as string);
-    copia[index].precio = prod?.Precio ?? copia[index].precio;
-    copia[index].idProducto = prod?.IdProducto;
-    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
-    setProductoQuery((prev) => {
-      const copy = [...prev];
-      copy[index] = "";
-      return copy;
-    });
-  }
-
-  // 🧮 Validar cantidad (stock y mínimo)
-  else if (campo === "cantidad") {
-    const cantidad = Number(valor) || 0;
-    const prod = productosApi.find((p) => p.IdProducto === copia[index].idProducto);
-
-    if (!prod) {
-      Swal.fire({
-        icon: "warning",
-        title: "Selecciona un producto",
-        text: "Debes elegir primero un producto antes de cambiar la cantidad.",
-        timer: 1800,
-        showConfirmButton: false,
+    if (campo === "producto") {
+      const prod = productosApi.find((p) => p.Nombre === valor);
+      copia[index].producto = prod?.Nombre || (valor as string);
+      copia[index].precio = prod?.Precio ?? copia[index].precio;
+      copia[index].idProducto = prod?.IdProducto;
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+      setProductoQuery((prev) => {
+        const copy = [...prev];
+        copy[index] = "";
+        return copy;
       });
-      return;
+    } else if (campo === "cantidad") {
+      const cantidad = Number(valor) || 0;
+      const prod = productosApi.find((p) => p.IdProducto === copia[index].idProducto);
+
+      if (!prod) {
+        Swal.fire({
+          icon: "warning",
+          title: "Selecciona un producto",
+          text: "Debes elegir primero un producto antes de cambiar la cantidad.",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      if (cantidad > prod.Cantidad) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock insuficiente",
+          text: `Solo hay ${prod.Cantidad} unidades disponibles de ${prod.Nombre}.`,
+          timer: 2500,
+          showConfirmButton: false,
+        });
+        copia[index].cantidad = prod.Cantidad;
+      } else if (cantidad < 1) {
+        copia[index].cantidad = 1;
+      } else {
+        copia[index].cantidad = cantidad;
+      }
+
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
+    } else if (campo === "precio") {
+      const precio = Number(valor) || 0;
+      if (precio > 9999999) {
+        Swal.fire({
+          icon: "warning",
+          title: "Precio no válido",
+          text: "El precio no puede tener más de 7 cifras.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        return;
+      }
+      copia[index].precio = precio;
+      copia[index].subtotal = copia[index].cantidad * copia[index].precio;
     }
 
-    // 🚫 Stock insuficiente
-    if (cantidad > prod.Cantidad) {
+    setDetallePedido(copia);
+  };
+
+  const seleccionarProducto = (index: number, nombre: string) => {
+    const prod = productosApi.find((p) => p.Nombre === nombre);
+    if (!prod) return;
+
+    const yaExiste = detallePedido.some(
+      (d, i) => d.idProducto === prod.IdProducto && i !== index
+    );
+
+    if (yaExiste) {
       Swal.fire({
         icon: "warning",
-        title: "Stock insuficiente",
-        text: `Solo hay ${prod.Cantidad} unidades disponibles de ${prod.Nombre}.`,
-        timer: 2500,
-        showConfirmButton: false,
-      });
-      copia[index].cantidad = prod.Cantidad;
-    } 
-    // 🚫 No permitir cantidad menor a 1
-    else if (cantidad < 1) {
-      copia[index].cantidad = 1;
-    } 
-    else {
-      copia[index].cantidad = cantidad;
-    }
-
-    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
-  }
-
-  // 🧮 Validar precio
-  else if (campo === "precio") {
-    const precio = Number(valor) || 0;
-    if (precio > 9999999) {
-      Swal.fire({
-        icon: "warning",
-        title: "Precio no válido",
-        text: "El precio no puede tener más de 7 cifras.",
+        title: "Producto duplicado",
+        text: "Este producto ya fue agregado al pedido.",
         timer: 2000,
         showConfirmButton: false,
       });
       return;
     }
-    copia[index].precio = precio;
-    copia[index].subtotal = copia[index].cantidad * copia[index].precio;
-  }
 
-  setDetallePedido(copia);
-};
+    if (prod.Cantidad <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Sin stock",
+        text: `El producto "${prod.Nombre}" no tiene unidades disponibles.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
 
+    actualizarDetalle(index, "producto", prod.Nombre);
 
-  const seleccionarProducto = (index: number, nombre: string) => {
-  const prod = productosApi.find((p) => p.Nombre === nombre);
-  if (!prod) return;
-
-  // 🚫 Validar que el producto no se repita en el pedido
-  const yaExiste = detallePedido.some(
-    (d, i) => d.idProducto === prod.IdProducto && i !== index
-  );
-
-  if (yaExiste) {
-    Swal.fire({
-      icon: "warning",
-      title: "Producto duplicado",
-      text: "Este producto ya fue agregado al pedido.",
-      timer: 2000,
-      showConfirmButton: false,
+    setProductoQuery((prev) => {
+      const copia = [...prev];
+      copia[index] = "";
+      return copia;
     });
-    return;
-  }
-
-  if (prod.Cantidad <= 0) {
-  Swal.fire({
-    icon: "warning",
-    title: "Sin stock",
-    text: `El producto "${prod.Nombre}" no tiene unidades disponibles.`,
-    timer: 2000,
-    showConfirmButton: false,
-  });
-  return;
-}
-  // ✅ Si pasa la validación, actualizar normalmente
-  actualizarDetalle(index, "producto", prod.Nombre);
-
-  // 🔹 Limpiar el campo de búsqueda del producto
-  setProductoQuery((prev) => {
-    const copia = [...prev];
-    copia[index] = "";
-    return copia;
-  });
-};
+  };
 
   const handleProductoQueryChange = (index: number, value: string) => {
     setProductoQuery((prev) => {
@@ -293,33 +272,76 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const calcularTotal = () =>
     detallePedido.reduce((acc, item) => acc + item.cantidad * item.precio, 0);
 
-  const calcularValorInicial = () => calcularTotal() * 0.5;
+  const calcularValorInicial = () => {
+    if (Number(valorInicialPersonalizado) > 0) {
+      return Number(valorInicialPersonalizado);
+    }
+    return calcularTotal() * 0.5;
+  };
+
   const calcularValorRestante = () => calcularTotal() - calcularValorInicial();
 
-  const subirImagenACloudinary = async (file: File) => {
-  const url = "https://api.cloudinary.com/v1_1/creartnino/image/upload";
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "CreartNino");
+  const handleValorInicialBlur = () => {
+    const total = calcularTotal();
+    const minimo50 = total * 0.5;
+    const parsed = Number(valorInicialPersonalizado) || 0;
 
-  // 👇 Guardar la imagen en la carpeta Productos
-  formData.append("folder", "Comprobantes");
-
-  try {
-    const res = await fetch(url, { method: "POST", body: formData });
-    const data = await res.json();
-
-    if (res.ok) {
-      setComprobantePago(data.secure_url); // URL final de la imagen
-      Swal.fire("✅ Éxito", "Imagen subida correctamente", "success");
-    } else {
-      Swal.fire("❌ Error", "No se pudo subir la imagen", "error");
+    if (parsed === 0) {
+      setHelperText("");
+      return;
     }
-  } catch (error) {
-    console.error("Error al subir imagen", error);
-    Swal.fire("❌ Error", "Error al conectar con Cloudinary", "error");
-  }
-};
+
+    if (parsed > total) {
+      Swal.fire({
+        icon: "error",
+        title: "Valor inicial excedido",
+        text: `El valor inicial no puede ser mayor al total del pedido (${total.toLocaleString("es-CO")}).\n\nMínimo: ${minimo50.toLocaleString("es-CO")}\nMáximo: ${total.toLocaleString("es-CO")}`,
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      setValorInicialPersonalizado(total);
+      setHelperText(`Mínimo: ${minimo50.toLocaleString("es-CO")} | Máximo: ${total.toLocaleString("es-CO")}`);
+      return;
+    }
+
+    if (parsed < minimo50) {
+      Swal.fire({
+        icon: "warning",
+        title: "Valor inicial bajo",
+        text: `El valor inicial debe ser mínimo el 50% del total (${minimo50.toLocaleString("es-CO")}).\n\nMínimo: ${minimo50.toLocaleString("es-CO")}\nMáximo: ${total.toLocaleString("es-CO")}`,
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      setValorInicialPersonalizado(minimo50);
+      setHelperText(`Mínimo: ${minimo50.toLocaleString("es-CO")} | Máximo: ${total.toLocaleString("es-CO")}`);
+      return;
+    }
+
+    setHelperText(`Mínimo: ${minimo50.toLocaleString("es-CO")} | Máximo: ${total.toLocaleString("es-CO")}`);
+  };
+
+  const subirImagenACloudinary = async (file: File) => {
+    const url = "https://api.cloudinary.com/v1_1/creartnino/image/upload";
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "CreartNino");
+    formData.append("folder", "Comprobantes");
+
+    try {
+      const res = await fetch(url, { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (res.ok) {
+        setComprobantePago(data.secure_url);
+        Swal.fire("✅ Éxito", "Imagen subida correctamente", "success");
+      } else {
+        Swal.fire("❌ Error", "No se pudo subir la imagen", "error");
+      }
+    } catch (error) {
+      console.error("Error al subir imagen", error);
+      Swal.fire("❌ Error", "Error al conectar con Cloudinary", "error");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,24 +399,26 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
       return;
     }
 
-    const nuevoPedido = {
-  IdCliente: clienteSeleccionado?.IdCliente ?? 0,
-  MetodoPago: metodoPago,
-  FechaPedido: fechaPedido,
-  FechaEntrega: fechaEntrega,
-  Descripcion: descripcion,
-  ValorInicial: calcularValorInicial(),
-  ValorRestante: calcularValorRestante(),
-  ComprobantePago: comprobantePago || "",
-  TotalPedido: calcularTotal(),
-  IdEstado: 1,
-  DetallePedidos: detallePedido.map((d) => ({
-    IdProducto: d.idProducto,
-    Cantidad: d.cantidad,
-    Subtotal: d.subtotal ?? d.cantidad * d.precio,
-  })),
-};
+    const total = calcularTotal();
+    const valorInicial = calcularValorInicial();
 
+    const nuevoPedido = {
+      IdCliente: clienteSeleccionado?.IdCliente ?? 0,
+      MetodoPago: metodoPago,
+      FechaPedido: fechaPedido,
+      FechaEntrega: fechaEntrega,
+      Descripcion: descripcion,
+      ValorInicial: valorInicial,
+      ValorRestante: total - valorInicial,
+      ComprobantePago: comprobantePago || "",
+      TotalPedido: total,
+      IdEstado: valorInicial >= total ? 1007 : 1,
+      DetallePedidos: detallePedido.map((d) => ({
+        IdProducto: d.idProducto,
+        Cantidad: d.cantidad,
+        Subtotal: d.subtotal ?? d.cantidad * d.precio,
+      })),
+    };
 
     try {
       const pedidoRes = await fetch(
@@ -408,7 +432,6 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 
       if (!pedidoRes.ok) throw new Error("Error al crear el pedido en la API");
 
-      // === Descontar la cantidad de los productos según el detalle ===
       for (const item of detallePedido) {
         if (!item.idProducto) continue;
 
@@ -442,14 +465,26 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
         }
       }
 
-      await Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Pedido creado correctamente.",
-        timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false, 
-      });
+      // Mostrar mensaje según el estado del pedido
+      if (valorInicial >= total) {
+        await Swal.fire({
+          icon: "success",
+          title: "Pedido Pagado",
+          text: "El pedido se creó correctamente y está marcado como PAGADO porque el valor inicial cubre el total.",
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } else {
+        await Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Pedido creado correctamente.",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      }
       onCrear(nuevoPedido);
       onClose();
     } catch (error: any) {
@@ -459,81 +494,78 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   };
 
   if (!fechaServidor) {
-  return <p className="text-center mt-4">⏳ Cargando fecha del servidor...</p>;
-}
-    return (
+    return <p className="text-center mt-4">⏳ Cargando fecha del servidor...</p>;
+  }
+
+  const total = calcularTotal();
+
+  return (
     <div className="container-fluid pastel-contenido">
       <h2 className="titulo mb-4">Crear Pedido</h2>
       <form onSubmit={handleSubmit}>
-        {/* Cliente, método de pago, fechas */}
         <div className="row g-4 mb-3">
           <div className="col-md-3 position-relative">
-  <label className="form-label">
-    👤 Cliente <span className="text-danger">*</span>
-  </label>
-  <input
-    type="text"
-    className="form-control"
-    placeholder="Buscar cliente..."
-    value={clienteBusqueda}
-    onChange={(e) => {
-      let value = e.target.value;
+            <label className="form-label">
+              👤 Cliente <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Buscar cliente..."
+              value={clienteBusqueda}
+              onChange={(e) => {
+                let value = e.target.value;
+                value = value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+                value = value.replace(/^\s+/g, "");
+                value = value.replace(/\s{2,}/g, " ");
 
-      value = value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, ""); // solo letras, números y espacios
-      value = value.replace(/^\s+/g, ""); // evitar espacios al inicio
-      value = value.replace(/\s{2,}/g, " "); // evitar espacios múltiples
+                if (/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
+                  Swal.fire({
+                    icon: "warning",
+                    title: "Entrada inválida",
+                    text: "Solo se permiten letras, números, # y espacios.",
+                    timer: 1800,
+                    showConfirmButton: false,
+                  });
+                  value = value.replace(/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/g, "");
+                }
 
-      // 🚫 Validación de caracteres no permitidos
-      if (/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Entrada inválida",
-          text: "Solo se permiten letras, números, # y espacios.",
-          timer: 1800,
-          showConfirmButton: false,
-        });
-        value = value.replace(/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
+                if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(value)) {
+                  Swal.fire({
+                    icon: "warning",
+                    title: "Repetición excesiva",
+                    text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                  });
+                  value = value.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+                }
 
-      // 🚫 Repetición excesiva
-      if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(value)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Repetición excesiva",
-          text: "No repitas el mismo carácter más de 3 veces consecutivas.",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        value = value.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-      }
+                setClienteBusqueda(value);
 
-      setClienteBusqueda(value);
+                if (value.trim() === "") {
+                  setClienteSeleccionado(null);
+                  setDireccionCliente("");
+                  setClienteDocumento("");
+                }
+              }}
+            />
 
-      // ✅ Si borra el texto, limpiar selección y campos relacionados
-      if (value.trim() === "") {
-        setClienteSeleccionado(null);
-        setDireccionCliente("");
-        setClienteDocumento("");
-      }
-    }}
-  />
-
-  {/* Lista de clientes sugeridos */}
-  {!clienteSeleccionado && clienteBusqueda && clientesFiltrados.length > 0 && (
-    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
-      {clientesFiltrados.map((c) => (
-        <li
-          key={c.IdCliente}
-          className="list-group-item list-group-item-action"
-          style={{ cursor: "pointer" }}
-          onClick={() => handleClienteSeleccionado(c)}
-        >
-          {`${c.NombreCompleto} - ${c.TipoDocumento}: ${c.NumDocumento ?? "N/A"}`}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+            {!clienteSeleccionado && clienteBusqueda && clientesFiltrados.length > 0 && (
+              <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
+                {clientesFiltrados.map((c) => (
+                  <li
+                    key={c.IdCliente}
+                    className="list-group-item list-group-item-action"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleClienteSeleccionado(c)}
+                  >
+                    {`${c.NombreCompleto} - ${c.TipoDocumento}: ${c.NumDocumento ?? "N/A"}`}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="col-md-3">
             <label className="form-label">
               💳 Método de Pago <span className="text-danger">*</span>
@@ -550,88 +582,80 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             </select>
           </div>
           <div className="col-md-3">
-  <label className="form-label">📅 Fecha del Pedido</label>
-  <input
-    type="date"
-    className="form-control"
-    value={fechaPedido}
-    readOnly
-    disabled
-  />
-</div>
-          {/* Fecha de Entrega */}
-<div className="col-md-3">
-  <label className="form-label">
-    📦 Fecha de Entrega <span className="text-danger">*</span>
-  </label>
-  <input
-    type="date"
-    className="form-control"
-    value={fechaEntrega}
-    min={sumarDiasHabiles(fechaServidor || new Date().toISOString().split("T")[0], 3)}
-    onChange={(e) => {
-      const valor = e.target.value;
-      if (!valor) {
-        setFechaEntrega("");
-        return;
-      }
-      const fechaSeleccionada = new Date(valor + "T00:00:00"); // evitar zona horaria
-      // Si la fecha es inválida, no hacer nada
-      if (isNaN(fechaSeleccionada.getTime())) return;
-      // 1) Validar que no sea antes del min
-      const minStr = sumarDiasHabiles(fechaServidor || new Date().toISOString().split("T")[0], 3);
-      const minDate = new Date(minStr + "T00:00:00");
-      if (fechaSeleccionada < minDate) {
-        Swal.fire({
-          icon: "warning",
-          title: "Fecha inválida",
-          text: `La fecha de entrega no puede ser anterior a ${minStr}.`,
-          timer: 2000,
-          showConfirmButton: false,
-        });
-        setFechaEntrega(minStr);
-        return;
-      }
-      // 2) Si es domingo -> corregir al siguiente día no domingo (lunes)
-      if (fechaSeleccionada.getDay() === 0) {
-        const corregida = siguienteNoDomingo(fechaSeleccionada);
-        const corregidaIso = formatISO(corregida);
-        Swal.fire({
-          icon: "warning",
-          title: "Domingo no permitido",
-          text: `Los domingos no están permitidos. Se cambió la fecha a ${corregidaIso}.`,
-          timer: 4000,
-          showConfirmButton: false,
-        });
-        setFechaEntrega(corregidaIso);
-        return;
-      }
-      // 3) si todo está OK
-      setFechaEntrega(valor);
-    }}
-    // evitan que el usuario escriba libremente en algunos navegadores
-    onKeyDown={(e) => {
-      // opcional: evitar escribir letras (acepta flechas, backspace, etc.)
-      const allowed = ["Backspace", "ArrowLeft", "ArrowRight", "Tab", "Delete"];
-      if (allowed.includes(e.key)) return;
-      // si no es número o '-' bloqueamos
-      if (!/[\d-]/.test(e.key)) e.preventDefault();
-    }}
-    required
-  />
-</div>
-{clienteDocumento && (
-  <div className="col-md-3">
-    <label className="form-label">🪪 Documento del Cliente</label>
-    <input
-      type="text"
-      className="form-control form-control-sm"
-      value={clienteDocumento}
-      disabled
-    />
-  </div>
-)}
-{clienteSeleccionado && (
+            <label className="form-label">📅 Fecha del Pedido</label>
+            <input
+              type="date"
+              className="form-control"
+              value={fechaPedido}
+              readOnly
+              disabled
+            />
+          </div>
+          <div className="col-md-3">
+            <label className="form-label">
+              📦 Fecha de Entrega <span className="text-danger">*</span>
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={fechaEntrega}
+              min={sumarDiasHabiles(fechaServidor || new Date().toISOString().split("T")[0], 3)}
+              onChange={(e) => {
+                const valor = e.target.value;
+                if (!valor) {
+                  setFechaEntrega("");
+                  return;
+                }
+                const fechaSeleccionada = new Date(valor + "T00:00:00");
+                if (isNaN(fechaSeleccionada.getTime())) return;
+                const minStr = sumarDiasHabiles(fechaServidor || new Date().toISOString().split("T")[0], 3);
+                const minDate = new Date(minStr + "T00:00:00");
+                if (fechaSeleccionada < minDate) {
+                  Swal.fire({
+                    icon: "warning",
+                    title: "Fecha inválida",
+                    text: `La fecha de entrega no puede ser anterior a ${minStr}.`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                  });
+                  setFechaEntrega(minStr);
+                  return;
+                }
+                if (fechaSeleccionada.getDay() === 0) {
+                  const corregida = siguienteNoDomingo(fechaSeleccionada);
+                  const corregidaIso = formatISO(corregida);
+                  Swal.fire({
+                    icon: "warning",
+                    title: "Domingo no permitido",
+                    text: `Los domingos no están permitidos. Se cambió la fecha a ${corregidaIso}.`,
+                    timer: 4000,
+                    showConfirmButton: false,
+                  });
+                  setFechaEntrega(corregidaIso);
+                  return;
+                }
+                setFechaEntrega(valor);
+              }}
+              onKeyDown={(e) => {
+                const allowed = ["Backspace", "ArrowLeft", "ArrowRight", "Tab", "Delete"];
+                if (allowed.includes(e.key)) return;
+                if (!/[\d-]/.test(e.key)) e.preventDefault();
+              }}
+              required
+            />
+          </div>
+          {clienteDocumento && (
+            <div className="col-md-3">
+              <label className="form-label">🪪 Documento del Cliente</label>
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                value={clienteDocumento}
+                disabled
+              />
+            </div>
+          )}
+          {clienteSeleccionado && (
             <div className="col-md-3">
               <label className="form-label">📍 Dirección del Cliente</label>
               <input
@@ -643,9 +667,65 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
               />
             </div>
           )}
+          <div className="col-md-3">
+  <label className="form-label">💰 Valor Inicial a Pagar</label>
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Ingrese el valor inicial"
+    value={
+      Number(valorInicialPersonalizado) > 0
+        ? Number(valorInicialPersonalizado).toLocaleString("es-CO")
+        : ""
+    }
+    onChange={(e) => {
+      // Eliminar todo excepto números
+      let soloNumeros = e.target.value.replace(/[^\d]/g, "");
 
+      // Limitar a 8 dígitos
+      if (soloNumeros.length > 8) {
+        soloNumeros = soloNumeros.slice(0, 8);
+      }
+
+      const numero = Number(soloNumeros);
+      setValorInicialPersonalizado(numero);
+    }}
+    onPaste={(e) => {
+      // Evita pegar más de 8 cifras
+      const textoPegado = e.clipboardData.getData("Text").replace(/[^\d]/g, "");
+      if (textoPegado.length > 8) {
+        e.preventDefault();
+      }
+    }}
+    onKeyDown={(e) => {
+      // Evita seguir escribiendo si ya tiene 8 dígitos (pero permite borrar, mover, etc.)
+      const esTeclaPermitida = [
+        "Backspace",
+        "Delete",
+        "ArrowLeft",
+        "ArrowRight",
+        "Tab",
+      ].includes(e.key);
+      const soloNumeros = e.currentTarget.value.replace(/[^\d]/g, "");
+      if (!esTeclaPermitida && soloNumeros.length >= 8) {
+        e.preventDefault();
+      }
+    }}
+    onBlur={handleValorInicialBlur}
+    disabled={total === 0}
+  />
+  {helperText && (
+    <small className="text-info d-block mt-1">{helperText}</small>
+  )}
+  {!helperText && (
+    <small className="text-muted">
+      Mínimo: ${(total * 0.5).toLocaleString("es-CO")} (50%)
+    </small>
+  )}
 </div>
-        {/* Detalle de productos */}
+
+        </div>
+
         <div className="col-12 mt-4">
           <h6 className="text-muted">🧾 Detalle del Pedido</h6>
           <div className="row fw-bold mb-2">
@@ -658,19 +738,18 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
           {detallePedido.map((item, index) => {
             const query = productoQuery[index] ?? "";
             const sugerencias =
-  query.length > 0
-    ? productosApi
-        .filter((p) =>
-          p.Nombre.toLowerCase().includes(query.toLowerCase())
-        )
-        // 🚫 Evitar que aparezcan productos ya seleccionados en otras filas
-        .filter(
-          (p) =>
-            !detallePedido.some(
-              (d, i) => d.idProducto === p.IdProducto && i !== index
-            )
-        )
-    : [];
+              query.length > 0
+                ? productosApi
+                    .filter((p) =>
+                      p.Nombre.toLowerCase().includes(query.toLowerCase())
+                    )
+                    .filter(
+                      (p) =>
+                        !detallePedido.some(
+                          (d, i) => d.idProducto === p.IdProducto && i !== index
+                        )
+                    )
+                : [];
             return (
               <div key={index} className="row mb-2 align-items-center position-relative">
                 <div className="col-md-3">
@@ -730,7 +809,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
                   <input
                     type="text"
                     className="form-control"
-                    value={`$${(item.cantidad * item.precio).toLocaleString("es-CO")}`}
+                    value={`${(item.cantidad * item.precio).toLocaleString("es-CO")}`}
                     readOnly
                   />
                 </div>
@@ -754,7 +833,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             + Agregar Producto
           </button>
         </div>
-        {/* Personalización y dirección */}
+
         <div className="row g-4 mt-3">
           <div className="col-md-6">
             <label className="form-label">🎨 Personalización</label>
@@ -785,7 +864,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             </div>
           )}
         </div>
-        {/* Resumen */}
+
         <div className="col-12 mt-4">
           <h6 className="text-muted mb-2">📊 Resumen del Pedido</h6>
           <div className="row g-2">
@@ -830,7 +909,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
             </div>
           </div>
         </div>
-        {/* Botones */}
+
         <div className="mt-4 d-flex justify-content-end gap-2">
           <button
             type="button"
@@ -847,4 +926,5 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
     </div>
   );
 };
+
 export default CrearPedido;

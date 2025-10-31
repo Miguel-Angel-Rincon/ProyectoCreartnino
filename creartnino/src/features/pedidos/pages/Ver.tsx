@@ -112,7 +112,7 @@ const [_adicionalAplicado, setAdicionalAplicado] = useState(false);
   // ✅ Actualizar fecha en API
   // ✅ Solo mostrar botones si el estado permite cambios
 const puedeEditarAdicional =
-  pedido.IdEstado === 1 || pedido.IdEstado === 2; // Primer pago o En Proceso
+  pedido.IdEstado === 1 || pedido.IdEstado === 2 || pedido.IdEstado ===1007; // Primer pago o En Proceso
   
 
 
@@ -209,6 +209,14 @@ const puedeEditarAdicional =
         <div className="col-md-3">
           <label className="form-label">📍 Dirección del Cliente</label>
           <input className="form-control" value={clienteDireccion} disabled />
+        </div>
+        <div className="col-md-3">
+          <label className="form-label">💰 Valor Inicial a Pagar</label>
+          <input 
+            className="form-control" 
+            value={`$${(pedido.ValorInicial ?? 0).toLocaleString("es-CO")}`} 
+            disabled 
+          />
         </div>
       </div>
 
@@ -414,9 +422,13 @@ const puedeEditarAdicional =
                   if (!confirm.isConfirmed) return;
 
                   try {
+                    // 🔍 Determinar el estado correcto según el valor restante
+                    const nuevoEstado = (pedido.ValorRestante || 0) === 0 ? 1007 : 1;
+
                     const payload = {
                       ...pedido,
                       TotalPedido: precioOriginal,
+                      IdEstado: nuevoEstado, // 👈 Estado basado en si tiene restante o no
                     };
                     const res = await fetch(
                       `${APP_SETTINGS.apiUrl}Pedidos/Actualizar/${pedido.IdPedido}`,
@@ -557,11 +569,12 @@ const puedeEditarAdicional =
           let nuevoTotal = pedido.TotalPedido ?? 0;
           let payload = { ...pedido };
 
-          // 💰 Si hay valor adicional, actualiza el total
-          if (valorAdicional > 0) {
-            nuevoTotal += valorAdicional;
-            payload.TotalPedido = nuevoTotal;
-          }
+          //  Si hay valor adicional, actualiza el total
+if (valorAdicional > 0) {
+  nuevoTotal += valorAdicional;
+  payload.TotalPedido = nuevoTotal;
+  payload.IdEstado = 2; //  Cambiar estado a "En Proceso"
+}
 
           // 📅 Si cambió la fecha
           if (fechaModificada) {

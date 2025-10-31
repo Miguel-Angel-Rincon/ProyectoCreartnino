@@ -160,14 +160,12 @@ const normalizarTexto = (valor: string) => {
   const sugeridos = pedidos.filter((p) => {
     const clienteName = getClienteName(p.IdCliente).toLowerCase();
     const coincideTexto = clienteName.includes(qlow) || (p.IdPedido && String(p.IdPedido).includes(qlow));
-    const estadoValido = p.IdEstado === 1 || p.IdEstado === 2;
+    const estadoValido = p.IdEstado === 1 || p.IdEstado === 2 || p.IdEstado ===1007; 
     return coincideTexto && estadoValido;
   });
   setPedidoSuggestions(sugeridos.slice(0, 8));
 };
 
-
-  // Al seleccionar un pedido — obtener detalles completos y autopoblar detalle de producción
   // Al seleccionar un pedido — obtener detalles del pedido desde Detalles_Pedido/Lista
 const seleccionarPedido = async (p: IPedido) => {
   try {
