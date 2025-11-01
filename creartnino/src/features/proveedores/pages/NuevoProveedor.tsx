@@ -563,7 +563,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
   className="btn pastel-btn-primary"
   disabled={isSubmitting || loadingCheck || existeDoc === true}
 >
-  {loadingCheck ? "Verificando..." : isSubmitting ? "Guardando..." : "Crear"}
+  {loadingCheck ? "Verificando..." : isSubmitting ? "Creando..." : "Crear"}
 </button>
 
             </div>

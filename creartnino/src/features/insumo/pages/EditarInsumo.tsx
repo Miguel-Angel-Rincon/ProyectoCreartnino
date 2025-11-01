@@ -17,6 +17,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
   const [formData, setFormData] = useState<IInsumos>(insumo);
   const [precioTexto, setPrecioTexto] = useState("");
   const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- API Base URL ---
   const apiBaseRaw =
@@ -93,6 +94,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
   // --- Editar insumo ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  if (isSubmitting) return;
 
   // 🔹 Funciones auxiliares de validación
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
@@ -201,6 +203,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
 
   // 🚀 Si pasa todas las validaciones, proceder con la actualización
   try {
+    setIsSubmitting(true);
     const resp = await fetch(buildUrl(`Insumos/Actualizar/${formData.IdInsumo}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -228,6 +231,8 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
       text: "No se pudo editar el insumo.",
       confirmButtonColor: "#f78fb3",
     });
+  }finally{
+    setIsSubmitting(false);
   }
 };
 
@@ -371,9 +376,19 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Guardar Cambios
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={isSubmitting} // 🚫 evita doble clic
+>
+  {isSubmitting ? (
+    <>
+      Guardando...
+    </>
+  ) : (
+    "Guardar Cambios"
+  )}
+</button>
             </div>
           </form>
         </div>

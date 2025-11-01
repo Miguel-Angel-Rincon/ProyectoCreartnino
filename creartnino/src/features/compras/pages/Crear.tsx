@@ -582,141 +582,163 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
                   // Manejar submit del formulario
                   const form = document.getElementById("formCrearInsumo") as HTMLFormElement;
                   form.addEventListener("submit", async (e) => {
-                    e.preventDefault();
+  e.preventDefault();
 
-                    const nombre = (document.getElementById("nombre") as HTMLInputElement).value.trim();
-                    const idCatInsumo = parseInt((document.getElementById("categoria") as HTMLSelectElement).value);
-                    const unidad = (document.getElementById("unidad") as HTMLSelectElement).value;
-                    const precioLimpio = (document.getElementById("precio") as HTMLInputElement).value.replace(/[^\d]/g, "");
-                    const precio = parseFloat(precioLimpio);
+  // ✅ Evitar doble clic
+  const btnSubmit = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+  if (!btnSubmit) return; // si no se encuentra el botón, se sale
+  if (btnSubmit.disabled) return; // si ya está deshabilitado, no hace nada
 
-                    // Funciones auxiliares para validaciones
-                    const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
-                    const hasLongRepeatSequence = (s: string, n = 4) =>
-                      new RegExp(`(.)\\1{${n - 1},}`).test(s);
-                    const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
-                    const hasTooManySpecialChars = (s: string, maxPercent = 0.4) => {
-                      const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
-                      return specials / s.length > maxPercent;
-                    };
-                    const hasLowVariety = (s: string, minUnique = 3) =>
-                      new Set(s).size < minUnique;
+  // 🔒 Deshabilitar botón y mostrar spinner
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = `
+    Creando...
+  `;
 
-                    // Validación: nombre vacío
-                    if (!nombre) {
-                      Swal.fire("⚠️ Campo requerido", "El nombre del insumo no puede estar vacío.", "warning");
-                      return;
-                    }
+  const nombre = (document.getElementById("nombre") as HTMLInputElement).value.trim();
+  const idCatInsumo = parseInt((document.getElementById("categoria") as HTMLSelectElement).value);
+  const unidad = (document.getElementById("unidad") as HTMLSelectElement).value;
+  const precioLimpio = (document.getElementById("precio") as HTMLInputElement).value.replace(/[^\d]/g, "");
+  const precio = parseFloat(precioLimpio);
 
-                    // Validación: caracteres permitidos
-                    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
-                      Swal.fire("❌ Nombre inválido", "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).", "error");
-                      return;
-                    }
+  // Funciones auxiliares de validación
+  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+  const hasLongRepeatSequence = (s: string, n = 4) => new RegExp(`(.)\\1{${n - 1},}`).test(s);
+  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+  const hasTooManySpecialChars = (s: string, maxPercent = 0.4) => {
+    const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+    return specials / s.length > maxPercent;
+  };
+  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
-                    // Validaciones de estructura del nombre
-                    if (
-                      nombre.length < 3 ||
-                      nombre.length > 50 ||
-                      isAllSameChar(nombre) ||
-                      hasLongRepeatSequence(nombre) ||
-                      isOnlySpecialChars(nombre) ||
-                      hasTooManySpecialChars(nombre) ||
-                      hasLowVariety(nombre)
-                    ) {
-                      Swal.fire("❌ Nombre inválido", "Debe tener entre 3 y 50 caracteres, sin repeticiones excesivas ni baja variedad.", "error");
-                      return;
-                    }
+  // ⚠️ Validaciones (sin cambios)
+  if (!nombre) {
+    Swal.fire("⚠️ Campo requerido", "El nombre del insumo no puede estar vacío.", "warning");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    // Validación: duplicado
-                    const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
-                    const existeDuplicado = insumos.some(
-                      (i) => i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado
-                    );
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
+    Swal.fire("❌ Nombre inválido", "El nombre solo puede contener letras, números y espacios.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    if (existeDuplicado) {
-                      Swal.fire("❌ Nombre duplicado", "Ya existe un insumo con ese nombre.", "error");
-                      return;
-                    }
+  if (
+    nombre.length < 3 ||
+    nombre.length > 50 ||
+    isAllSameChar(nombre) ||
+    hasLongRepeatSequence(nombre) ||
+    isOnlySpecialChars(nombre) ||
+    hasTooManySpecialChars(nombre) ||
+    hasLowVariety(nombre)
+  ) {
+    Swal.fire("❌ Nombre inválido", "Debe tener entre 3 y 50 caracteres válidos.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    if (!idCatInsumo) {
-                      Swal.fire("⚠️ Error", "Debe seleccionar una categoría.", "warning");
-                      return;
-                    }
+  const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
+  const existeDuplicado = insumos.some(
+    (i) => i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado
+  );
 
-                    if (!unidad) {
-                      Swal.fire("⚠️ Error", "Debe seleccionar una unidad de medida.", "warning");
-                      return;
-                    }
+  if (existeDuplicado) {
+    Swal.fire("❌ Nombre duplicado", "Ya existe un insumo con ese nombre.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    // Validaciones de precio
-                    if (isNaN(precio) || precio <= 0) {
-                      Swal.fire("❌ Precio inválido", "El precio unitario debe ser mayor a cero.", "error");
-                      return;
-                    }
+  if (!idCatInsumo) {
+    Swal.fire("⚠️ Error", "Debe seleccionar una categoría.", "warning");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    if (precio > 9999999) {
-                      Swal.fire("❌ Precio inválido", "El precio no puede superar 9.999.999.", "error");
-                      return;
-                    }
+  if (!unidad) {
+    Swal.fire("⚠️ Error", "Debe seleccionar una unidad de medida.", "warning");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                    // Crear insumo
-                    try {
-                      const resp = await fetch(buildApiUrl("Insumos/Crear"), {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          IdCatInsumo: idCatInsumo,
-                          Nombre: nombre,
-                          UnidadesMedidas: unidad,
-                          PrecioUnitario: precio,
-                          Cantidad: 0,
-                          Estado: true,
-                        }),
-                      });
+  if (isNaN(precio) || precio <= 0) {
+    Swal.fire("❌ Precio inválido", "El precio unitario debe ser mayor a cero.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                      if (!resp.ok) throw new Error("Error al crear el insumo");
-                      const nuevo = await resp.json();
+  if (precio > 9999999) {
+    Swal.fire("❌ Precio inválido", "El precio no puede superar 9.999.999.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
-                      // 🔹 Refrescar lista completa desde API para asegurar datos actualizados
-                      const insumosActualizadosRes = await fetch(buildApiUrl("Insumos/Lista"));
-                      const insumosActualizados = await insumosActualizadosRes.json();
-                      setInsumos(insumosActualizados);
+  // 🚀 Crear insumo
+  try {
+    const resp = await fetch(buildApiUrl("Insumos/Crear"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        IdCatInsumo: idCatInsumo,
+        Nombre: nombre,
+        UnidadesMedidas: unidad,
+        PrecioUnitario: precio,
+        Cantidad: 0,
+        Estado: true,
+      }),
+    });
 
-                      // 🔹 Buscar el insumo recién creado por nombre
-                      const insumoRecienCreado = insumosActualizados.find(
-                        (i: any) => i.IdInsumo === nuevo.IdInsumo
-                      );
+    if (!resp.ok) throw new Error("Error al crear el insumo");
+    const nuevo = await resp.json();
 
-                      if (insumoRecienCreado) {
-                        setDetalleCompra((prev) => [
-                          ...prev,
-                          {
-                            idInsumo: insumoRecienCreado.IdInsumo,
-                            insumo: insumoRecienCreado.Nombre,
-                            cantidad: 1,
-                            precio: insumoRecienCreado.PrecioUnitario,
-                            subtotal: insumoRecienCreado.PrecioUnitario,
-                          },
-                        ]);
+    const insumosActualizadosRes = await fetch(buildApiUrl("Insumos/Lista"));
+    const insumosActualizados = await insumosActualizadosRes.json();
+    setInsumos(insumosActualizados);
 
-                        setInsumoQuery((prev) => [...prev, ""]);
+    const insumoRecienCreado = insumosActualizados.find(
+      (i: any) => i.IdInsumo === nuevo.IdInsumo
+    );
 
-                        Swal.fire({
-                          icon: "success",
-                          title: "Insumo creado",
-                          text: `El insumo "${insumoRecienCreado.Nombre}" fue agregado al detalle.`,
-                          timer: 2000,
-                          showConfirmButton: false,
-                        });
-                      }
+    if (insumoRecienCreado) {
+      setDetalleCompra((prev) => [
+        ...prev,
+        {
+          idInsumo: insumoRecienCreado.IdInsumo,
+          insumo: insumoRecienCreado.Nombre,
+          cantidad: 1,
+          precio: insumoRecienCreado.PrecioUnitario,
+          subtotal: insumoRecienCreado.PrecioUnitario,
+        },
+      ]);
 
-                      modalContainer.remove();
-                    } catch (err) {
-                      console.error(err);
-                      Swal.fire("Error", "No se pudo crear el insumo. Intente nuevamente.", "error");
-                    }
-                  });
+      setInsumoQuery((prev) => [...prev, ""]);
+
+      Swal.fire({
+        icon: "success",
+        title: "Insumo creado",
+        text: `El insumo "${insumoRecienCreado.Nombre}" fue agregado al detalle.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+
+    modalContainer.remove();
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "No se pudo crear el insumo. Intente nuevamente.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+  }
+});
+
                 }}
               >
                 + Crear Insumo
@@ -751,7 +773,6 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             >
               {submitting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                   Creando...
                 </>
               ) : (

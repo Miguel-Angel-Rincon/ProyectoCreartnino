@@ -36,7 +36,6 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
-  // Evitar doble submit
   if (isSubmitting) return;
   setIsSubmitting(true);
 
@@ -136,6 +135,7 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
 
   // 🚀 Enviar datos al backend
   try {
+    setIsSubmitting(true);
     const resp = await fetch(
       `${APP_SETTINGS.apiUrl}Categoria_Insumos/Actualizar/${formData.IdCatInsumo}`,
       {
@@ -232,9 +232,19 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Guardar Cambios
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={isSubmitting} // 🚫 evita doble clic
+>
+  {isSubmitting ? (
+    <>
+      Guardando...
+    </>
+  ) : (
+    "Guardar Cambios"
+  )}
+</button>
             </div>
           </form>
         </div>

@@ -25,6 +25,7 @@ const EditarUsuarioModal: React.FC<Props> = ({ usuario, onClose, onEditar }) => 
   const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
 const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
 const [loadingCheck, setLoadingCheck] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🔹 Estado para roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
@@ -157,6 +158,7 @@ const handleAbrirDireccionModal = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (isSubmitting) return;
 
   const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
 
@@ -262,7 +264,7 @@ const handleAbrirDireccionModal = () => {
   }
 
   try {
-    // Editar usuario
+    setIsSubmitting(true);
     const resp = await fetch(`https://apicreartnino.somee.com/api/Usuarios/Actualizar/${formData.IdUsuarios}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -302,6 +304,8 @@ const handleAbrirDireccionModal = () => {
       text: "Error de conexión con el servidor.",
       confirmButtonColor: "#e83e8c",
     });
+  }finally{
+    setIsSubmitting(false);
   }
 };
 
@@ -558,9 +562,9 @@ const handleAbrirDireccionModal = () => {
               <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={loadingCheck || existeDoc === true || existeCorreo === true}
+  disabled={isSubmitting || loadingCheck || existeDoc === true}
 >
-  {loadingCheck ? "Verificando..." : "Guardar Cambios"}
+  {loadingCheck ? "Verificando..." : isSubmitting ? "Guardando..." : "Guardar Cambios"}
 </button>
             </div>
           </form>

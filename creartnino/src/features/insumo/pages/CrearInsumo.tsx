@@ -1,4 +1,3 @@
-// src/components/CrearInsumo.tsx
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import "../styles/acciones.css";
@@ -6,16 +5,16 @@ import { APP_SETTINGS } from "../../../settings/appsettings";
 import type { ICatInsumos } from "../../interfaces/ICatInsumos";
 import type { IInsumos } from "../../interfaces/IInsumos";
 
-
 interface Props {
   onClose: () => void;
   onCrear: () => void; // 👈 refresca lista
-  insumos: IInsumos[]; 
+  insumos: IInsumos[];
 }
 
-const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
+const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
   const [precioTexto, setPrecioTexto] = useState("");
   const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ evita doble clic
 
   // --- API Base URL ---
   const apiBaseRaw =
@@ -45,159 +44,163 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
       }
     };
     obtenerCategorias();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Crear insumo ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const form = e.currentTarget;
+    e.preventDefault();
+    if (isSubmitting) return; // ✅ evita doble clic
 
-  const nombre = form.nombre.value.trim();
-  const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, "");
-  const precioUnitario = parseFloat(precioLimpio);
-  const unidadMedida = form.unidadMedida.value;
-  const idCatInsumo = parseInt(form.categoria.value);
+    setIsSubmitting(true);
+    const form = e.currentTarget;
 
-  // 🔹 Funciones auxiliares
-  const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
-  const hasLongRepeatSequence = (s: string, n = 4) => new RegExp(`(.)\\1{${n - 1},}`).test(s);
-  const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
-  const hasTooManySpecialChars = (s: string, maxPercent = 0.4) => {
-    const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
-    return specials / s.length > maxPercent;
+    const nombre = form.nombre.value.trim();
+    const precioLimpio = form.precioUnitario.value.replace(/[^\d]/g, "");
+    const precioUnitario = parseFloat(precioLimpio);
+    const unidadMedida = form.unidadMedida.value;
+    const idCatInsumo = parseInt(form.categoria.value);
+
+    // --- Validaciones ---
+    const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
+    const hasLongRepeatSequence = (s: string, n = 4) => new RegExp(`(.)\\1{${n - 1},}`).test(s);
+    const isOnlySpecialChars = (s: string) => /^[^a-zA-Z0-9]+$/.test(s);
+    const hasTooManySpecialChars = (s: string, maxPercent = 0.4) => {
+      const specials = (s.match(/[^a-zA-Z0-9]/g) || []).length;
+      return specials / s.length > maxPercent;
+    };
+    const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
+
+    if (!nombre) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Campo requerido",
+        text: "El nombre del insumo no puede estar vacío.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Nombre inválido",
+        text: "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (
+      nombre.length < 3 ||
+      nombre.length > 50 ||
+      isAllSameChar(nombre) ||
+      hasLongRepeatSequence(nombre) ||
+      isOnlySpecialChars(nombre) ||
+      hasTooManySpecialChars(nombre) ||
+      hasLowVariety(nombre)
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Nombre inválido",
+        text: "Debe tener entre 3 y 50 caracteres, sin repeticiones excesivas ni baja variedad.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
+    const existeDuplicado = insumos.some(
+      (i) => i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado
+    );
+
+    if (existeDuplicado) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Nombre duplicado",
+        text: "Ya existe un insumo con ese nombre.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (isNaN(precioUnitario) || precioUnitario <= 0) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Precio inválido",
+        text: "El precio unitario debe ser mayor a cero.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (precioUnitario > 9999999) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Precio inválido",
+        text: "El precio no puede superar 9.999.999.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!unidadMedida) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Unidad de medida requerida",
+        text: "Debes seleccionar una unidad de medida.",
+        confirmButtonColor: "#f78fb3",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // --- Crear objeto final ---
+    const nuevoInsumo = {
+      IdCatInsumo: idCatInsumo,
+      Nombre: nombre,
+      UnidadesMedidas: unidadMedida,
+      Cantidad: 0,
+      PrecioUnitario: precioUnitario,
+      Estado: form.estado?.checked ?? true,
+    };
+
+    try {
+      const resp = await fetch(buildUrl("Insumos/Crear"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoInsumo),
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "Insumo creado correctamente.",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+
+      onCrear();
+    } catch (err) {
+      console.error("crearInsumo:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear el insumo.",
+        confirmButtonColor: "#f78fb3",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
-
-  // ✅ Validación: nombre vacío
-  if (!nombre) {
-    Swal.fire({
-      icon: "warning",
-      title: "⚠️ Campo requerido",
-      text: "El nombre del insumo no puede estar vacío.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Validación: caracteres permitidos (solo letras, números y espacios)
-  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Nombre inválido",
-      text: "El nombre solo puede contener letras, números y espacios (sin caracteres especiales).",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Validaciones de estructura del nombre
-  if (
-    nombre.length < 3 ||
-    nombre.length > 50 ||
-    isAllSameChar(nombre) ||
-    hasLongRepeatSequence(nombre) ||
-    isOnlySpecialChars(nombre) ||
-    hasTooManySpecialChars(nombre) ||
-    hasLowVariety(nombre)
-  ) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Nombre inválido",
-      text: "Debe tener entre 3 y 50 caracteres, sin repeticiones excesivas ni baja variedad.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Validación: duplicado (ignora mayúsculas y espacios)
-  const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
-  const existeDuplicado = insumos.some(
-    (i) => i.Nombre.toLowerCase().replace(/\s+/g, "") === nombreNormalizado
-  );
-
-  if (existeDuplicado) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Nombre duplicado",
-      text: "Ya existe un insumo con ese nombre.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Validaciones de precio
-  if (isNaN(precioUnitario) || precioUnitario <= 0) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Precio inválido",
-      text: "El precio unitario debe ser mayor a cero.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  if (precioUnitario > 9999999) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Precio inválido",
-      text: "El precio no puede superar 9.999.999.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Validación unidad de medida
-  if (!unidadMedida) {
-    Swal.fire({
-      icon: "error",
-      title: "❌ Unidad de medida requerida",
-      text: "Debes seleccionar una unidad de medida.",
-      confirmButtonColor: "#f78fb3",
-    });
-    return;
-  }
-
-  // ✅ Crear objeto final (cantidad inicia en 0)
-  const nuevoInsumo = {
-    IdCatInsumo: idCatInsumo,
-    Nombre: nombre,
-    UnidadesMedidas: unidadMedida,
-    Cantidad: 0, // 👈 Inicia en 0
-    PrecioUnitario: precioUnitario,
-    Estado: form.estado?.checked ?? true, // por defecto activo
-  };
-
-  try {
-    const resp = await fetch(buildUrl("Insumos/Crear"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoInsumo),
-    });
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-    Swal.fire({
-      icon: "success",
-      title: "Éxito",
-      text: "Insumo creado correctamente.",
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-
-    onCrear(); // refresca lista en el padre
-  } catch (err) {
-    console.error("crearInsumo:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo crear el insumo.",
-      confirmButtonColor: "#f78fb3",
-    });
-  }
-};
-
 
   const formatearCOPInput = (valor: string) => {
     const num = parseInt(valor);
@@ -212,8 +215,14 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
           <form onSubmit={handleSubmit}>
             <div className="modal-header pastel-header">
               <h5 className="modal-title">🧰 Crear Insumo</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+                disabled={isSubmitting}
+              ></button>
             </div>
+
             <div className="modal-body px-4 py-3">
               <div className="row g-4">
                 {/* Nombre */}
@@ -285,12 +294,29 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear,insumos }) => {
               </div>
             </div>
 
+            {/* Footer con control de doble clic */}
             <div className="modal-footer pastel-footer">
-              <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn pastel-btn-secondary"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Crear
+
+              <button
+                type="submit"
+                className="btn pastel-btn-primary d-flex align-items-center justify-content-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    Creando...
+                  </>
+                ) : (
+                  "Crear"
+                )}
               </button>
             </div>
           </form>

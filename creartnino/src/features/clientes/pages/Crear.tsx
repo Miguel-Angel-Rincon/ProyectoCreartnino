@@ -551,7 +551,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           disabled={botonDeshabilitado}
         >
           {isSubmitting
-            ? "Guardando..."
+            ? "Creando..."
             : loading
             ? "Verificando..."
             : existeDocumento === true || existeCorreo === true

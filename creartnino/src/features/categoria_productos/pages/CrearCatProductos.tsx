@@ -225,9 +225,13 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Crear
-              </button>
+              <button
+    type="submit"
+    className="btn pastel-btn-primary"
+    disabled={isSubmitting} // ✅ evita doble clic
+  >
+    {isSubmitting ? "Creando..." : "Crear"} {/* 🔹 feedback visual */}
+  </button>
             </div>
           </form>
         </div>

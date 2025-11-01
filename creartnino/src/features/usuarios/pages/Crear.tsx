@@ -33,6 +33,8 @@ const CrearUsuarioModal: React.FC<Props> = ({ onClose , onCrear }) => {
   const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
 const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
 const [loadingCheck, setLoadingCheck] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
+
 
 
   // Roles desde API
@@ -139,6 +141,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (isSubmitting) return;
 
   const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
 
@@ -244,7 +247,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
   }
 
   try {
-    // Crear usuario
+    setIsSubmitting(true);
     const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -319,12 +322,10 @@ onClose();
       text: "Error de conexión con el servidor.",
       confirmButtonColor: "#e83e8c",
     });
+  } finally{
+    setIsSubmitting(false); 
   }
 };
-
-
-
-
   return (
     <div className="modal d-block overlay" tabIndex={-1}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -533,9 +534,9 @@ onClose();
               <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={loadingCheck || existeDoc === true || existeCorreo === true}
+  disabled={isSubmitting || loadingCheck || existeDoc === true}
 >
-  {loadingCheck ? "Verificando..." : "Crear"}
+  {loadingCheck ? "Verificando..." : isSubmitting ? "Creando..." : "Crear"}
 </button>
             </div>
           </form>

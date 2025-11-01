@@ -57,6 +57,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [clienteDocumento, setClienteDocumento] = useState("");
   const [valorInicialPersonalizado, setValorInicialPersonalizado] = useState<number | string>("");
   const [helperText, setHelperText] = useState<string>("");
+const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchFechaServidor = async () => {
@@ -345,6 +346,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; 
 
     if (!clienteSeleccionado) {
       await Swal.fire({
@@ -402,6 +404,20 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
     const total = calcularTotal();
     const valorInicial = calcularValorInicial();
 
+    if (
+  valorInicialPersonalizado === "" ||
+  isNaN(valorInicial) ||
+  valorInicial <= 0
+) {
+  await Swal.fire({
+    icon: "warning",
+    title: "Valor inicial requerido",
+    text: "Debe ingresar un valor inicial válido mayor que 0.",
+  });
+  return;
+}
+
+
     const nuevoPedido = {
       IdCliente: clienteSeleccionado?.IdCliente ?? 0,
       MetodoPago: metodoPago,
@@ -421,6 +437,7 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
     };
 
     try {
+      setIsSubmitting(true); // ✅ bloquea el botón
       const pedidoRes = await fetch(
         "https://apicreartnino.somee.com/api/Pedidos/Crear",
         {
@@ -490,6 +507,8 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
     } catch (error: any) {
       console.error(error);
       Swal.fire({ icon: "error", title: "Error", text: error.message });
+    } finally{
+      setIsSubmitting(false);
     }
   };
 
@@ -918,9 +937,20 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
           >
             Cancelar
           </button>
-          <button type="submit" className="btn pastel-btn-primary">
-            Crear
-          </button>
+          <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={isSubmitting} // 🚫 evita doble clic
+>
+  {isSubmitting ? (
+    <>
+      Creando...
+    </>
+  ) : (
+    "Crear"
+  )}
+</button>
+
         </div>
       </form>
     </div>

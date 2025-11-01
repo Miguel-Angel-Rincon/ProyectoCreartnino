@@ -38,6 +38,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  setIsSubmitting(true);
 
   // ✅ Evitar doble envío
   if (isSubmitting) return;
@@ -237,9 +238,19 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Guardar Cambios
-              </button>
+              <button
+  type="submit"
+  className="btn pastel-btn-primary"
+  disabled={isSubmitting} // 🚫 evita doble clic
+>
+  {isSubmitting ? (
+    <>
+      Guardando...
+    </>
+  ) : (
+    "Guardar Cambios"
+  )}
+</button>
             </div>
           </form>
         </div>

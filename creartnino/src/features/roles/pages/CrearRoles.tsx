@@ -26,6 +26,7 @@ interface Permiso {
 const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) => {
   const [permisosDisponibles, setPermisosDisponibles] = useState<Permiso[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchPermisos = async () => {
@@ -69,6 +70,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  if (isSubmitting) return;
   const form = e.currentTarget;
 
   const rol = (form.nombre as HTMLInputElement).value.trim();
@@ -164,6 +166,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
 
   // ---------- Si pasa todo: envío al backend ----------
   try {
+    setIsSubmitting(true);
     const response = await fetch("https://apicreartnino.somee.com/api/Roles/Crear", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +212,8 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
   } catch (error) {
     console.error(error);
     Swal.fire("Error", "No se pudo crear el rol", "error");
+  } finally{
+    setIsSubmitting(false);
   }
 };
 
@@ -275,8 +280,18 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
               <button type="button" className="btn pastel-btn-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="submit" className="btn pastel-btn-primary">
-                Crear
+               <button
+                type="submit"
+                className="btn pastel-btn-primary d-flex align-items-center justify-content-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    Creando...
+                  </>
+                ) : (
+                  "Crear"
+                )}
               </button>
             </div>
           </form>

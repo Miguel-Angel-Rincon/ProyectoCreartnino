@@ -30,6 +30,7 @@ const EditarProveedorModal: React.FC<Props> = ({ proveedor, onClose, onEditar })
   const [showDireccionModal, setShowDireccionModal] = useState(false);
   const [existeDoc, setExisteDoc] = useState<null | boolean>(null);
 const [loadingCheck, setLoadingCheck] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   // ahora direccionData usa municipio, barrio, calle (coherente con CrearProveedorModal)
@@ -348,10 +349,12 @@ const [loadingCheck, setLoadingCheck] = useState(false);
   // submit -> PUT a Proveedores/Actualizar/{id}
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     if (!validarCamposObligatorios()) return;
 
     try {
+      setIsSubmitting(true);
       const resp = await fetch(`${APP_SETTINGS.apiUrl}Proveedores/Actualizar/${formData.IdProveedor}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -381,6 +384,8 @@ const [loadingCheck, setLoadingCheck] = useState(false);
         text: "No se pudo conectar con el servidor.",
         confirmButtonColor: "#f78fb3",
       });
+    }finally{
+      setIsSubmitting(false);
     }
   };
 
@@ -501,9 +506,9 @@ const [loadingCheck, setLoadingCheck] = useState(false);
               <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={loadingCheck || existeDoc === true}
+  disabled={isSubmitting || loadingCheck || existeDoc === true}
 >
-  {loadingCheck ? "Verificando..." : "Guardar Cambios"}
+  {loadingCheck ? "Verificando..." : isSubmitting ? "Guardando..." : "Guardar Cambios"}
 </button>
 
             </div>
