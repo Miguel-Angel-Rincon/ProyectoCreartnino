@@ -8,7 +8,6 @@ import {
   FaUser,
   FaEnvelope,
   FaPhone,
-  FaPen,
   FaMapMarkerAlt,
   FaFileUpload,
   FaCreditCard,
@@ -38,6 +37,43 @@ const metodoInfo: Record<MetodoKey, Metodo> = {
   Bancolombia: { nombre: "Rina Isabela Ramírez Lugo", numero: "123-456789-01", banco: "Bancolombia" },
 };
 
+const extraerMensajeReal = (cadena: string): string => {
+  if (!cadena) return "";
+
+  // Extraer "Mensajes:" o "Mensaje:" seguido de valores hasta el siguiente campo
+  const match = cadena.match(/Mensajes?:\s*([^|]+)/i);
+
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+
+  return cadena;
+};
+
+
+const limpiarCampo = (texto: string | undefined): string => {
+  if (!texto) return "";
+
+  return texto
+    .replace(/^color:\s*/i, "")
+    .replace(/^otra cosa:\s*/i, "")
+    .trim();
+};
+
+const extraerReferencias = (texto: string): string[] => {
+  if (!texto) return [];
+
+  // Tomar solo la parte después de "Referencias:"
+  const refsPart = texto.split("Referencias:")[1];
+  if (!refsPart) return [];
+
+  return refsPart
+    .split(/[-\n]/) // separar por guiones y saltos de línea
+    .map((x) => x.trim())
+    .filter((x) => x.startsWith("http")); // solo URLs válidas
+};
+
+
 const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) => {
   const { carrito, total, limpiarCarrito } = useCarrito();
   const { usuario } = useAuth();
@@ -57,7 +93,7 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
 
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [descripcion, setDescripcion] = useState('');
+  const [, setDescripcion] = useState('');
   const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [mostrarImagen, setMostrarImagen] = useState(false);
   const [fechaEntrega, setFechaEntrega] = useState<string>('');
@@ -66,6 +102,9 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
   const [fechaServidor, setFechaServidor] = useState<string>("");
   const [valorInicial, setValorInicial] = useState<number>(0);
   const [valorInicialInput, setValorInicialInput] = useState<string>('');
+  const [productoVisualizar, setProductoVisualizar] = useState<any>(null);
+const [showVisualizarModal, setShowVisualizarModal] = useState(false);
+const [indexImg, setIndexImg] = useState(0);
 
   const pagoInicial = valorInicial;
   const restante = total - valorInicial;
@@ -279,7 +318,7 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
           })
           .join(", ");
 
-        return `${listaProductos}\n\nEste pedido fue realizado desde la web.`;
+        return `${listaProductos.replace(/, /g, '\n')}\n\nEste pedido fue realizado desde la web.`;
       })();
 
       // 3️⃣ Payload exacto según contrato
@@ -366,6 +405,14 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
   };
 
   if (!visible) return null;
+  // ✅ Debug para ver qué trae realmente el producto
+console.log("🔥 imagenPersonalizada:", productoVisualizar?.imagenPersonalizada);
+console.log("🔥 mensaje:", productoVisualizar?.mensaje);
+console.log("🔥 nombre:", productoVisualizar?.nombre);
+console.log("🔥 tamaño:", productoVisualizar?.tamaño);
+console.log("🔥 color:", productoVisualizar?.color);
+console.log("🔥 otraCosa:", productoVisualizar?.otraCosa);
+
 
   return (
     <div className="overlay-modal">
@@ -622,15 +669,34 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
         
         {/* ✏️ Campo Descripción (solo visible si el pedido viene del carrito) */}
         {carrito.length > 0 && carrito.some((p) => p.tipo === "Personalizado") && (
-          <div className="input-icono" data-label="Descripción del pedido">
-            <FaPen className="icono" />
-            <textarea
-              value={`${descripcion ? descripcion + "\n\n" : ""}(Este pedido fue realizado desde la web.)`}
-              readOnly
-              className="descripcion-textarea"
-            />
+  <div className="descripcion-personalizados">
+
+    <h3 className="titulo-personalizacion">Personalización del pedido</h3>
+
+    {carrito
+      .filter((p) => p.tipo === "Personalizado")
+      .map((p, index) => (
+        <div key={index} className="custom-card">
+          <div>
+            <strong className="custom-name">{p.Nombre}</strong>
+            <span className="custom-tag">Personalizado</span>
           </div>
-        )}
+
+          <button
+            className="btn-visualizar"
+            onClick={() => {
+              setProductoVisualizar(p);
+              setShowVisualizarModal(true);
+            }}
+          >
+            Visualizar
+          </button>
+        </div>
+      ))}
+  </div>
+)}
+
+
         
         {/* 💰 Resumen */}
         <div className="resumen-pago">
@@ -670,6 +736,108 @@ const FinalizarCompraModal: React.FC<Props> = ({ visible, onClose, onEnviar }) =
         </button>
 
       </div>
+
+      {showVisualizarModal && productoVisualizar && (
+  <div className="overlay-submodal">
+    <div className="submodal-v2">
+      <h3 className="title">{productoVisualizar.Nombre}</h3>
+      <p className="subtitle">Detalles del personalizado</p>
+
+      <div className="grid-detalle-v2">
+        <div><strong>Nombre personalizado:</strong> {productoVisualizar.nombre || "—"}</div>
+        <div><strong>Tamaño:</strong> {productoVisualizar.tamaño || "—"}</div>
+        {productoVisualizar.color && (
+  <div><strong>Color:</strong> {limpiarCampo(productoVisualizar.color)}</div>
+)}
+
+{productoVisualizar.otraCosa && (
+  <div><strong>Otra cosa:</strong> {limpiarCampo(productoVisualizar.otraCosa)}</div>
+)}
+
+
+      </div>
+
+      <div className="mensaje-box">
+        <strong>Mensaje:</strong> {extraerMensajeReal(productoVisualizar.mensaje || "")}
+      </div>
+
+{/* ✅ Carrusel con flechas y título */}
+{productoVisualizar.mensaje && (() => {
+  const referencias = extraerReferencias(productoVisualizar.mensaje);
+
+  if (referencias.length === 0) return null;
+
+  const imgActual = referencias[indexImg];
+
+  return (
+    <div className="carousel-wrapper">
+      
+      <h4 className="carousel-title">
+  {referencias.length === 1 ? "Referencia" : "Referencias"}
+</h4>
+
+      <div className="carousel-container">
+        {/* Flecha izquierda */}
+        {referencias.length > 1 && (
+          <button
+            className="carousel-btn left"
+            onClick={() =>
+              setIndexImg((prev) =>
+                prev === 0 ? referencias.length - 1 : prev - 1
+              )
+            }
+          >
+            ❮
+          </button>
+        )}
+
+        {/* Imagen actual */}
+        <img
+          src={imgActual}
+          alt="Referencia"
+          className="carousel-image"
+        />
+
+        {/* Flecha derecha */}
+        {referencias.length > 1 && (
+          <button
+            className="carousel-btn right"
+            onClick={() =>
+              setIndexImg((prev) =>
+                prev === referencias.length - 1 ? 0 : prev + 1
+              )
+            }
+          >
+            ❯
+          </button>
+        )}
+      </div>
+
+      {/* ✅ Dots abajo estilo Instagram */}
+      {referencias.length > 1 && (
+        <div className="carousel-dots">
+          {referencias.map((_, i) => (
+            <span
+              key={i}
+              className={`dot ${indexImg === i ? "active" : ""}`}
+              onClick={() => setIndexImg(i)}
+            ></span>
+          ))}
+        </div>
+      )}
+
+    </div>
+  );
+})()}
+
+
+      <br /><button className="btn-cerrar-modal" onClick={() => setShowVisualizarModal(false)}>
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
+
 
       {/* 🔍 Modal imagen ampliada */}
       {mostrarImagen && (

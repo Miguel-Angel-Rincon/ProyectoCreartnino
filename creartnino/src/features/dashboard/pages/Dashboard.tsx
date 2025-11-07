@@ -331,15 +331,21 @@ const topProductos = Object.entries(conteoProductos)
     const id = Number(idStr);
     const prod = productos.find((p) => p.IdProducto === id);
     const img = imagenes.find((i) => i.IdImagen === prod?.Imagen);
+    
+    // Extraer la primera URL si hay múltiples separadas por |||
+    let imageUrl = img?.Url ?? "https://via.placeholder.com/150";
+    if (imageUrl.includes("|||")) {
+      imageUrl = imageUrl.split("|||")[0].trim();
+    }
+    
     return {
       id,
       name: prod?.Nombre ?? "Sin nombre",
       price: prod?.Precio ? `$${prod.Precio.toLocaleString("es-CO")}` : "$0",
-      img: img?.Url ?? "https://via.placeholder.com/150",
+      img: imageUrl,
       cantidad,
     };
   });
-
 
 
   if (loading) return <p>Cargando datos...</p>;

@@ -49,6 +49,11 @@ const ListarCompras: React.FC = () => {
   const apiBase = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
   const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
 
+  const formatCOP = (value: number | string | undefined | null) => {
+    const n = Number(value) || 0;
+    return n.toLocaleString("es-CO");
+  };
+
   // --- Cargar datos ---
   const cargarDatos = async () => {
     try {
@@ -526,7 +531,7 @@ const generarPDF = async (
                       <td>{proveedor}</td>
                       <td>{c.MetodoPago}</td>
                       <td>{new Date(c.FechaCompra).toLocaleDateString()}</td>
-                     <td>{c.Total.toLocaleString()}</td>
+                     <td>{formatCOP(c.Total)}</td>
 <td>
   {nombreEstado === "Anulada" || nombreEstado === "Recibida" ? (
     <select

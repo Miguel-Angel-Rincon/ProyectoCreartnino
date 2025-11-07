@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Swal from "sweetalert2";
 import {
   FaCalculator,
@@ -34,6 +34,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fechaCompra, setFechaCompra] = useState<string>("");
+  const tempIdCounter = useRef(-1);
 
   const buildApiUrl = (path: string) => {
     const base = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
@@ -111,12 +112,35 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   const calcularSubtotalFila = (cantidad: number, precio: number) =>
     Math.round(cantidad * precio * 100) / 100;
 
+  // Formatea número a COP con separador de miles (ej: 5000 -> "5.000")
+  const formatCOP = (value: number | string) => {
+    const n = Number(value) || 0;
+    if (n === 0) return "";
+    return n.toLocaleString("es-CO");
+  };
+
+  const formatCOPWithSign = (value: number | string) => {
+    const f = formatCOP(value);
+    return f ? `$${f}` : "";
+  };
+
   const actualizarDetalle = (index: number, campo: keyof CompraDetalle, valor: string | number) => {
     const copia = [...detalleCompra];
     if (!copia[index]) return;
 
     if (campo === "cantidad") copia[index].cantidad = Number(valor) || 0;
-    else if (campo === "precio") copia[index].precio = Number(valor) || 0;
+    else if (campo === "precio") {
+      copia[index].precio = Number(valor) || 0;
+      // Si la fila se refiere a un insumo local o existente, actualizar su precio en el listado local
+      const id = copia[index].idInsumo;
+      if (id !== undefined && id !== null) {
+        setInsumos((prev) =>
+          prev.map((p) =>
+            p.IdInsumo === id ? { ...p, PrecioUnitario: Number(copia[index].precio) } : p
+          )
+        );
+      }
+    }
     else if (campo === "insumo") {
       const insu = insumos.find((i) => i.Nombre === valor);
       copia[index].insumo = insu?.Nombre ?? (valor as string);
@@ -140,18 +164,35 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
   };
 
   const handleInsumoQueryChange = (index: number, value: string) => {
-    setInsumoQuery((prev) => {
-      const copia = [...prev];
-      copia[index] = value;
-      return copia;
-    });
-    setDetalleCompra((prev) => {
-      const copia = [...prev];
-      if (copia[index])
+  setInsumoQuery((prev) => {
+    const copia = [...prev];
+    copia[index] = value;
+    return copia;
+  });
+  
+  setDetalleCompra((prev) => {
+    const copia = [...prev];
+    if (copia[index]) {
+      const currentIdInsumo = copia[index].idInsumo;
+      
+      // ✅ Si tiene un ID temporal (negativo), mantenerlo y actualizar el nombre
+      if (currentIdInsumo !== undefined && currentIdInsumo !== null && currentIdInsumo < 0) {
+        copia[index] = { ...copia[index], insumo: value };
+        
+        // ✅ Actualizar también el nombre en la lista de insumos
+        setInsumos((prevInsumos) =>
+          prevInsumos.map((ins) =>
+            ins.IdInsumo === currentIdInsumo ? { ...ins, Nombre: value } : ins
+          )
+        );
+      } else {
+        // Si no tiene ID o tiene ID positivo (del servidor), limpiar como antes
         copia[index] = { ...copia[index], insumo: "", idInsumo: undefined };
-      return copia;
-    });
-  };
+      }
+    }
+    return copia;
+  });
+};
 
   const eliminarDetalle = (index: number) => {
     setDetalleCompra((prev) => prev.filter((_, i) => i !== index));
@@ -222,65 +263,131 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
       return;
     }
 
-    const payload = {
-      IdCompra: 0,
-      IdProveedor: proveedorIdSeleccionado,
-      MetodoPago: metodoPago,
-      FechaCompra: fechaCompra,
-      Total: total,
-      IdEstado: 1,
-      DetallesCompras: detalleCompra.map((d) => ({
-        IdDetalleCompra: 0,
-        IdCompra: 0,
-        IdInsumo: d.idInsumo,
-        Cantidad: d.cantidad,
-        PrecioUnitario: d.precio,
-        Subtotal: d.subtotal,
-      })),
-    };
+      setSubmitting(true);
 
-    setSubmitting(true);
-    try {
-      const resp = await fetch(buildApiUrl("Compras/Crear"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const detalleCopy = detalleCompra.map((d) => ({ ...d }));
 
-      if (!resp.ok) throw new Error("Error al crear la compra");
+        // Create any temporary local insumos (negative Id) on the server now
+        const tempInsumos = insumos.filter((i) => (i.IdInsumo ?? 0) < 0);
+        if (tempInsumos.length > 0) {
+          for (const temp of tempInsumos) {
+            const respTemp = await fetch(buildApiUrl("Insumos/Crear"), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                IdCatInsumo: (temp as any).IdCatInsumo,
+                Nombre: (temp as any).Nombre,
+                UnidadesMedidas: (temp as any).UnidadesMedidas,
+                PrecioUnitario: (temp as any).PrecioUnitario,
+                Cantidad: (temp as any).Cantidad ?? 0,
+                Estado: true,
+              }),
+            });
 
-      const compraCreada = await resp.json();
+            if (!respTemp.ok) throw new Error(`Error al crear insumo "${(temp as any).Nombre}" en el servidor`);
+            const created = await respTemp.json();
 
-      for (let detalle of detalleCompra) {
-        if (!detalle.idInsumo) continue;
-        const insumo = insumos.find((i) => i.IdInsumo === detalle.idInsumo);
-        if (!insumo) continue;
+            // replace temp ids with real ids in detalleCopy
+            for (let j = 0; j < detalleCopy.length; j++) {
+              if (detalleCopy[j].idInsumo === temp.IdInsumo) detalleCopy[j].idInsumo = created.IdInsumo;
+            }
 
-        const nuevaCantidad = (insumo.Cantidad ?? 0) + detalle.cantidad;
+            // replace local insumo entry id
+            setInsumos((prev) => prev.map((p) => (p.IdInsumo === temp.IdInsumo ? { ...p, IdInsumo: created.IdInsumo } : p)));
+          }
 
-        await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
-          method: "PUT",
+          setDetalleCompra(detalleCopy);
+          // Obtener lista actualizada desde servidor para sincronizar precios/ids
+          try {
+            const listaRes = await fetch(buildApiUrl("Insumos/Lista"));
+            if (listaRes.ok) {
+              const lista = await listaRes.json();
+              setInsumos(lista);
+            }
+          } catch (err) {
+            console.warn("No se pudo refrescar la lista de insumos después de crear temporales:", err);
+          }
+        }
+
+        const payload = {
+          IdCompra: 0,
+          IdProveedor: proveedorIdSeleccionado,
+          MetodoPago: metodoPago,
+          FechaCompra: fechaCompra,
+          Total: total,
+          IdEstado: 1,
+          DetallesCompras: detalleCopy.map((d) => ({
+            IdDetalleCompra: 0,
+            IdCompra: 0,
+            IdInsumo: d.idInsumo,
+            Cantidad: d.cantidad,
+            PrecioUnitario: d.precio,
+            Subtotal: d.subtotal,
+          })),
+        };
+
+        const resp = await fetch(buildApiUrl("Compras/Crear"), {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
+          body: JSON.stringify(payload),
         });
-      }
 
-      Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Compra creada correctamente.",
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-      onCrear(compraCreada);
-      onClose();
-    } catch (err: any) {
-      console.error("❌ Error al guardar la compra:", err);
-      Swal.fire("❌ Error", err.message || "No se pudo guardar la compra.", "error");
-    } finally {
-      setSubmitting(false);
-    }
+        if (!resp.ok) throw new Error("Error al crear la compra");
+
+        const compraCreada = await resp.json();
+
+        // Obtener la lista más reciente de insumos desde el servidor antes de actualizar cantidades
+        let latestInsumos: any[] = insumos;
+        try {
+          const latestRes = await fetch(buildApiUrl("Insumos/Lista"));
+          if (latestRes.ok) latestInsumos = await latestRes.json();
+        } catch (err) {
+          console.warn("No se pudo obtener la lista de insumos actual antes de actualizar cantidades:", err);
+        }
+
+        for (let detalle of detalleCopy) {
+          if (!detalle.idInsumo) continue;
+          const insumo = latestInsumos.find((i) => i.IdInsumo === detalle.idInsumo);
+          if (!insumo) continue;
+
+          const currentCantidad = Number(insumo.Cantidad ?? insumo.cantidad ?? 0);
+          const nuevaCantidad = currentCantidad + detalle.cantidad;
+
+          await fetch(buildApiUrl(`Insumos/Actualizar/${detalle.idInsumo}`), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...insumo, Cantidad: nuevaCantidad }),
+          });
+        }
+
+        // Refrescar lista de insumos para que muestre las cantidades actualizadas
+        try {
+          const listaRes2 = await fetch(buildApiUrl("Insumos/Lista"));
+          if (listaRes2.ok) {
+            const lista2 = await listaRes2.json();
+            setInsumos(lista2);
+          }
+        } catch (err) {
+          console.warn("No se pudo refrescar la lista de insumos después de actualizar cantidades:", err);
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Compra creada correctamente.",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        onCrear(compraCreada);
+        onClose();
+      } catch (err: any) {
+        console.error("❌ Error al guardar la compra:", err);
+        Swal.fire("❌ Error", err.message || "No se pudo guardar la compra.", "error");
+      } finally {
+        setSubmitting(false);
+      }
   };
 
   return (
@@ -375,59 +482,60 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             {detalleCompra.map((item, index) => (
               <div key={index} className="row align-items-center mb-2 position-relative">
                 <div className="col-md-3 position-relative">
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="Buscar insumo..."
-                    value={insumoQuery[index] || item.insumo || ""}
-                    onChange={(e) => {
-                      let valor = e.target.value;
-                      valor = valor.replace(/^\s+/, "");
-                      valor = valor.replace(/\s{2,}/g, " ");
-                      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-                        mostrarAlertaInvalida();
-                        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-                      }
-                      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-                      handleInsumoQueryChange(index, valor);
-                    }}
-                  />
+  <input
+    type="text"
+    className="form-control form-control-sm"
+    placeholder="Buscar insumo..."
+    value={insumoQuery[index] || item.insumo || ""}
+    onChange={(e) => {
+      let valor = e.target.value;
+      valor = valor.replace(/^\s+/, "");
+      valor = valor.replace(/\s{2,}/g, " ");
+      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+        mostrarAlertaInvalida();
+        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+      }
+      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+      handleInsumoQueryChange(index, valor);
+    }}
+  />
 
-                  {insumoQuery[index] && (
-                    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
-                      {insumos
-                        .filter(
-                          (i) =>
-                            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
-                            !detalleCompra.some((d, di) => d.idInsumo === i.IdInsumo && di !== index)
-                        )
-                        .map((i) => (
-                          <li
-                            key={i.IdInsumo}
-                            className="list-group-item list-group-item-action"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => {
-                              seleccionarInsumo(index, i.Nombre);
-                              setInsumoQuery((prev) => {
-                                const copy = [...prev];
-                                copy[index] = i.Nombre;
-                                return copy;
-                              });
-                              setTimeout(() => {
-                                setInsumoQuery((prev) => {
-                                  const copy = [...prev];
-                                  copy[index] = "";
-                                  return copy;
-                                });
-                              }, 200);
-                            }}
-                          >
-                            {i.Nombre} – ${((i as any).PrecioUnitario ?? (i as any).Precio).toLocaleString("es-CO")}
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-                </div>
+  {/* ✅ Solo mostrar dropdown si NO tiene idInsumo asignado O si el ID es temporal */}
+  {insumoQuery[index] && (!item.idInsumo || (item.idInsumo && item.idInsumo >= 0)) && (
+    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
+      {insumos
+        .filter(
+          (i) =>
+            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
+            !detalleCompra.some((d, di) => d.idInsumo === i.IdInsumo && di !== index)
+        )
+        .map((i) => (
+          <li
+            key={i.IdInsumo}
+            className="list-group-item list-group-item-action"
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              seleccionarInsumo(index, i.Nombre);
+              setInsumoQuery((prev) => {
+                const copy = [...prev];
+                copy[index] = i.Nombre;
+                return copy;
+              });
+              setTimeout(() => {
+                setInsumoQuery((prev) => {
+                  const copy = [...prev];
+                  copy[index] = "";
+                  return copy;
+                });
+              }, 200);
+            }}
+          >
+            {i.Nombre} – ${((i as any).PrecioUnitario ?? (i as any).Precio).toLocaleString("es-CO")}
+          </li>
+        ))}
+    </ul>
+  )}
+</div>
 
                 <div className="col-md-2">
                   <input
@@ -454,12 +562,27 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
                   />
                 </div>
                 <div className="col-md-2">
-                <input
-                  className="form-control form-control-sm"
-                  value={`$${item.precio.toLocaleString("es-CO")}`}
-                  readOnly
-                />
-              </div>
+                  {item.idInsumo && item.idInsumo < 0 ? (
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={formatCOPWithSign(item.precio)}
+                      onChange={(e) => {
+                        // recibir valor formateado, extraer números
+                        const raw = e.target.value.replace(/[^\d]/g, "");
+                        if (raw.length > 7) return;
+                        const num = raw === "" ? 0 : parseInt(raw, 10);
+                        actualizarDetalle(index, "precio", num);
+                      }}
+                    />
+                  ) : (
+                    <input
+                      className="form-control form-control-sm"
+                      value={formatCOPWithSign(item.precio)}
+                      readOnly
+                    />
+                  )}
+                </div>
 
                 <div className="col-md-3">
                   <input
@@ -652,6 +775,27 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     btnSubmit.innerHTML = "Crear";
     return;
   }
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
+    Swal.fire("❌ Nombre inválido", "El nombre solo puede contener letras y espacios.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
+
+  if (
+    nombre.length < 3 ||
+    nombre.length > 50 ||
+    isAllSameChar(nombre) ||
+    hasLongRepeatSequence(nombre) ||
+    isOnlySpecialChars(nombre) ||
+    hasTooManySpecialChars(nombre) ||
+    hasLowVariety(nombre)
+  ) {
+    Swal.fire("❌ Nombre inválido", "Debe tener entre 3 y 50 caracteres válidos.", "error");
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Crear";
+    return;
+  }
 
   if (!idCatInsumo) {
     Swal.fire("⚠️ Error", "Debe seleccionar una categoría.", "warning");
@@ -681,59 +825,50 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     return;
   }
 
-  // 🚀 Crear insumo
+  // 🚀 Crear insumo LOCALMENTE (no POST): asignar id temporal negativo y agregar a insumos y al detalle
   try {
-    const resp = await fetch(buildApiUrl("Insumos/Crear"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        IdCatInsumo: idCatInsumo,
-        Nombre: nombre,
-        UnidadesMedidas: unidad,
-        PrecioUnitario: precio,
-        Cantidad: 0,
-        Estado: true,
-      }),
+    const tempId = tempIdCounter.current;
+    tempIdCounter.current -= 1;
+
+    const nuevoLocal: any = {
+      IdInsumo: tempId,
+      IdCatInsumo: idCatInsumo,
+      Nombre: nombre,
+      UnidadesMedidas: unidad,
+      PrecioUnitario: precio,
+      Cantidad: 0,
+      Estado: true,
+    };
+
+    // agregar al estado local de insumos
+    setInsumos((prev) => [...prev, nuevoLocal]);
+
+    // agregar al detalle de compra
+    setDetalleCompra((prev) => [
+      ...prev,
+      {
+        idInsumo: nuevoLocal.IdInsumo,
+        insumo: nuevoLocal.Nombre,
+        cantidad: 1,
+        precio: nuevoLocal.PrecioUnitario,
+        subtotal: nuevoLocal.PrecioUnitario,
+      },
+    ]);
+
+    setInsumoQuery((prev) => [...prev, ""]);
+
+    Swal.fire({
+      icon: "success",
+      title: "Insumo creado localmente",
+      text: `El insumo "${nuevoLocal.Nombre}" fue agregado al detalle (se guardará en el servidor al crear la compra).`,
+      timer: 2000,
+      showConfirmButton: false,
     });
-
-    if (!resp.ok) throw new Error("Error al crear el insumo");
-    const nuevo = await resp.json();
-
-    const insumosActualizadosRes = await fetch(buildApiUrl("Insumos/Lista"));
-    const insumosActualizados = await insumosActualizadosRes.json();
-    setInsumos(insumosActualizados);
-
-    const insumoRecienCreado = insumosActualizados.find(
-      (i: any) => i.IdInsumo === nuevo.IdInsumo
-    );
-
-    if (insumoRecienCreado) {
-      setDetalleCompra((prev) => [
-        ...prev,
-        {
-          idInsumo: insumoRecienCreado.IdInsumo,
-          insumo: insumoRecienCreado.Nombre,
-          cantidad: 1,
-          precio: insumoRecienCreado.PrecioUnitario,
-          subtotal: insumoRecienCreado.PrecioUnitario,
-        },
-      ]);
-
-      setInsumoQuery((prev) => [...prev, ""]);
-
-      Swal.fire({
-        icon: "success",
-        title: "Insumo creado",
-        text: `El insumo "${insumoRecienCreado.Nombre}" fue agregado al detalle.`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    }
 
     modalContainer.remove();
   } catch (err) {
     console.error(err);
-    Swal.fire("Error", "No se pudo crear el insumo. Intente nuevamente.", "error");
+    Swal.fire("Error", "No se pudo crear el insumo localmente. Intente nuevamente.", "error");
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = "Crear";
   }

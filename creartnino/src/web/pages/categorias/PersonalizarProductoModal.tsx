@@ -347,18 +347,24 @@ const PersonalizarProductoModal: React.FC<Props> = ({
         </div>
 
         {personalizaciones.length > 1 && (
-          <div className="nav-botones">
-            <button onClick={anterior} disabled={indiceActual === 0}>
-              <FaArrowLeft /> Anterior
-            </button>
-            <button
-              onClick={siguiente}
-              disabled={indiceActual === personalizaciones.length - 1}
-            >
-              Siguiente <FaArrowRight />
-            </button>
-          </div>
-        )}
+  <div className="nav-botones-pastel">
+    <button
+      className="btn-pastel"
+      onClick={anterior}
+      disabled={indiceActual === 0}
+    >
+      <FaArrowLeft /> Anterior
+    </button>
+    <button
+      className="btn-pastel"
+      onClick={siguiente}
+      disabled={indiceActual === personalizaciones.length - 1}
+    >
+      Siguiente <FaArrowRight />
+    </button>
+  </div>
+)}
+
 
         <div className="modal-botones">
           <button className="btn-cancelar" onClick={cerrarModal}>

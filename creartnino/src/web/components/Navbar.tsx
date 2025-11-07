@@ -22,6 +22,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
+  const [colorDegradado, setColorDegradado] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { usuario, isAuthenticated, cerrarSesion, permisos, refrescarUsuario } = useAuth();
@@ -32,23 +33,21 @@ const Navbar = () => {
   // ✅ Cliente se sigue manejando por IdRol estético
   const esCliente = usuario?.IdRol === 4;
 
- 
-
-
-
   const comprasActivas = compras.filter((c) => c.estado !== "anulado").length;
 
   const handleCerrarSesion = async () => {
-    await Swal.fire({
-      title: "Sesión cerrada",
-      text: "Tu sesión ha sido cerrada correctamente.",
-      icon: "success",
-      confirmButtonText: "OK",
-      confirmButtonColor: "#7d3cf0",
-    });
-    cerrarSesion();
-    navigate("/ingresar");
-  };
+  await Swal.fire({
+    title: "Sesión cerrada",
+    text: "Tu sesión ha sido cerrada correctamente.",
+    icon: "success",
+    confirmButtonText: "OK",
+    confirmButtonColor: "#7d3cf0",
+  });
+  localStorage.removeItem("avatarColor"); // 🟣 Limpia el color guardado
+  cerrarSesion();
+  navigate("/ingresar");
+};
+
 
   // 🔄 Cargar categorías
   useEffect(() => {
@@ -112,6 +111,31 @@ const tienePermisoAdmin = !!firstPath;
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-");
+
+      // ✅ Generar degradado moderadamente oscuro pero agradable
+const generarDegradadoSuave = () => {
+  const degradados = [
+    "linear-gradient(135deg, #2F4858, #486581)", // Azul petróleo
+    "linear-gradient(135deg, #4B3F72, #7765E3)", // Morado medio
+    "linear-gradient(135deg, #3B5360, #7B8794)", // Gris azulado
+    "linear-gradient(135deg, #5C5470, #9A8C98)", // Púrpura grisáceo
+    "linear-gradient(135deg, #3E4C59, #52606D)", // Azul gris oscuro
+  ];
+  return degradados[Math.floor(Math.random() * degradados.length)];
+};
+
+// ✅ Asignar color fijo en cada carga de sesión o refresco
+useEffect(() => {
+  const savedColor = localStorage.getItem("avatarColor");
+  if (savedColor) {
+    setColorDegradado(savedColor);
+  } else {
+    const nuevo = generarDegradadoSuave();
+    setColorDegradado(nuevo);
+    localStorage.setItem("avatarColor", nuevo);
+  }
+}, []);
+
 
   return (
     <nav className="custom-navbar">
@@ -205,12 +229,25 @@ const tienePermisoAdmin = !!firstPath;
 )}
 
 
-                <FaUserCircle
-                  size={28}
-                  className="icono-nav"
-                  style={{ cursor: "pointer", color: "#000000ff" }}
-                  onClick={() => setMostrarMenuUsuario((prev) => !prev)}
-                />
+                {usuario?.NombreCompleto ? (
+  <div
+    className="avatar-suave"
+    style={{ background: colorDegradado }}
+    onClick={() => setMostrarMenuUsuario((prev) => !prev)}
+  >
+    {usuario.NombreCompleto.charAt(0).toUpperCase()}
+  </div>
+) : (
+  <FaUserCircle
+    size={28}
+    className="icono-nav"
+    style={{ cursor: "pointer", color: "#000000ff" }}
+    onClick={() => setMostrarMenuUsuario((prev) => !prev)}
+  />
+)}
+
+
+
               </div>
 
               {mostrarMenuUsuario && (

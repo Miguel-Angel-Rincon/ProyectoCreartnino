@@ -208,3 +208,44 @@
     width: 100%;
   }
 }
+
+.nav-botones-pastel {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-pastel {
+  background-color: #f8b4d9; /* rosado pastel */
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(248, 180, 217, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-pastel:hover:not(:disabled) {
+  background-color: #f49ecf;
+  box-shadow: 0 6px 10px rgba(244, 158, 207, 0.6);
+  transform: translateY(-2px);
+}
+
+.btn-pastel:disabled {
+  background-color: #f3d7e7;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.btn-pastel svg {
+  font-size: 1.1rem;
+}
+
