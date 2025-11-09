@@ -272,13 +272,152 @@ const puedeEditarAdicional =
 <div className="row mb-4">
   <div className="col-md-12">
     <label className="form-label">🎨 Personalización</label>
-    <textarea
+    <div
       className="form-control"
-      value={pedido.Descripcion || "Sin Personalización"}
-      disabled
-      rows={3}
-      style={{ resize: "none" }}
-    />
+      style={{
+        minHeight: "100px",
+        maxHeight: "400px",
+        overflowY: "auto",
+        backgroundColor: "#f8f9fa",
+        whiteSpace: "pre-wrap",
+        fontFamily: "monospace",
+        fontSize: "0.9rem",
+        lineHeight: "1.6",
+      }}
+    >
+      {(() => {
+        const desc = pedido.Descripcion || "Sin Personalización";
+
+        // Si no hay personalización compleja
+        if (!desc.includes("|") && !desc.includes(",")) {
+          return desc;
+        }
+
+        // Separar origen del pedido
+        const partes = desc.split("Este pedido fue realizado desde");
+        const contenido = partes[0].trim();
+        const origen = partes[1]
+          ? `Este pedido fue realizado desde${partes[1]}`
+          : "";
+
+        // Dividir productos (usando coma, pero no dentro de URLs)
+        const productos = contenido
+          .split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/)
+          .map((p) => p.trim())
+          .filter((p) => p.length > 0);
+
+        return (
+          <>
+            {productos.map((producto, prodIdx) => {
+              // Si el producto no tiene personalización detallada
+              if (!producto.includes("|")) {
+                return (
+                  <div
+                    key={prodIdx}
+                    style={{
+                      borderBottom: "1px solid #dee2e6",
+                      marginBottom: "12px",
+                      paddingBottom: "8px",
+                    }}
+                  >
+                    {producto}
+                  </div>
+                );
+              }
+
+              // Procesar producto con estructura detallada
+              const campos = producto.split("|").map((campo) => campo.trim());
+
+              return (
+                <div
+                  key={prodIdx}
+                  style={{
+                    borderBottom:
+                      prodIdx < productos.length - 1
+                        ? "1px solid #dee2e6"
+                        : "none",
+                    marginBottom: "12px",
+                    paddingBottom: "8px",
+                  }}
+                >
+                  {campos.map((campo, idx) => {
+                    const [nombre, ...resto] = campo.split(":");
+                    const valores = resto.join(":").trim();
+                    if (!valores) return null;
+
+                    // ✅ Si es Referencias (mostrar URLs una por línea)
+                    if (nombre.toLowerCase().includes("referencia")) {
+                      const refs = valores
+                        .split("-")
+                        .map((r) => r.trim())
+                        .filter((r) => r.length > 0 && r.toLowerCase() !== "no");
+
+                      return (
+                        <div key={idx} style={{ marginBottom: "8px" }}>
+                          <strong style={{ color: "#6c757d" }}>
+                            {nombre}:
+                          </strong>
+                          <div
+                            style={{
+                              marginTop: "4px",
+                              color: "#333",
+                              whiteSpace: "pre-wrap",
+                            }}
+                          >
+                            {refs.length > 0 ? (
+                              refs.map((ref, i) => (
+                                <div key={i} style={{ marginLeft: "12px" }}>
+                                  {ref}
+                                </div>
+                              ))
+                            ) : (
+                              <span style={{ color: "#999" }}>No aplica</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Para otros campos
+                    const items = valores
+                      .split(" - ")
+                      .map((v) => v.trim())
+                      .filter((v) => v.length > 0);
+
+                    return (
+                      <div key={idx} style={{ marginBottom: "8px" }}>
+                        <strong style={{ color: "#6c757d" }}>{nombre}:</strong>{" "}
+                        {items.map((item, i) => (
+                          <span key={i}>
+                            <span style={{ color: "#28a745" }}>• </span>
+                            {item || "(vacío)"}
+                            {i < items.length - 1 ? " " : ""}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {origen && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  paddingTop: "12px",
+                  borderTop: "1px solid #dee2e6",
+                }}
+              >
+                <em style={{ color: "#6c757d", fontSize: "0.85rem" }}>
+                  {origen}
+                </em>
+              </div>
+            )}
+          </>
+        );
+      })()}
+    </div>
   </div>
 </div>
 

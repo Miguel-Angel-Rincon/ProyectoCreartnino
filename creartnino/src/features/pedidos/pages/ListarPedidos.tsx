@@ -71,7 +71,7 @@ const ListarPedidos: React.FC = () => {
 
   const obtenerFechaServidor = async (): Promise<Date | null> => {
     try {
-      const resp = await fetch("https://apicreartnino.somee.com/api/Pedidos/ObtenerFechaActual", {
+      const resp = await fetch("https://apicreartnino.somee.com/api/Utilidades/FechaServidor", {
         method: "GET"
       });
       
@@ -378,105 +378,127 @@ const ListarPedidos: React.FC = () => {
   };
 
   const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
-    try {
-      const detallesRes = await fetch("https://www.apicreartnino.somee.com/api/Detalles_Pedido/Lista");
-      if (!detallesRes.ok) throw new Error("Error al obtener detalles");
-      const detallesAll: detallePedido[] = await detallesRes.json();
-      const detalles = detallesAll.filter((d) => d.IdPedido === pedido.IdPedido);
+  try {
+    const detallesRes = await fetch("https://www.apicreartnino.somee.com/api/Detalles_Pedido/Lista");
+    if (!detallesRes.ok) throw new Error("Error al obtener detalles");
+    const detallesAll: detallePedido[] = await detallesRes.json();
+    const detalles = detallesAll.filter((d) => d.IdPedido === pedido.IdPedido);
 
-      const doc = new jsPDF();
+    const doc = new jsPDF();
 
-      if (logo) {
-        const circularLogo = await getCircularImage(logo, 60, 4);
-        doc.addImage(circularLogo, "JPG", 80, 10, 50, 50);
-      }
-
-      doc.setFontSize(20);
-      doc.setTextColor(60, 60, 60);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Pedido #${pedido.IdPedido}`, 105, 70, { align: "center" });
-
-      doc.setFontSize(13);
-      doc.setTextColor(120);
-      doc.setFont("helvetica", "normal");
-      doc.text("Resumen de pedido", 105, 80, { align: "center" });
-      doc.line(20, 85, 190, 85);
-
-      const labels: [string, string | number | undefined][] = [
-        ["Cliente", pedido.Cliente],
-        ["Documento", pedido.Documento],
-        ["Dirección", pedido.Direccion],
-        ["Método de Pago", pedido.MetodoPago ?? "N/A"],
-        [
-          "Fecha del Pedido",
-          pedido.FechaPedido ? new Date(pedido.FechaPedido).toLocaleDateString("es-CO") : "N/A",
-        ],
-        [
-          "Fecha de Entrega",
-          pedido.FechaEntrega ? new Date(pedido.FechaEntrega).toLocaleDateString("es-CO") : "N/A",
-        ],
-        ["Estado", pedido.Estado ?? "N/A"],
-        ["Descripción", pedido.Descripcion ?? "N/A"],
-      ];
-
-      let y = 95;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-
-      labels.forEach(([label, value]) => {
-        doc.setFont("helvetica", "bold");
-        doc.text(`${label}:`, 20, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(String(value), 70, y);
-        y += 8;
-      });
-
-      autoTable(doc, {
-        startY: y + 10,
-        head: [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]],
-        body: (detalles && Array.isArray(detalles) ? detalles : []).map((d) => {
-          const producto = productos.find((p) => p.IdProducto === d.IdProducto);
-
-          return [
-            producto?.Nombre || `Producto ${d.IdProducto}`,
-            String(d.Cantidad),
-            `$${producto?.Precio?.toLocaleString("es-CO") || "0"}`,
-            `$${(d.Subtotal ?? 0).toLocaleString("es-CO")}`
-          ];
-        }),
-        styles: { halign: "center", fontSize: 10 },
-        headStyles: { fillColor: [255, 182, 193], textColor: 40 },
-        alternateRowStyles: { fillColor: [250, 250, 250] },
-      });
-
-      const finalY = (doc as any).lastAutoTable?.finalY ?? y + 20;
-
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(50);
-
-      let totalesY = finalY + 15;
-      doc.text(`Valor Inicial: $${pedido.ValorInicial?.toLocaleString("es-CO")}`, 140, totalesY);
-      doc.text(`Valor Restante: $${pedido.ValorRestante?.toLocaleString("es-CO")}`, 140, totalesY + 10);
-
-      doc.setFontSize(14);
-      doc.setTextColor(200, 50, 100);
-      doc.text(`TOTAL: $${pedido.TotalPedido?.toLocaleString("es-CO")}`, 140, totalesY + 22);
-
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(
-        `Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`,
-        20,
-        totalesY + 40
-      );
-
-      doc.save(`Pedido-${pedido.IdPedido}.pdf`);
-    } catch (err) {
-      console.error("Error generando PDF:", err);
-      Swal.fire("Error", "No se pudo generar el PDF del pedido", "error");
+    // 🩷 Logo circular
+    if (logo) {
+      const circularLogo = await getCircularImage(logo, 60, 4);
+      doc.addImage(circularLogo, "JPG", 80, 10, 50, 50);
     }
-  };
+
+    // 🩷 Encabezado
+    doc.setFontSize(20);
+    doc.setTextColor(60, 60, 60);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Pedido #${pedido.IdPedido}`, 105, 70, { align: "center" });
+
+    doc.setFontSize(13);
+    doc.setTextColor(120);
+    doc.setFont("helvetica", "normal");
+    doc.text("Resumen de pedido", 105, 80, { align: "center" });
+    doc.line(20, 85, 190, 85);
+
+    // 🩷 Información del pedido (sin descripción)
+    const labels: [string, string | number | undefined][] = [
+      ["Cliente", pedido.Cliente],
+      ["Documento", pedido.Documento],
+      ["Dirección", pedido.Direccion],
+      ["Método de Pago", pedido.MetodoPago ?? "N/A"],
+      [
+        "Fecha del Pedido",
+        pedido.FechaPedido
+          ? new Date(pedido.FechaPedido).toLocaleDateString("es-CO")
+          : "N/A",
+      ],
+      [
+        "Fecha de Entrega",
+        pedido.FechaEntrega
+          ? new Date(pedido.FechaEntrega).toLocaleDateString("es-CO")
+          : "N/A",
+      ],
+      ["Estado", pedido.Estado ?? "N/A"],
+    ];
+
+    let y = 95;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+
+    labels.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${label}:`, 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(value), 70, y);
+      y += 8;
+    });
+
+    // 🩷 Tabla de productos
+    autoTable(doc, {
+      startY: y + 10,
+      head: [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]],
+      body: (detalles && Array.isArray(detalles) ? detalles : []).map((d) => {
+        const producto = productos.find((p) => p.IdProducto === d.IdProducto);
+
+        return [
+          producto?.Nombre || `Producto ${d.IdProducto}`,
+          String(d.Cantidad),
+          `$${producto?.Precio?.toLocaleString("es-CO") || "0"}`,
+          `$${(d.Subtotal ?? 0).toLocaleString("es-CO")}`,
+        ];
+      }),
+      styles: { halign: "center", fontSize: 10 },
+      headStyles: { fillColor: [255, 182, 193], textColor: 40 },
+      alternateRowStyles: { fillColor: [250, 250, 250] },
+    });
+
+    const finalY = (doc as any).lastAutoTable?.finalY ?? y + 20;
+
+    // 🩷 Totales
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(50);
+
+    let totalesY = finalY + 15;
+    doc.text(
+      `Valor Inicial: $${pedido.ValorInicial?.toLocaleString("es-CO")}`,
+      140,
+      totalesY
+    );
+    doc.text(
+      `Valor Restante: $${pedido.ValorRestante?.toLocaleString("es-CO")}`,
+      140,
+      totalesY + 10
+    );
+
+    doc.setFontSize(14);
+    doc.setTextColor(200, 50, 100);
+    doc.text(
+      `TOTAL: $${pedido.TotalPedido?.toLocaleString("es-CO")}`,
+      140,
+      totalesY + 22
+    );
+
+    // 🩷 Pie de página
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(
+      `Generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`,
+      20,
+      totalesY + 40
+    );
+
+    doc.save(`Pedido-${pedido.IdPedido}.pdf`);
+  } catch (err) {
+    console.error("Error generando PDF:", err);
+    Swal.fire("Error", "No se pudo generar el PDF del pedido", "error");
+  }
+};
+
 
   // Calcular pedidos atrasados
   const pedidosAtrasados = pedidos.filter((p) => {
