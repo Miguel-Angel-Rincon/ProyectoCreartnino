@@ -8,7 +8,7 @@ import ImagenIngresar from "../../../assets/Imagenes/imagen-ingresar.png";
 import { useAuth } from "../../../context/AuthContext";
 import { menuItems } from "../../../shared/config/menuConfig"; // 👈 importar
 
-const API = "http://www.apicreartnino.somee.com/api/Auth";
+const API = "https://www.apicreartnino.somee.com/api/Auth";
 
 const Ingresar = () => {
   const navigate = useNavigate();
