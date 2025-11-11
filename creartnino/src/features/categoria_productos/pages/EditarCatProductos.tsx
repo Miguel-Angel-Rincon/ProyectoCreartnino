@@ -1,7 +1,7 @@
 // components/EditarCategoriaProductoModal.tsx
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import "../styles/funciones.css";
+import "../styles/Funciones.css";
 import { APP_SETTINGS } from "../../../settings/appsettings";
 import type { ICatProductos } from "../../interfaces/ICatProductos";
 
