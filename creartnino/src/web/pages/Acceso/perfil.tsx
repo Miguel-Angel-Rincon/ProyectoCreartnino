@@ -65,7 +65,7 @@ const Perfil = () => {
 
       try {
         const res = await fetch(
-          "http://www.apicreartnino.somee.com/api/Usuarios/perfil",
+          "https://www.apicreartnino.somee.com/api/Usuarios/perfil",
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -219,7 +219,7 @@ const Perfil = () => {
       if (!datos.Contrasena) delete body.Contrasena; // envía pass solo si la cambió
 
       const res = await fetch(
-        `http://www.apicreartnino.somee.com/api/Usuarios/Actualizar/${datos.IdUsuarios}`,
+        `https://www.apicreartnino.somee.com/api/Usuarios/Actualizar/${datos.IdUsuarios}`,
         {
           method: "PUT",
           headers: {
