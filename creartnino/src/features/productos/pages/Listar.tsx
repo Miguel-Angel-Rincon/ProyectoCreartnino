@@ -105,48 +105,70 @@ const handleNavegarAProducto = (productoId: number) => {
 
   //  Eliminar producto
   const handleEliminarProducto = (id: number, estado: boolean) => {
-    if (estado) {
-      Swal.fire({
-        icon: "warning",
-        title: "Producto activo",
-        text: "No puedes eliminar un producto que está activo. Desactívalo primero.",
-        confirmButtonColor: "#d33",
-      });
-      return;
-    }
-
+  if (estado) {
     Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Esta acción no se puede deshacer",
       icon: "warning",
-      showCancelButton: true,
+      title: "Producto activo",
+      text: "No puedes eliminar un producto que está activo. Desactívalo primero.",
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#aaa",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch(`${APP_SETTINGS.apiUrl}Productos/Eliminar/${id}`, {
-            method: "DELETE",
-          });
-          if (response.ok) {
-            await obtenerProductos();
-            Swal.fire({
-              icon: "success",
-              title: "Eliminado",
-              text: "El producto ha sido eliminado correctamente",
-              timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false, 
-            });
-          }
-        } catch (error) {
-          console.error("Error eliminando producto", error);
-        }
-      }
     });
-  };
+    return;
+  }
+
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "Esta acción no se puede deshacer",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#aaa",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`${APP_SETTINGS.apiUrl}Productos/Eliminar/${id}`, {
+          method: "DELETE",
+        });
+
+        // ⚠ IMPORTANTE: manejar caso cuando NO se puede eliminar
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+
+          Swal.fire({
+            icon: "error",
+            title: "No se pudo eliminar",
+            text:
+              errorData?.message ||
+              errorData?.error ||
+              "El producto no se pudo eliminar porque está relacionado con una produccion o un pedido.",
+            confirmButtonColor: "#d33",
+          });
+          return;
+        }
+
+        // ✔ Eliminado correctamente
+        await obtenerProductos();
+        Swal.fire({
+          icon: "success",
+          title: "Eliminado",
+          text: "El producto ha sido eliminado correctamente",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        console.error("Error eliminando producto", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error de conexión",
+          text: "No se pudo conectar con el servidor.",
+        });
+      }
+    }
+  });
+};
+
 
   //  Cambiar estado (activo/inactivo)
   const handleEstadoChange = async (id: number) => {
