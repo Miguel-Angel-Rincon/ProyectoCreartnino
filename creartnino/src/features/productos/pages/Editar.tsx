@@ -20,11 +20,11 @@ interface ImagenItem {
   archivo: File | null;
   urlValida: boolean | null;
   validando: boolean;
-  esExistente?: boolean; // ⬅️ Nueva propiedad
+  esExistente?: boolean; // ⬅ Nueva propiedad
 }
 
 const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) => {
-  // 📌 Estados
+  //  Estados
   const [nombre, setNombre] = useState(producto.Nombre);
   const [categoria, setCategoria] = useState<number | "">(producto.CategoriaProducto);
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
@@ -35,12 +35,12 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
   const [cantidadValida, setCantidadValida] = useState(true);
   const [enviando, setEnviando] = useState(false);
 
-  // 🖼️ Array de imágenes
+  //  Array de imágenes
   const [imagenes, setImagenes] = useState<ImagenItem[]>([
     { id: crypto.randomUUID(), url: "", archivo: null, urlValida: null, validando: false }
   ]);
 
-  // 🔹 Traer categorías desde API
+  //  Traer categorías desde API
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -55,7 +55,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     fetchCategorias();
   }, []);
 
-  // 🔹 Cargar imágenes existentes del producto
+  //  Cargar imágenes existentes del producto
   useEffect(() => {
     const fetchImagenes = async () => {
       try {
@@ -96,17 +96,17 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
         return;
       }
 
-      // ⚠️ CLAVE: No re-validar imágenes que ya están validadas como correctas
+      //  CLAVE: No re-validar imágenes que ya están validadas como correctas
       if (img.urlValida === true) {
         return;
       }
-
+// Validar formato básico de URL
       const urlRegex = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i;
       if (!urlRegex.test(img.url)) {
         actualizarImagen(index, { urlValida: false, validando: false });
         return;
       }
-
+// Esperar 500ms antes de validar para evitar múltiples llamadas rápidas
       const delay = setTimeout(async () => {
         actualizarImagen(index, { validando: true });
         const esValida = await validarURLImagen(img.url);
@@ -121,7 +121,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     };
   }, [imagenes.map(img => img.url).join(",")]); // ⚠️ Solo depender de las URLs
 
-  // 🔹 Mostrar precio formateado en COP al abrir el modal
+  //  Mostrar precio formateado en COP al abrir el modal
   useEffect(() => {
     if (producto?.Precio) {
       const numero = Number(producto.Precio);
@@ -135,7 +135,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
     }
   }, [producto.Precio]);
-
+// Función para validar si una URL de imagen es accesible
   const validarURLImagen = (url: string): Promise<boolean> =>
     new Promise((resolve) => {
       const img = new Image();
@@ -144,7 +144,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       img.onerror = () => resolve(false);
     });
 
-  // 🔹 Funciones para manejar imágenes
+  //  Funciones para manejar imágenes
   const agregarImagen = () => {
     if (imagenes.length >= 4) {
       Swal.fire({
@@ -163,7 +163,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       esExistente: false // ⬅️ Nueva imagen
     }]);
   };
-
+// Eliminar imagen por índice
   const eliminarImagen = (index: number) => {
     if (imagenes.length === 1) {
       Swal.fire({
@@ -175,13 +175,13 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     }
     setImagenes(imagenes.filter((_, i) => i !== index));
   };
-
+// Actualizar propiedades de una imagen por índice
   const actualizarImagen = (index: number, cambios: Partial<ImagenItem>) => {
     setImagenes(prev => prev.map((img, i) => 
       i === index ? { ...img, ...cambios } : img
     ));
   };
-
+// Manejar cambio de URL
   const handleURLChange = (index: number, valor: string) => {
     const valorLimpio = valor.replace(/\s+/g, "");
     actualizarImagen(index, { 
@@ -190,7 +190,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       urlValida: null 
     });
   };
-
+// Manejar selección de archivo local
   const handleArchivoLocal = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (archivo) {
@@ -201,7 +201,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       });
     }
   };
-
+// Limpiar imagen (quitar URL y archivo)
   const limpiarImagen = (index: number) => {
     actualizarImagen(index, { 
       url: "", 
@@ -210,20 +210,20 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     });
   };
 
-  // 🔹 Manejo de precio
+  //  Manejo de precio
   const formatearPrecio = (valor: string) => {
     const limpio = valor.replace(/[^0-9]/g, "");
     if (!limpio) return "";
     const numero = parseInt(limpio.slice(0, 7));
     return numero.toLocaleString("es-CO");
   };
-
+// Manejar cambio en el campo de precio
   const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const limpio = e.target.value.replace(/[^0-9]/g, "");
     setPrecio(formatearPrecio(limpio));
   };
 
-  // 🔹 Manejo de cantidad
+  //  Manejo de cantidad
   const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value.replace(/[^0-9]/g, "");
     if (valor.length > 4) return;
@@ -231,24 +231,17 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
     setCantidadValida(!!valor && parseInt(valor) > 0);
   };
 
-  // 🔹 Submit
+  //para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (enviando) return;
     setEnviando(true);
-
+// Validaciones antes de enviar
     try {
       const cantidadNum = parseInt(cantidad);
       const precioNum = parseInt(precio.replace(/[.,\s]/g, ""));
       const nombreTrim = nombre.trim();
-
-      // 🔹 Verificar si hubo cambios en las imágenes (comentado, ya no se usa)
-      // const imagenesOriginales = imagenes.filter(img => img.esExistente);
-      // const hayNuevasImagenes = imagenes.some(img => !img.esExistente && (img.url || img.archivo));
-      // const hayArchivosNuevos = imagenes.some(img => img.archivo);
-      // const cambioEnCantidad = imagenes.length !== imagenesOriginales.length;
-      // imagenesModificadas = hayNuevasImagenes || hayArchivosNuevos || cambioEnCantidad;
 
       // ==========================
       // 🔹 VALIDACIONES DEL NOMBRE
@@ -262,7 +255,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
         return specials / s.length > maxPercent;
       };
       const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
-
+// validaciones nombre
       if (!nombreTrim) {
         Swal.fire({
           icon: "warning",
@@ -302,7 +295,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
 
       // ==================================
-      // 🔹 VALIDAR NOMBRE DUPLICADO
+      //  VALIDAR NOMBRE DUPLICADO
       // ==================================
       try {
         const resp = await axios.get(
@@ -338,7 +331,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
 
       // ==========================
-      // 🔹 VALIDACIONES NUMÉRICAS
+      //  VALIDACIONES NUMÉRICAS
       // ==========================
       const camposValidos =
         nombreTrim && categoria && cantidadNum >= 0 && precioNum > 0;
@@ -367,7 +360,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
 
       // ===========================
-      // 🔹 VALIDAR Y SUBIR IMÁGENES (SIEMPRE)
+      //  VALIDAR Y SUBIR IMÁGENES (SIEMPRE)
       // ===========================
       const imagenesValidas = imagenes.filter(img => img.url || img.archivo);
       
@@ -416,14 +409,14 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
 
       // ===========================
-      // 🔹 ACTUALIZAR IMÁGENES EN API (SIEMPRE)
+      //  ACTUALIZAR IMÁGENES EN API (SIEMPRE)
       // ===========================
       const urlsConcatenadas = urlsImagenes.join("|||");
       console.log("URLs a actualizar:", urlsConcatenadas);
       console.log("ID de imagen:", producto.Imagen);
       
       try {
-        // ⬅️ Incluir IdImagen porque el backend lo requiere
+        //  Incluir IdImagen porque el backend lo requiere
         const imgActualizada = {
           IdImagen: producto.Imagen, // ⬅️ Agregado
           Url: urlsConcatenadas,
@@ -459,7 +452,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
       }
 
       // ==========================
-      // 🔹 ACTUALIZAR PRODUCTO
+      //  ACTUALIZAR PRODUCTO
       // ==========================
       const productoEditado: IProductos = {
         ...producto,
@@ -472,7 +465,7 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
         Precio: precioNum,
         Estado: true,
       };
-
+// Enviar actualización del producto
       await axios.put(
         `https://apicreartnino.somee.com/api/Productos/Actualizar/${producto.IdProducto}`,
         productoEditado

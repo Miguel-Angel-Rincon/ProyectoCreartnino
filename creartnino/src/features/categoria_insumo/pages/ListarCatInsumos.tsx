@@ -39,6 +39,8 @@ const ListarCatInsumos: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // traer los datos de la api
+
   const obtenerCategorias = async () => {
     try {
       const resp = await fetch(buildUrl("Categoria_Insumos/Lista"));

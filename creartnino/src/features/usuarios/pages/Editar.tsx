@@ -27,20 +27,20 @@ const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
 const [loadingCheck, setLoadingCheck] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔹 Estado para roles desde API
+  //  Estado para roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string }[]>([]);
 
   const navigate = useNavigate();
   const { refrescarUsuario } = useAuth(); // 🔑 USAR CONTEXTO PARA REFRESCAR
 
-  // 🔹 Cargar roles desde la API
+  //  Cargar roles desde la API
   useEffect(() => {
     fetch("https://apicreartnino.somee.com/api/Roles/Lista")
       .then((res) => res.json())
       .then((data) => setRoles(data))
       .catch(console.error);
   }, []);
-
+//  Manejar cambios en el formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
@@ -50,7 +50,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
+//  Validar existencia de documento y correo
   useEffect(() => {
   const controller = new AbortController();
 
@@ -69,7 +69,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       });
       const data = await res.json();
 
-      // 🔹 Verificar documento
+      //  Verificar documento
       let docExiste = false;
       if (formData.NumDocumento !== usuario.NumDocumento) {
         docExiste = data.some(
@@ -80,7 +80,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       }
       setExisteDoc(docExiste ? true : false);
 
-      // 🔹 Verificar correo
+      //  Verificar correo
       let correoExiste = false;
       if (formData.Correo.toLowerCase() !== usuario.Correo.toLowerCase()) {
         correoExiste = data.some(
@@ -103,7 +103,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   };
 }, [formData.NumDocumento, formData.Correo, usuario]);
 
-
+//  Abrir modal dirección
 const handleAbrirDireccionModal = () => {
   // Si la dirección viene como "Barrio, Calle, Complementos"
   const partes = formData.Direccion ? formData.Direccion.split(",") : [];
@@ -116,7 +116,7 @@ const handleAbrirDireccionModal = () => {
 
   setShowDireccionModal(true);
 };
-
+//  Cargar departamentos
   useEffect(() => {
     fetch("https://api-colombia.com/api/v1/Department")
       .then((res) => res.json())
@@ -126,7 +126,7 @@ const handleAbrirDireccionModal = () => {
       .catch(console.error);
   }, []);
 
-  // 🔹 Cargar ciudades según departamento
+  //  Cargar ciudades según departamento
   useEffect(() => {
     if (!formData.Departamento) {
       setCiudades([]);
@@ -149,20 +149,20 @@ const handleAbrirDireccionModal = () => {
       .catch(console.error);
   }, [formData.Departamento, departamentos]);
 
-  // 🔹 Guardar dirección
+  //  Guardar dirección
   const handleDireccionModalSave = () => {
     const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.Complementos}`;
     setFormData((prev: any) => ({ ...prev, Direccion: full }));
     setShowDireccionModal(false);
   };
-
+//para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (isSubmitting) return;
 
   const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
 
-  // 🔹 Funciones de validación reutilizables
+  //  Funciones de validación reutilizables
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -176,7 +176,7 @@ const handleAbrirDireccionModal = () => {
     return uniqueChars < minUnique;
   };
 
-  // ✅ Nombre
+  //  Nombre
   const nombre = formData.NombreCompleto.trim();
   const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
   if (!nombre) {
@@ -192,12 +192,12 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Tipo documento
+  //  Tipo documento
   if (!formData.TipoDocumento) {
     return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Documento
+  //  Documento
   const numDoc = formData.NumDocumento.trim();
   if (!/^\d+$/.test(numDoc)) {
     return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
@@ -209,7 +209,7 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Celular
+  //  Celular
   const celular = formData.Celular.trim();
   if (!/^\d+$/.test(celular)) {
     return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
@@ -221,7 +221,7 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Correo
+  //  Correo
   const correo = formData.Correo.trim();
   const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!correoRegex.test(correo)) {
@@ -231,7 +231,7 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Dirección
+  //  Dirección
   const direccion = formData.Direccion?.trim() || "";
   if (!direccion) {
     return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#e83e8c" });
@@ -243,7 +243,7 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Contraseña
+  //  Contraseña
   const pwd = formData.Contrasena.trim();
   if (!pwd) {
     return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
@@ -253,12 +253,12 @@ const handleAbrirDireccionModal = () => {
     return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Rol
+  //  Rol
   if (!formData.IdRol) {
     return Swal.fire({ icon: "error", title: "Rol requerido", text: "Selecciona un rol.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Departamento/Ciudad
+  //  Departamento/Ciudad
   if (formData.Departamento && ciudades.length && !formData.Ciudad) {
     return Swal.fire({ icon: "error", title: "Ciudad no seleccionada", text: "Seleccione una ciudad.", confirmButtonColor: "#e83e8c" });
   }
@@ -348,14 +348,14 @@ const handleAbrirDireccionModal = () => {
     }`}
     value={formData.NumDocumento}
     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-  // ✅ Solo números (elimina letras, símbolos y espacios)
+  //  Solo números (elimina letras, símbolos y espacios)
   const soloNumeros = e.target.value.replace(/\D/g, "");
   e.target.value = soloNumeros;
 
-  // ✅ Mantiene tu flujo original
+  //  Mantiene tu flujo original
   handleChange(e);
 
-  // ✅ Actualiza automáticamente la contraseña (mismo número de documento)
+  //  Actualiza automáticamente la contraseña (mismo número de documento)
   handleChange({
     target: {
       name: "Contrasena",
@@ -587,10 +587,20 @@ const handleAbrirDireccionModal = () => {
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, barrio: value }));
-                      }}
+                         onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      barrio: value
+    }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -598,10 +608,20 @@ const handleAbrirDireccionModal = () => {
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, calle: value }));
-                      }}
+                         onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      calle: value
+    }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -610,10 +630,20 @@ const handleAbrirDireccionModal = () => {
                         className="form-control"
                         value={direccionData.Complementos}
                         placeholder="Apartamento, edificio, referencia, etc."
-                        onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
-                      }}
+                         onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      Complementos: value
+    }));
+  }}
                       />
                     </div>
                   </div>

@@ -44,7 +44,7 @@ const ListarProveedores: React.FC = () => {
     obtenerProveedores();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+// --- Obtener proveedores desde API ---
   const obtenerProveedores = async () => {
     try {
       const resp = await fetch(buildUrl("Proveedores/Lista"));

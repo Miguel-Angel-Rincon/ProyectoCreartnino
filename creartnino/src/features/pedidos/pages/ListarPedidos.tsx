@@ -59,7 +59,7 @@ const ListarPedidos: React.FC = () => {
   const [mostrarAtrasados, setMostrarAtrasados] = useState(false);
   const [fechaServidor, setFechaServidor] = useState<Date | null>(null);
   const pedidosPorPagina = 6;
-
+// Cargar productos
   useEffect(() => {
     const fetchProductos = async () => {
       const resp = await fetch("https://www.apicreartnino.somee.com/api/Productos/Lista");
@@ -68,7 +68,7 @@ const ListarPedidos: React.FC = () => {
     };
     fetchProductos();
   }, []);
-
+// Obtener fecha del servidor
   const obtenerFechaServidor = async (): Promise<Date | null> => {
     try {
       const resp = await fetch("https://apicreartnino.somee.com/api/Utilidades/FechaServidor", {
@@ -93,7 +93,7 @@ const ListarPedidos: React.FC = () => {
       return new Date();
     }
   };
-
+// Refrescar pedidos después de crear o actualizar
   const refreshPedidos = async () => {
     try {
       const resp = await fetch(
@@ -137,7 +137,7 @@ const ListarPedidos: React.FC = () => {
       console.error("No se pudieron refrescar los pedidos", err);
     }
   };
-
+// Cargar clientes
   const cargarClientes = async () => {
     try {
       const response = await fetch(
@@ -154,7 +154,7 @@ const ListarPedidos: React.FC = () => {
       });
     }
   };
-
+// Cargar pedidos
   const cargarPedidos = async () => {
     try {
       const response = await fetch(
@@ -202,7 +202,7 @@ const ListarPedidos: React.FC = () => {
       });
     }
   };
-
+// Cargar clientes y fecha del servidor al montar
   useEffect(() => {
     const cargarDatos = async () => {
       await cargarClientes();
@@ -211,11 +211,11 @@ const ListarPedidos: React.FC = () => {
     };
     cargarDatos();
   }, []);
-
+// Cargar pedidos cuando los clientes estén disponibles
   useEffect(() => {
     if (clientes.length > 0) cargarPedidos();
   }, [clientes]);
-
+// Actualizar estado del pedido
   const actualizarEstadoAPI = async (pedido: Pedidos, nuevoEstado: string) => {
     if (updatingId !== null) return;
     setUpdatingId(pedido.IdPedido ?? null);
@@ -237,6 +237,7 @@ const ListarPedidos: React.FC = () => {
         : nuevoEstado === "pedido pagado"
         ? 1007
         : pedido.IdEstado;
+        // Actualizar en la API
     try {
       const response = await fetch(
         `https://apicreartnino.somee.com/api/Pedidos/Actualizar/${pedido.IdPedido}`,
@@ -273,7 +274,7 @@ const ListarPedidos: React.FC = () => {
       setUpdatingId(null);
     }
   };
-
+// Anular pedido y devolver productos al inventario
   const handleAnularPedido = async (pedido: Pedidos) => {
     Swal.fire({
       title: "¿Estás seguro?",
@@ -348,12 +349,12 @@ const ListarPedidos: React.FC = () => {
       }
     });
   };
-
+// Manejar creación de pedido
   const handleCrearPedido = async () => {
     setModoCrear(false);
     await refreshPedidos();
   };
-
+// Generar PDF del pedido
   const getCircularImage = (imgUrl: string, size = 60, scale = 4): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement("canvas");
@@ -376,7 +377,7 @@ const ListarPedidos: React.FC = () => {
       };
     });
   };
-
+// Generar PDF del pedido
   const generarPDF = async (pedido: Pedidos, productos: IProductos[]) => {
   try {
     const detallesRes = await fetch("https://www.apicreartnino.somee.com/api/Detalles_Pedido/Lista");
@@ -386,13 +387,13 @@ const ListarPedidos: React.FC = () => {
 
     const doc = new jsPDF();
 
-    // 🩷 Logo circular
+    //  Logo circular
     if (logo) {
       const circularLogo = await getCircularImage(logo, 60, 4);
       doc.addImage(circularLogo, "JPG", 80, 10, 50, 50);
     }
 
-    // 🩷 Encabezado
+    //  Encabezado
     doc.setFontSize(20);
     doc.setTextColor(60, 60, 60);
     doc.setFont("helvetica", "bold");
@@ -404,7 +405,7 @@ const ListarPedidos: React.FC = () => {
     doc.text("Resumen de pedido", 105, 80, { align: "center" });
     doc.line(20, 85, 190, 85);
 
-    // 🩷 Información del pedido (sin descripción)
+    //  Información del pedido (sin descripción)
     const labels: [string, string | number | undefined][] = [
       ["Cliente", pedido.Cliente],
       ["Documento", pedido.Documento],
@@ -437,7 +438,7 @@ const ListarPedidos: React.FC = () => {
       y += 8;
     });
 
-    // 🩷 Tabla de productos
+    //  Tabla de productos
     autoTable(doc, {
       startY: y + 10,
       head: [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]],
@@ -458,7 +459,7 @@ const ListarPedidos: React.FC = () => {
 
     const finalY = (doc as any).lastAutoTable?.finalY ?? y + 20;
 
-    // 🩷 Totales
+    // Totales
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(50);
@@ -483,7 +484,7 @@ const ListarPedidos: React.FC = () => {
       totalesY + 22
     );
 
-    // 🩷 Pie de página
+    //  Pie de página
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(

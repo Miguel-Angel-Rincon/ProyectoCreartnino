@@ -33,6 +33,8 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  //para manejar el envio del formulario
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
@@ -133,7 +135,7 @@ const EditarCategoriaInsumosModal: React.FC<Props> = ({
     return;
   }
 
-  // 🚀 Enviar datos al backend
+  // Enviar datos al backend
   try {
     setIsSubmitting(true);
     const resp = await fetch(

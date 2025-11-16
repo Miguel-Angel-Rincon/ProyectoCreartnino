@@ -85,7 +85,7 @@ function mondayIndex(date: Date) {
   return (date.getDay() + 6) % 7;
 }
 
-// ✅ Obtener los días de la semana actual con su fecha
+//  Obtener los días de la semana actual con su fecha
 function getDiasSemanaActual(): { name: string; date: Date }[] {
   const hoy = new Date();
   const start = new Date(hoy);
@@ -101,13 +101,13 @@ function getDiasSemanaActual(): { name: string; date: Date }[] {
   });
 }
 
-
+// Obtener la semana del mes para una fecha dada
 function getWeekOfMonth(date: Date): number {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
   const offset = mondayIndex(start);
   return Math.ceil((date.getDate() + offset) / 7);
 }
-
+//  Obtener el número de semanas en un mes específico
 function getWeeksInMonth(year: number, monthIndex: number): number {
   const lastDay = new Date(year, monthIndex + 1, 0).getDate();
   let maxWeek = 1;
@@ -132,7 +132,7 @@ export default function DashboardStatsDemo() {
   const [filtroIngresos, setFiltroIngresos] = useState<"dia" | "semana" | "mes" | "anio">("mes");
 
   const COLORS = ["#8e44ad", "#f783ac", "#3498db", "#f6c000", "#2ecc71", "#ff9ff3", "#54a0ff"];
-
+// carga datos para gráficos
   useEffect(() => {
     async function fetchData() {
       try {
@@ -317,7 +317,7 @@ detalles.forEach((det) => {
   const f = parseFecha(pedido.FechaPedido);
   if (!f) return;
 
-  // ✅ Filtrar solo por el año seleccionado
+  //  Filtrar solo por el año seleccionado
   if (f.getFullYear() !== selectedYearProductos) return;
 
   conteoProductos[det.IdProducto] =

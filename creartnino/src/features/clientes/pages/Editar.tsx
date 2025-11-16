@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 
 interface Props {
-  cliente: IClientes; // Cliente que vamos a editar
+  cliente: IClientes;
   onClose: () => void;
   onEditar: (formData: IClientes) => void;
 }
@@ -32,7 +32,9 @@ const [loading, setLoading] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-   useEffect(() => {
+  //  Verificar existencia de documento y correo
+
+  useEffect(() => {
   const controller = new AbortController();
   const { NumDocumento, Correo, IdCliente } = formData;
 
@@ -57,7 +59,7 @@ const [loading, setLoading] = useState(false);
       // 🧾 Buscar cliente actual
       
 
-      // ✅ DOCUMENTO
+      //  DOCUMENTO
       if (validarDocumento) {
         const clienteConMismoDoc = clientes.find(
           (c: any) => String(c.NumDocumento) === String(NumDocumento)
@@ -74,7 +76,7 @@ const [loading, setLoading] = useState(false);
         setExisteDocumento(null);
       }
 
-      // ✅ CORREO
+      //  CORREO
       if (validarCorreo) {
         const clienteConMismoCorreo = clientes.find(
           (c: any) => c.Correo?.toLowerCase() === Correo.toLowerCase()
@@ -106,7 +108,7 @@ const [loading, setLoading] = useState(false);
 const botonDeshabilitado =
   isSubmitting || loading || existeDocumento === true || existeCorreo === true;
 
-  // 🔹 Inicializar dirección
+  //  Inicializar dirección
   useEffect(() => {
     if (cliente.Direccion) {
       const partes = cliente.Direccion.split(",").map((p) => p.trim());
@@ -118,7 +120,7 @@ const botonDeshabilitado =
     }
   }, [cliente]);
 
-  // 🔹 Cargar departamentos
+  //  Cargar departamentos
   useEffect(() => {
     fetch("https://api-colombia.com/api/v1/Department")
       .then((res) => res.json())
@@ -128,7 +130,7 @@ const botonDeshabilitado =
       .catch(console.error);
   }, []);
 
-  // 🔹 Cargar ciudades según departamento
+  //  Cargar ciudades según departamento
   useEffect(() => {
     if (!formData.Departamento) {
       setCiudades([]);
@@ -159,7 +161,7 @@ const botonDeshabilitado =
     }));
   };
 
-  // 🔹 Guardar dirección desde submodal
+  //  Guardar dirección desde submodal
   const handleDireccionModalSave = () => {
     const { Complementos, barrio, calle } = direccionData;
 
@@ -188,7 +190,7 @@ const botonDeshabilitado =
     setShowDireccionModal(false);
   };
 
-  // 🔹 Validaciones + PUT
+  //  Validaciones + PUT
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
@@ -197,7 +199,7 @@ const botonDeshabilitado =
 
   const REPEAT_THRESHOLD = 4;
 
-  // 🔹 Funciones de validación reutilizables
+  //  Funciones de validación reutilizables
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -209,7 +211,7 @@ const botonDeshabilitado =
   const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
   try {
-    // ✅ Nombre
+    // Validaciones Nombre
     const nombre = formData.NombreCompleto.trim();
     const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
     if (!nombre) {
@@ -225,12 +227,12 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Nombre inválido", text: "Debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Tipo documento
+    // Validaciones Tipo documento
     if (!formData.TipoDocumento) {
       return Swal.fire({ icon: "error", title: "Tipo de documento requerido", text: "Selecciona un tipo de documento.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Documento
+    // Validaciones Documento
     const numDoc = formData.NumDocumento.trim();
     if (!/^\d+$/.test(numDoc)) {
       return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
@@ -242,7 +244,7 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Celular
+    // Validaciones Celular
     const celular = formData.Celular.trim();
     if (!/^\d+$/.test(celular)) {
       return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
@@ -254,7 +256,7 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Correo
+    // Validaciones Correo
     const correo = formData.Correo.trim();
     const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!correoRegex.test(correo)) {
@@ -264,7 +266,7 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Dirección
+    // Validaciones Dirección
     const direccion = formData.Direccion?.trim() || "";
     if (!direccion) {
       return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#f78fb3" });
@@ -276,7 +278,7 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Departamento y ciudad
+    // Validaciones Departamento y ciudad
     if (!formData.Departamento) {
       return Swal.fire({ icon: "error", title: "Departamento requerido", text: "Seleccione un departamento.", confirmButtonColor: "#f78fb3" });
     }
@@ -284,7 +286,7 @@ const botonDeshabilitado =
       return Swal.fire({ icon: "error", title: "Ciudad requerida", text: "Seleccione una ciudad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // 🚀 Actualizar cliente
+    // Actualizar cliente
     const resp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Actualizar/${formData.IdCliente}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -309,7 +311,7 @@ const botonDeshabilitado =
         icon: "error",
         title: "Error al actualizar",
         text: data.message || "No se pudo actualizar el cliente. Verifique los datos.",
-        timer: 2000, // 2 segundos
+        timer: 2000, 
             timerProgressBar: true,
             showConfirmButton: false
       });
@@ -319,7 +321,7 @@ const botonDeshabilitado =
       icon: "error",
       title: "Error de conexión",
       text: "No se pudo conectar con el servidor.",
-      timer: 2000, // 2 segundos
+      timer: 2000,
             timerProgressBar: true,
             showConfirmButton: false
     });
@@ -356,7 +358,7 @@ const botonDeshabilitado =
                   </select>
                 </div>
 
-                {/* 🔢 Número Documento */}
+                {/* Número Documento */}
 <div className="col-md-6">
   <label className="form-label">
     🔢 Número Documento <span className="text-danger">*</span>
@@ -394,7 +396,7 @@ const botonDeshabilitado =
                   />
                 </div>
 
-                {/* 📧 Correo Electrónico */}
+                {/*  Correo Electrónico */}
 <div className="col-md-6">
   <label className="form-label">
     📧 Correo Electrónico <span className="text-danger">*</span>
@@ -427,7 +429,7 @@ const botonDeshabilitado =
                     value={formData.Celular}
                     max={10}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      // Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -529,27 +531,44 @@ const botonDeshabilitado =
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
-                        className="form-control"
-                        value={direccionData.barrio}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            barrio: e.target.value.replace(/\s+/g, "")
-                          }))
-                        }
-                      />
+  className="form-control"
+  value={direccionData.barrio}
+  onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      barrio: value
+    }));
+  }}
+/>
+
                     </div>
                     <div className="mb-3">
                       <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
                         className="form-control"
                         value={direccionData.calle}
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            calle: e.target.value.replace(/\s+/g, "")
-                          }))
-                        }
+                        onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      calle: value
+    }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -558,12 +577,20 @@ const botonDeshabilitado =
                         className="form-control"
                         value={direccionData.Complementos}
                         placeholder="Apartamento, edificio, referencia, etc."
-                        onChange={(e) =>
-                          setDireccionData((prev) => ({
-                            ...prev,
-                            Complementos: e.target.value.replace(/\s+/g, "")
-                          }))
-                        }
+                        onChange={(e) => {
+    let value = e.target.value;
+
+    // ❌ No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    // ✔ Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      Complementos: value
+    }));
+  }}
                       />
                     </div>
                   </div>

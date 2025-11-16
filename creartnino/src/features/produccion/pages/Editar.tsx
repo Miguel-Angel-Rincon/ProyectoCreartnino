@@ -30,17 +30,17 @@ const EditarProduccion: React.FC<Props> = ({ idProduccion, onClose, onEdit }) =>
   const [detallesOriginales, setDetallesOriginales] = useState<detalleProduccion[]>([]);
 
 
-  // 🔎 Estados para buscador de insumos en el modal
+  //  Estados para buscador de insumos en el modal
   const [insumoQuery, setInsumoQuery] = useState<{ [key: number]: string }>({});
 
-  // 📝 Estado para rastrear detalles eliminados
+  //  Estado para rastrear detalles eliminados
   const [detallesEliminados, setDetallesEliminados] = useState<number[]>([]);
 
   // Función auxiliar para normalizar espacios
   const normalizarTexto = (valor: string) => {
     return valor.replace(/^\s+/, "").replace(/\s{2,}/g, " ");
   };
-
+// Cargar datos iniciales produccion , detalles, productos, insumos, pedidos, clientes y fecha servidor
   useEffect(() => {
   const fetchData = async () => {
     try {
@@ -127,7 +127,7 @@ const hayaCambiosEnDetalles = () => {
   setGuardando(true);
 
   try {
-    // 1️⃣ Actualizar datos básicos de la producción
+    // 1️ Actualizar datos básicos de la producción
     const resp = await fetch(`${APP_SETTINGS.apiUrl}Produccion/Actualizar/${produccion.IdProduccion}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -136,7 +136,7 @@ const hayaCambiosEnDetalles = () => {
 
     if (!resp.ok) throw new Error("No se pudo actualizar");
 
-    // 2️⃣ Calcular cambios totales por insumo (agrupado)
+    // 2️ Calcular cambios totales por insumo (agrupado)
     const cambiosPorInsumo: Record<number, number> = {};
     const cambiosPorProducto: Record<number, number> = {};
 
@@ -218,7 +218,7 @@ if (cantidadProducir > 0 && !cambiosPorProducto[detalle.IdProducto]) {
       }
     }
 
-    // 3️⃣ Aplicar todos los cambios de stock agrupados
+    // 3️ Aplicar todos los cambios de stock agrupados
     for (const [idInsumoStr, cambioTotal] of Object.entries(cambiosPorInsumo)) {
       if (cambioTotal === 0) continue;
 
@@ -251,7 +251,7 @@ if (cantidadProducir > 0 && !cambiosPorProducto[detalle.IdProducto]) {
         });
       }
     }
-    // 4️⃣ Aplicar cambios de stock en productos
+    // 4️ Aplicar cambios de stock en productos
 for (const [idProductoStr, cambioTotal] of Object.entries(cambiosPorProducto)) {
   if (cambioTotal === 0) continue;
 
@@ -361,7 +361,7 @@ const handleChangeCantidadProducir = (idProducto: number, nuevaCantidad: number)
     })
   );
 };
-  // 🆕 Agregar nuevo insumo al producto
+  // Agregar nuevo insumo al producto
 const agregarInsumo = (idProducto: number) => {
   setDetalles((prev) => {
     // Buscar la CantidadProducir correcta para este producto
@@ -377,7 +377,7 @@ const agregarInsumo = (idProducto: number) => {
       IdProduccion: idProduccion,
       IdProducto: idProducto,
       IdInsumo: 0,
-      CantidadProducir: cantidadProducir, // 👈 USAR LA CANTIDAD CORRECTA
+      CantidadProducir: cantidadProducir, // USAR LA CANTIDAD CORRECTA
       CantidadInsumo: 1,
       IdPedido: produccion?.IdPedido || null,
     };
@@ -394,7 +394,7 @@ const agregarInsumo = (idProducto: number) => {
   });
 };
 
-  // 🆕 Manejar cambio en el buscador de insumos
+  // Manejar cambio en el buscador de insumos
   const handleInsumoQueryChange = (index: number, value: string) => {
     const valorNormalizado = normalizarTexto(value);
     setInsumoQuery((prev) => ({
@@ -403,7 +403,7 @@ const agregarInsumo = (idProducto: number) => {
     }));
   };
 
-  // 🆕 Seleccionar insumo de las sugerencias
+  // Seleccionar insumo de las sugerencias
   const seleccionarInsumo = (index: number, insumo: IInsumos, idProducto: number) => {
     setDetalles((prev) => {
       const copia = [...prev];
@@ -433,7 +433,7 @@ const agregarInsumo = (idProducto: number) => {
     }));
   };
 
-  // 🆕 Eliminar insumo (marca para eliminación si tiene ID)
+  //  Eliminar insumo (marca para eliminación si tiene ID)
   const eliminarInsumo = (idDetalleProduccion: number | undefined, idProducto: number, idInsumo: number) => {
     // Si tiene ID, marcarlo para eliminación posterior
     if (idDetalleProduccion) {
@@ -617,7 +617,7 @@ const agregarInsumo = (idProducto: number) => {
           </button>
         </div>
 
-              {/* 🌸 MODAL DE GASTO DE INSUMOS */}
+              {/*  MODAL DE GASTO DE INSUMOS */}
               {mostrarSubmodal === index && (
                 <div
                   className="modal-overlay"
@@ -657,19 +657,16 @@ const agregarInsumo = (idProducto: number) => {
                         ✖
                       </button>
                     </div>
-
                     <div className="modal-body">
                       {(() => {
                         const insumosDelProducto = detalles.filter(
                           (det) => det.IdProducto === d.IdProducto
                         );
-
                         return insumosDelProducto.length > 0 ? (
                           <>
                             {insumosDelProducto.map((detalle, i) => {
                               const insumo = insumos.find((ins) => ins.IdInsumo === detalle.IdInsumo);
                               const esNuevo = detalle.IdInsumo === 0;
-
                               const qI = insumoQuery[i] ?? "";
                               const sugerenciasIns =
                                 qI.length > 0
@@ -680,8 +677,6 @@ const agregarInsumo = (idProducto: number) => {
                                       )
                                     )
                                   : [];
-
-                              // Calcular stock disponible considerando uso en TODA la producción
                               // Calcular stock disponible considerando uso en TODA la producción
 const detalleOriginalReal = detallesOriginales.find(
   (det: any) => det.IdDetalleProduccion === detalle.IdDetalleProduccion
@@ -691,7 +686,6 @@ const cantidadOriginalReal = detalleOriginalReal?.CantidadInsumo ?? 0;
 const disponible = insumo?.Cantidad ?? 0;
 const cantidadUsada = detalle.CantidadInsumo ?? 0;
 
-// Para detalles existentes: disponible + lo que tenía originalmente
 // Para detalles nuevos: solo el disponible
 const maximoPermitido = detalle.IdDetalleProduccion 
   ? disponible + cantidadOriginalReal

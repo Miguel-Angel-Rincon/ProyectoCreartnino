@@ -14,7 +14,7 @@ const VerRolModal: React.FC<Props> = ({ rol, onClose }) => {
   useEffect(() => {
     const fetchPermisos = async () => {
       try {
-        // 1️⃣ obtener todos los RolPermisos
+        //  obtener todos los RolPermisos
         const resRolPermisos = await fetch(
           "https://apicreartnino.somee.com/api/Rolpermisos/Lista"
         );
@@ -25,13 +25,13 @@ const VerRolModal: React.FC<Props> = ({ rol, onClose }) => {
           .filter((rp) => rp.IdRol === rol.IdRol)
           .map((rp) => rp.IdPermisos);
 
-        // 2️⃣ obtener todos los permisos
+        //  obtener todos los permisos
         const resPermisos = await fetch(
           "https://apicreartnino.somee.com/api/permisos/Lista"
         );
         const permisos: IPermiso[] = await resPermisos.json();
 
-        // 3️⃣ mapear IdPermisos -> Nombre
+        //  mapear IdPermisos -> Nombre
         const nombres = permisos
           .filter((p) => permisosIds.includes(p.IdPermisos))
           .map((p) => p.RolPermisos);

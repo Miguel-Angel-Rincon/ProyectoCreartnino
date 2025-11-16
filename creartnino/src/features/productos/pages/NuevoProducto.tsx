@@ -22,7 +22,7 @@ interface ImagenItem {
 }
 
 const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
-  // 📌 Estados
+  // Estados
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState<number | "">("");
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
@@ -30,14 +30,14 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
   const [precio, setPrecio] = useState("");
   const [precioValido, setPrecioValido] = useState(true);
   
-  // 🖼️ Array de imágenes
+  //  Array de imágenes
   const [imagenes, setImagenes] = useState<ImagenItem[]>([
     { id: crypto.randomUUID(), url: "", archivo: null, urlValida: null, validando: false }
   ]);
 
   const [enviando, setEnviando] = useState(false);
 
-  // 🔹 Traer categorías desde API
+  //  Traer categorías desde API
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -58,7 +58,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       if (!img.url || img.url.startsWith("data:image") || img.archivo) {
         return;
       }
-
+// Validar formato básico de URL
       const urlRegex = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i;
       if (!urlRegex.test(img.url)) {
         actualizarImagen(index, { urlValida: false, validando: false });
@@ -74,7 +74,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       return () => clearTimeout(delay);
     });
   }, [imagenes.map(img => img.url).join(",")]);
-
+// Función para validar si una imagen carga correctamente
   const validarURLImagen = (url: string): Promise<boolean> =>
     new Promise((resolve) => {
       const img = new Image();
@@ -83,7 +83,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       img.onerror = () => resolve(false);
     });
 
-  // 🔹 Funciones para manejar imágenes
+  //  Funciones para manejar imágenes
   const agregarImagen = () => {
     if (imagenes.length >= 4) {
       Swal.fire({
@@ -101,7 +101,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       validando: false 
     }]);
   };
-
+// Eliminar imagen por índice
   const eliminarImagen = (index: number) => {
     if (imagenes.length === 1) {
       Swal.fire({
@@ -113,13 +113,13 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     }
     setImagenes(imagenes.filter((_, i) => i !== index));
   };
-
+// Actualizar propiedades de una imagen por índice
   const actualizarImagen = (index: number, cambios: Partial<ImagenItem>) => {
     setImagenes(imagenes.map((img, i) => 
       i === index ? { ...img, ...cambios } : img
     ));
   };
-
+// Manejar cambio de URL
   const handleURLChange = (index: number, valor: string) => {
     const valorLimpio = valor.replace(/\s+/g, "");
     actualizarImagen(index, { 
@@ -128,7 +128,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       urlValida: null 
     });
   };
-
+// Manejar selección de archivo local
   const handleArchivoLocal = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (archivo) {
@@ -139,7 +139,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       });
     }
   };
-
+// Limpiar imagen (quitar URL y archivo)
   const limpiarImagen = (index: number) => {
     actualizarImagen(index, { 
       url: "", 
@@ -148,7 +148,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     });
   };
 
-  // 🔹 Manejo de precio
+  //  Manejo de precio
   const formatearPrecio = (valor: string) => {
     const limpio = valor.replace(/[^0-9]/g, "");
     if (!limpio) return "";
@@ -160,7 +160,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
     setPrecio(formatearPrecio(limpio));
   };
 
-  // 🔹 Submit
+  // para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -172,7 +172,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       const nombreTrim = nombre.trim();
 
       // ==========================
-      // 🔹 VALIDACIONES DEL NOMBRE
+      //  VALIDACIONES DEL NOMBRE
       // ==========================
       const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
       const hasLongRepeatSequence = (s: string, n = 4) =>
@@ -223,7 +223,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       }
 
       // ==================================
-      // 🔹 VALIDACIÓN DE NOMBRE DUPLICADO
+      // VALIDACIÓN DE NOMBRE DUPLICADO
       // ==================================
       try {
         const resp = await axios.get(
@@ -258,7 +258,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       }
 
       // ===========================
-      // 🔹 VALIDACIONES NUMÉRICAS
+      //  VALIDACIONES NUMÉRICAS
       // ===========================
       const camposValidos = nombreTrim && categoria && precioNum > 0;
       setPrecioValido(!isNaN(precioNum) && precioNum > 0);
@@ -284,7 +284,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       }
 
       // ===========================
-      // 🔹 VALIDAR Y SUBIR IMÁGENES
+      //  VALIDAR Y SUBIR IMÁGENES
       // ===========================
       const imagenesValidas = imagenes.filter(img => img.url || img.archivo);
       
@@ -329,7 +329,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
         urlsImagenes.push(urlImagen);
       }
       // ===========================
-      // 🔹 GUARDAR IMÁGENES EN API
+      //  GUARDAR IMÁGENES EN API
       // ===========================
       // Concatenar todas las URLs separadas por |||
       const urlsConcatenadas = urlsImagenes.join("|||");
@@ -337,7 +337,7 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       let idImagen = 0;
       try {
         const nuevaImg: IImagenesProductos = {
-          Url: urlsConcatenadas, // ⬅️ Todas las URLs en un solo campo
+          Url: urlsConcatenadas, // Todas las URLs en un solo campo
           Descripcion: nombreTrim,
         };
         const resImg = await axios.post(
@@ -357,12 +357,12 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
       }
 
       // ===========================
-      // 🔹 GUARDAR PRODUCTO EN API
+      //  GUARDAR PRODUCTO EN API
       // ===========================
       const nuevoProducto: IProductos = {
         CategoriaProducto: Number(categoria),
         Nombre: nombreTrim,
-        Imagen: idImagen, // ⬅️ Un solo ID que contiene todas las URLs
+        Imagen: idImagen, //  Un solo ID que contiene todas las URLs
         Descripcion: descripcion.trim(),
         Cantidad: 0,
         Marca: "CreartNino",

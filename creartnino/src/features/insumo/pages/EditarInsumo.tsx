@@ -91,12 +91,12 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     }
   };
 
-  // --- Editar insumo ---
+  // para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   if (isSubmitting) return;
 
-  // 🔹 Funciones auxiliares de validación
+  //  Funciones auxiliares de validación
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = 4) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -109,7 +109,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
 
   const nombre = formData.Nombre?.trim() ?? "";
 
-  // ✅ Validación: campos requeridos
+  // Validación: campos requeridos
   if (!nombre) {
     Swal.fire({
       icon: "warning",
@@ -120,7 +120,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Validar caracteres especiales
+  // Validar caracteres especiales
   if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
     Swal.fire({
       icon: "error",
@@ -131,7 +131,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Validar longitud, repeticiones, variedad...
+  // Validar longitud, repeticiones, variedad...
   if (
     nombre.length < 3 ||
     nombre.length > 50 ||
@@ -150,7 +150,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Validación: duplicado (ignora mayúsculas y espacios)
+  // Validación: duplicado (ignora mayúsculas y espacios)
   const nombreNormalizado = nombre.toLowerCase().replace(/\s+/g, "");
   const existeDuplicado = insumos.some(
     (i: IInsumos) =>
@@ -168,7 +168,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Validaciones de cantidad
+  // Validaciones de cantidad
   if (formData.Cantidad < 0 || formData.Cantidad > 9999) {
     Swal.fire({
       icon: "error",
@@ -179,7 +179,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Validaciones de precio
+  //  Validaciones de precio
   if (formData.PrecioUnitario <= 0 || formData.PrecioUnitario > 9999999) {
     Swal.fire({
       icon: "error",
@@ -190,7 +190,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // ✅ Unidad de medida
+  // Unidad de medida
   if (!formData.UnidadesMedidas) {
     Swal.fire({
       icon: "error",
@@ -201,7 +201,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     return;
   }
 
-  // 🚀 Si pasa todas las validaciones, proceder con la actualización
+  //  Si pasa todas las validaciones, proceder con la actualización
   try {
     setIsSubmitting(true);
     const resp = await fetch(buildUrl(`Insumos/Actualizar/${formData.IdInsumo}`), {
@@ -315,17 +315,17 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
     className="form-control"
     name="Cantidad"
     value={formData.Cantidad}
-    min={0}   // ✅ permite 0
+    min={0}   //  permite 0
     max={9999}
     required
     onKeyDown={(e) => {
-      // 🚫 Bloquea escribir "-", "+", "e", "E"
+      // Bloquea escribir "-", "+", "e", "E"
       if (["e", "E", "+", "-"].includes(e.key)) {
         e.preventDefault();
       }
     }}
     onPaste={(e) => {
-      // 🚫 Bloquea pegar letras, signos o espacios
+      //  Bloquea pegar letras, signos o espacios
       const pastedData = e.clipboardData.getData("text");
       if (!/^\d*$/.test(pastedData)) {
         e.preventDefault();
@@ -335,12 +335,12 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
       const input = e.currentTarget;
       const value = parseInt(input.value, 10);
 
-      // ✅ No permitir más de 9999
+      //  No permitir más de 9999
       if (value > 9999) {
         input.value = "9999";
       }
 
-      // ✅ Si no es número (vacío o inválido), limpiar
+      // Si no es número (vacío o inválido), limpiar
       if (isNaN(value)) {
         input.value = "";
       }
@@ -379,7 +379,7 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
               <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={isSubmitting} // 🚫 evita doble clic
+  disabled={isSubmitting} //  evita doble clic
 >
   {isSubmitting ? (
     <>

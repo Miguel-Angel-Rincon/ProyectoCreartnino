@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import "../style/acciones.css";
 import type { IRol, IPermiso, IRolPermiso } from "../../interfaces/IRoles";
-import { useAuth } from "../../../context/AuthContext"; // 👈 importamos contexto
+import { useAuth } from "../../../context/AuthContext"; //  importamos contexto
 
 interface Props {
   rol: IRol;
   onClose: () => void;
   onEditar: (rolActualizado: IRol) => void;
-  rolesExistentes: IRol[]; // ✅ lista de roles para validación
+  rolesExistentes: IRol[]; //  lista de roles para validación
 }
 
 const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistentes }) => {
@@ -20,8 +20,8 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
   const [loading, setLoading] = useState<boolean>(false);
   const [cargandoPermisos, setCargandoPermisos] = useState<boolean>(true);
 
-  const { refrescarUsuario, usuario } = useAuth(); // 👈 usamos contexto
-
+  const { refrescarUsuario, usuario } = useAuth(); 
+//para cargar datos del rol y permisos
   useEffect(() => {
     const fetchRolCompleto = async () => {
       setCargandoPermisos(true);
@@ -49,7 +49,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
         setNombre(rolData.Rol ?? "");
         setDescripcion(rolData.Descripcion ?? "");
 
-        // 🚫 Permisos que no deben mostrarse
+        //  Permisos que no deben mostrarse
         const permisosOcultos = [
           "Ver productos",
           "Realizar pedidos",
@@ -57,7 +57,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
           "Editar perfil",
         ];
 
-        // ✅ Filtrar antes de guardarlos en estado
+        //  Filtrar antes de guardarlos en estado
         const permisosFiltrados = permisosData.filter(
           (p) => !permisosOcultos.includes(p.RolPermisos)
         );
@@ -82,7 +82,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
 
     if (rol?.IdRol) fetchRolCompleto();
   }, [rol?.IdRol]);
-
+//para manejar selección de permisos
   const togglePermiso = (permiso: IPermiso) => {
     setPermisosSeleccionados((prev) =>
       prev.some((p) => p.IdPermisos === permiso.IdPermisos)
@@ -90,7 +90,7 @@ const EditarRolModal: React.FC<Props> = ({ rol, onClose, onEditar, rolesExistent
         : [...prev, permiso]
     );
   };
-
+//para manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 

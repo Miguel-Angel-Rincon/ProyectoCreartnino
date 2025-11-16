@@ -40,6 +40,8 @@ const [loading, setLoading] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  //  Verificar si el documento o correo ya existen y traer datos
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -178,6 +180,7 @@ const botonDeshabilitado =
   return pass;
 };
 
+//para manejar el envio del formulario
 
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
@@ -186,7 +189,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
   const REPEAT_THRESHOLD = 4;
 
-  // 🔹 Funciones reutilizables
+  //  Funciones reutilizables
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -198,7 +201,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
   try {
-    // ✅ Nombre
+    // Validaciones Nombre
     const nombre = formData.NombreCompleto.trim();
     const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
     if (!nombre) {
@@ -214,12 +217,12 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Tipo documento
+    // Validaciones Tipo documento
     if (!formData.TipoDocumento) {
       return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Documento
+    // Validaciones Documento
     const numDoc = formData.NumDocumento.trim();
     if (!/^\d+$/.test(numDoc)) {
       return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
@@ -231,7 +234,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Celular
+    // Validaciones Celular
     const celular = formData.Celular.trim();
     if (!/^\d+$/.test(celular)) {
       return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#f78fb3" });
@@ -243,7 +246,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Correo
+    // Validaciones Correo
     const correo = formData.Correo.trim();
     const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!correoRegex.test(correo)) {
@@ -253,7 +256,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Dirección
+    // Validaciones Dirección
     const direccion = formData.Direccion?.trim() || "";
     if (!direccion) {
       return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#f78fb3" });
@@ -265,7 +268,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Departamento / Ciudad
+    // Validaciones Departamento / Ciudad
     if (!formData.Departamento) {
       return Swal.fire({ icon: "error", title: "Departamento requerido", text: "Seleccione un departamento.", confirmButtonColor: "#f78fb3" });
     }
@@ -273,7 +276,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       return Swal.fire({ icon: "error", title: "Ciudad requerida", text: "Seleccione una ciudad.", confirmButtonColor: "#f78fb3" });
     }
 
-    // ✅ Buscar si ya existe usuario o cliente
+    //  Buscar si ya existe usuario o cliente
     const listaUsuarios = await (await fetch(`${APP_SETTINGS.apiUrl}Usuarios/Lista`)).json();
     const usuarioExiste = listaUsuarios.find(
       (u: any) =>
@@ -284,7 +287,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     let clientePayload;
 
     if (!usuarioExiste) {
-      // 🔹 Crear usuario básico con contraseña aleatoria
+      //  Crear usuario básico con contraseña aleatoria
       const usuarioPayload = {
         TipoDocumento: formData.TipoDocumento,
         NumDocumento: formData.NumDocumento,
@@ -315,7 +318,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       clientePayload = { ...usuarioExiste, ...formData };
     }
 
-    // ✅ Validar si ya existe el cliente
+    //  Validar si ya existe el cliente
     const listaClientes = await (await fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`)).json();
     const clienteExiste = listaClientes.find(
       (c: any) =>
@@ -332,7 +335,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       });
     }
 
-    // 🚀 Crear cliente
+    //  Crear cliente
     const clienteResp = await fetch(`${APP_SETTINGS.apiUrl}Clientes/Crear`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -402,7 +405,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   </select>
                 </div>
 
-                {/* 🔢 Documento */}
+                {/*  Documento */}
       <div className="col-md-6">
         <label className="form-label">
           🔢 Número Documento <span className="text-danger">*</span>
@@ -443,7 +446,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   />
                 </div>
 
-                {/* 📧 Correo */}
+                {/*  Correo */}
       <div className="col-md-6">
         <label className="form-label">
           📧 Correo Electrónico <span className="text-danger">*</span>
@@ -477,7 +480,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     value={formData.Celular}
                     max={10}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      //  Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -579,24 +582,40 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     <div className="mb-3">
                       <label>Barrio <span className="text-danger">*</span></label>
                       <input
-                      className="form-control"
-                      value={direccionData.barrio}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, barrio: value }));
-                      }}
-                      />
+  className="form-control"
+  value={direccionData.barrio}
+  onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, barrio: value }));
+  }}
+/>
+
                     </div>
                     <div className="mb-3">
                       <label>Calle / Carrera <span className="text-danger">*</span></label>
                       <input
-                      className="form-control"
-                      value={direccionData.calle}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, calle: value }));
-                      }}
-                      />
+  className="form-control"
+  value={direccionData.calle}
+  onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, calle: value }));
+  }}
+/>
+
                     </div>
                     <div className="mb-3">
                       <label>Complementos <span className="text-danger">*</span></label>
@@ -605,9 +624,16 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       value={direccionData.Complementos}
                       placeholder="Apartamento, edificio, referencia, etc."
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, Complementos: value }));
+  }}
                       />
                     </div>
                   </div>

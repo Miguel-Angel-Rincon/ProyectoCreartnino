@@ -131,7 +131,7 @@ const ListarProduccion: React.FC = () => {
     if (n.includes("anul")) return "estado-produccion-anulado";
     return "";
   };
-
+// Cargar datos iniciales produccion , detalles, productos, insumos, pedidos, clientes y fecha servidor
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -202,7 +202,7 @@ const ListarProduccion: React.FC = () => {
 
     cargar();
   }, []);
-
+// Combinar producciones con pedidos relacionados
   useEffect(() => {
     if (!producciones.length) return;
 
@@ -215,7 +215,7 @@ const ListarProduccion: React.FC = () => {
 
     setProduccionesPedidos(combinados);
   }, [producciones, pedidos]);
-
+// Refrescar producciones
   const refreshProducciones = async () => {
     const r = await fetch(api("Produccion/Lista"));
     if (r.ok) {
@@ -223,7 +223,7 @@ const ListarProduccion: React.FC = () => {
       setProducciones(data);
     }
   };
-
+// Refrescar insumos
   const refreshInsumos = async () => {
     try {
       const r = await fetch(api("Insumos/Lista"));
@@ -235,7 +235,7 @@ const ListarProduccion: React.FC = () => {
       console.warn("No se pudo refrescar insumos:", e);
     }
   };
-
+// Refrescar detalles
   const refreshDetalles = async () => {
     try {
       const r = await fetch(api("Detalles_Produccion/Lista"));
@@ -247,7 +247,7 @@ const ListarProduccion: React.FC = () => {
       console.warn("No se pudo refrescar detalles:", e);
     }
   };
-
+// Refrescar pedidos
   const refreshPedidos = async () => {
     try {
       const resp = await fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`);
@@ -258,7 +258,7 @@ const ListarProduccion: React.FC = () => {
       console.error("No se pudieron refrescar los pedidos", err);
     }
   };
-
+// Actualizar estado del pedido
   const actualizarEstadoPedido = async (idPedido: number, nuevoEstado: number) => {
     try {
       const pedidoActualizado: IPedido = {
@@ -278,7 +278,7 @@ const ListarProduccion: React.FC = () => {
       console.error("❌ Error actualizando pedido:", err);
     }
   };
-
+// Manejar actualización de estado de producción
   const handleActualizarEstado = async (p: IProduccion, nuevoIdEstado: number) => {
     try {
       const actualizado: IProduccion = { ...p, IdEstado: nuevoIdEstado };
@@ -370,7 +370,7 @@ const ListarProduccion: React.FC = () => {
       Swal.fire("Error", "No se pudo actualizar el estado.", "error");
     }
   };
-
+// Manejar anulación de producción
   const handleAnularProduccion = (p: IProduccion) => {
     const idAnulado = idEstadoPorNombre("anul");
     if (!idAnulado) {
@@ -390,7 +390,7 @@ const ListarProduccion: React.FC = () => {
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (!result.isConfirmed) return;
-
+// Lógica para devolver insumos y ajustar productos
       try {
         const rDet = await fetch(api("Detalles_Produccion/Lista"));
         if (!rDet.ok) throw new Error("No se pudieron obtener los detalles de producción.");
@@ -546,7 +546,7 @@ const ListarProduccion: React.FC = () => {
             }
           }
         }
-
+// Continuar con la anulación de la producción
         const produccionActualizada: IProduccion = { ...p, IdEstado: idAnulado };
         const resp = await fetch(api(`Produccion/Actualizar/${p.IdProduccion}`), {
           method: "PUT",
@@ -579,7 +579,7 @@ const ListarProduccion: React.FC = () => {
       }
     });
   };
-
+// Manejar guardar edición
   const handleGuardarEdicion = async (produccionActualizada: IProduccion) => {
     try {
       const resp = await fetch(api(`Produccion/Actualizar/${produccionActualizada.IdProduccion}`), {
@@ -596,7 +596,7 @@ const ListarProduccion: React.FC = () => {
       Swal.fire("Error", "No se pudo actualizar la producción.", "error");
     }
   };
-
+// Filtrar y paginar producciones
   const produccionesFiltradas = useMemo(() => {
     const texto = busqueda.toLowerCase().trim();
     const filtro = filtroEstado.toLowerCase();

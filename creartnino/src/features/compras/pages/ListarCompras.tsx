@@ -48,7 +48,7 @@ const ListarCompras: React.FC = () => {
 
   const apiBase = (APP_SETTINGS.apiUrl || "").replace(/\/+$/, "");
   const buildUrl = (path: string) => `${apiBase}/${path.replace(/^\/+/, "")}`;
-
+// --- Formatear moneda ---
   const formatCOP = (value: number | string | undefined | null) => {
     const n = Number(value) || 0;
     return n.toLocaleString("es-CO");
@@ -68,7 +68,7 @@ const ListarCompras: React.FC = () => {
 
       const comprasData: ICompras[] = await comprasRes.json();
 
-      // 🔽 Ordenar por IdCompra (última creada primero)
+      //  Ordenar por IdCompra (última creada primero)
       const comprasOrdenadas = comprasData.sort((a, b) => b.IdCompra - a.IdCompra);
 
       setCompras(comprasOrdenadas);
@@ -225,7 +225,7 @@ const ListarCompras: React.FC = () => {
 
     // Si no hay cambio, salir
     if (nombreActual === nuevoEstadoNombre) return;
-
+// Confirmar cambio de estado
     try {
       const resp = await fetch(buildUrl(`Compras/Actualizar/${compra.IdCompra}`), {
         method: "PUT",
@@ -260,7 +260,6 @@ const ListarCompras: React.FC = () => {
     }
   };
 
- // Función auxiliar para crear imagen circular
 // Función auxiliar para crear imagen circular en alta resolución
 const getCircularImage = (imgUrl: string, size = 60, scale = 4): Promise<string> => {
   return new Promise((resolve) => {
@@ -285,7 +284,7 @@ const getCircularImage = (imgUrl: string, size = 60, scale = 4): Promise<string>
   });
 };
 
-
+// --- Generar PDF ---
 const generarPDF = async (
   compra: ICompras,
   insumos: IInsumos[],
@@ -321,7 +320,7 @@ const generarPDF = async (
     doc.text("Reporte de compra", 105, 80, { align: "center" });
     doc.line(20, 85, 190, 85);
 
-    // 🔽 Datos principales
+    //  Datos principales
     const proveedor =
       proveedores.find((p) => p.IdProveedor === compra.IdProveedor)?.NombreCompleto ||
       "Desconocido";
@@ -355,7 +354,7 @@ const generarPDF = async (
       y += 8;
     });
 
-    // 🔽 Tabla de detalles
+    //  Tabla de detalles
     autoTable(doc, {
       startY: y + 10,
       head: [["Insumo", "Cantidad", "Precio Unitario", "Subtotal"]],
@@ -367,11 +366,11 @@ const generarPDF = async (
         `$${d.Subtotal.toLocaleString("es-CO")}`,
       ]),
       styles: { halign: "center", fontSize: 10 },
-      headStyles: { fillColor: [255, 182, 193], textColor: 40 }, // 🌸 Rosa pastel
+      headStyles: { fillColor: [255, 182, 193], textColor: 40 }, //  Rosa pastel
       alternateRowStyles: { fillColor: [250, 250, 250] },
     });
 
-    // 🔽 Totales
+    //  Totales
     const finalY = (doc as any).lastAutoTable?.finalY ?? y + 20;
     const subtotal = compra.Total / 1.19;
     const iva = compra.Total - subtotal;
@@ -631,7 +630,7 @@ const generarPDF = async (
               </tbody>
             </table>
 
-            {/* 🔽 Paginación */}
+            {/*  Paginación */}
             <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
               <button
                 className="btn btn-light me-2"

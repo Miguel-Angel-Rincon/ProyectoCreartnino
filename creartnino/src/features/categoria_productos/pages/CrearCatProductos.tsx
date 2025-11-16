@@ -31,14 +31,16 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     }));
   };
 
+  // para manejar el envio del formulario
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
-  // ✅ Evitar doble envío
+  //  Evitar doble envío
   if (isSubmitting) return;
   setIsSubmitting(true);
 
-  // 🔹 Funciones auxiliares de validación
+  //  Funciones auxiliares de validación
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = 4) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -49,7 +51,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
   };
   const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
-  // 🔸 Validaciones básicas
+  //  Validaciones básicas
   if (!formData.CategoriaProducto1.trim() || !formData.Descripcion.trim()) {
     Swal.fire({
       icon: "warning",
@@ -64,7 +66,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
   const nombre = formData.CategoriaProducto1.trim();
   const descripcion = formData.Descripcion.trim();
 
-  // ✅ Validar nombre (sin caracteres especiales)
+  //  Validar nombre (sin caracteres especiales)
   if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
     Swal.fire({
       icon: "error",
@@ -76,7 +78,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     return;
   }
 
-  // ✅ Validaciones de longitud, repetición y variedad
+  //  Validaciones de longitud, repetición y variedad
   if (
     nombre.length < 3 ||
     nombre.length > 50 ||
@@ -96,7 +98,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     return;
   }
 
-  // ✅ Validar descripción
+  //  Validar descripción
   if (
     descripcion.length < 5 ||
     descripcion.length > 200 ||
@@ -116,7 +118,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     return;
   }
 
-  // ✅ Validar nombre duplicado
+  //  Validar nombre duplicado
   const existeNombre = categorias.some(
     (cat: ICatProductos) =>
       cat.CategoriaProducto1.toLowerCase().trim() === nombre.toLowerCase()
@@ -133,7 +135,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     return;
   }
 
-  // 🚀 Enviar datos al backend
+  //  Enviar datos al backend
   try {
     const resp = await fetch(`${APP_SETTINGS.apiUrl}Categoria_Productos/Crear`, {
       method: "POST",
@@ -228,7 +230,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
               <button
     type="submit"
     className="btn pastel-btn-primary"
-    disabled={isSubmitting} // ✅ evita doble clic
+    disabled={isSubmitting} // evita doble clic
   >
     {isSubmitting ? "Creando..." : "Crear"} {/* 🔹 feedback visual */}
   </button>

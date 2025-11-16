@@ -18,7 +18,7 @@ const VerProveedorModal: React.FC<Props> = ({ proveedor, onClose }) => {
 
   const abrirSubmodalDireccion = () => {
   if (proveedor.Direccion) {
-    // ✅ Separar por coma y limpiar espacios extra
+    //  Separar por coma y limpiar espacios extra
     const partes = proveedor.Direccion.split(",").map((p) => p.trim());
 
     setDireccionData({

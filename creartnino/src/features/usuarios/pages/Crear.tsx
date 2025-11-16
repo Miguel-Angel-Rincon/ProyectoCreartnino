@@ -35,8 +35,6 @@ const [existeCorreo, setExisteCorreo] = useState<null | boolean>(null);
 const [loadingCheck, setLoadingCheck] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
   // Roles desde API
   const [roles, setRoles] = useState<{ IdRol: number; Rol: string; Descripcion?: string }[]>([]);
 
@@ -55,7 +53,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
         const usuarios = res.data || [];
 
-        // 🔍 Buscar coincidencias
+        //  Buscar coincidencias
         const docExiste = usuarios.some(
           (u: any) => String(u.NumDocumento) === formData.NumDocumento
         );
@@ -115,14 +113,14 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       .catch(console.error);
   }, [formData.Departamento, departamentos]);
 
-  // Roles
+  // traer roles desde API
   useEffect(() => {
     fetch("https://apicreartnino.somee.com/api/Roles/Lista")
       .then(res => res.json())
       .then((data) => setRoles(data))
       .catch(console.error);
   }, []);
-
+// Manejar cambios en el formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
@@ -132,20 +130,20 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       ...(name === 'Departamento' ? { Ciudad: '' } : {})
     }));
   };
-
+// Guardar dirección desde submodal
   const handleDireccionModalSave = () => {
     const full = `${direccionData.barrio}, ${direccionData.calle}, ${direccionData.Complementos}`;
     setFormData(prev => ({ ...prev, Direccion: full }));
     setShowDireccionModal(false);
   };
-
+//  Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (isSubmitting) return;
 
   const REPEAT_THRESHOLD = 4; // 4 o más repeticiones consecutivas
 
-  // 🔹 Funciones de validación reutilizables
+  //  Funciones de validación reutilizables
   const isAllSameChar = (s: string) => s.length > 1 && /^(.)(\1)+$/.test(s);
   const hasLongRepeatSequence = (s: string, n = REPEAT_THRESHOLD) =>
     new RegExp(`(.)\\1{${n - 1},}`).test(s);
@@ -159,7 +157,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return uniqueChars < minUnique;
   };
 
-  // ✅ Nombre
+  //  Nombre
   const nombre = formData.NombreCompleto.trim();
   const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
   if (!nombre) {
@@ -175,12 +173,12 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Nombre inválido", text: "El nombre debe tener entre 3 y 100 caracteres.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Tipo documento
+  //  Tipo documento
   if (!formData.TipoDocumento) {
     return Swal.fire({ icon: "error", title: "Tipo de documento", text: "Selecciona un tipo de documento.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Documento
+  // Documento
   const numDoc = formData.NumDocumento.trim();
   if (!/^\d+$/.test(numDoc)) {
     return Swal.fire({ icon: "error", title: "Documento inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
@@ -192,7 +190,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Documento inválido", text: "El número no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Celular
+  //  Celular
   const celular = formData.Celular.trim();
   if (!/^\d+$/.test(celular)) {
     return Swal.fire({ icon: "error", title: "Celular inválido", text: "Solo se permiten números.", confirmButtonColor: "#e83e8c" });
@@ -204,7 +202,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Celular inválido", text: "El celular no puede ser repetitivo ni de baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Correo
+  //  Correo
   const correo = formData.Correo.trim();
   const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!correoRegex.test(correo)) {
@@ -214,7 +212,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Correo inválido", text: "El correo no puede contener patrones repetitivos o demasiados caracteres especiales.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Dirección
+  //  Dirección
   const direccion = formData.Direccion?.trim() || "";
   if (!direccion) {
     return Swal.fire({ icon: "error", title: "Dirección requerida", text: "La dirección es obligatoria.", confirmButtonColor: "#e83e8c" });
@@ -226,7 +224,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Dirección inválida", text: "La dirección no puede ser repetitiva, solo números o tener baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Contraseña
+  //  Contraseña
   const pwd = formData.Contrasena.trim();
   if (!pwd) {
     return Swal.fire({ icon: "error", title: "Contraseña requerida", text: "La contraseña es obligatoria.", confirmButtonColor: "#e83e8c" });
@@ -236,16 +234,16 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Swal.fire({ icon: "error", title: "Contraseña insegura", text: "La contraseña contiene patrones repetitivos o baja variedad.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Rol
+  //  Rol
   if (!formData.IdRol) {
     return Swal.fire({ icon: "error", title: "Rol requerido", text: "Selecciona un rol.", confirmButtonColor: "#e83e8c" });
   }
 
-  // ✅ Departamento/Ciudad
+  // Departamento/Ciudad
   if (formData.Departamento && ciudades.length && !formData.Ciudad) {
     return Swal.fire({ icon: "error", title: "Ciudad no seleccionada", text: "Seleccione una ciudad.", confirmButtonColor: "#e83e8c" });
   }
-
+//  Enviar datos al backend
   try {
     setIsSubmitting(true);
     const resp = await fetch("https://apicreartnino.somee.com/api/Usuarios/Crear", {
@@ -254,7 +252,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       body: JSON.stringify(formData),
     });
 
-    const data = await resp.json(); // 👈 para leer mensaje backend
+    const data = await resp.json(); //  para leer mensaje backend
 
     if (!resp.ok) {
       return Swal.fire({
@@ -265,7 +263,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       });
     }
 
-    // 👇 Si el rol es 4 también se crea cliente
+    //  Si el rol es 4 también se crea cliente
     if (formData.IdRol === 4) {
       const clientePayload = {
         NombreCompleto: formData.NombreCompleto,
@@ -278,7 +276,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         Direccion: formData.Direccion,
         Estado: true,
       };
-
+//  Crear cliente
       const clienteResp = await fetch("https://apicreartnino.somee.com/api/Clientes/Crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -307,13 +305,11 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             showConfirmButton: false
 });
 
-// 🔹 Notifica al padre para refrescar la lista
+// Notifica al padre para refrescar la lista
 onCrear(data);  
 
-// 🔹 Cierra el modal
+// Cierra el modal
 onClose();
-
-
   } catch (err) {
     console.error("crearUsuario:", err);
     Swal.fire({
@@ -361,14 +357,14 @@ onClose();
     value={formData.NumDocumento}
     maxLength={11}
     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-  // ✅ Solo números (elimina letras, símbolos y espacios)
+  //  Solo números (elimina letras, símbolos y espacios)
   const soloNumeros = e.target.value.replace(/\D/g, "");
   e.target.value = soloNumeros;
 
-  // ✅ Mantiene tu flujo original
+  //  Mantiene tu flujo original
   handleChange(e);
 
-  // ✅ Actualiza automáticamente la contraseña (mismo número de documento)
+  // Actualiza automáticamente la contraseña (mismo número de documento)
   handleChange({
     target: {
       name: "Contrasena",
@@ -386,8 +382,6 @@ onClose();
 )}
 
 </div>
-
-
                 <div className="col-md-6">
                   <label className="form-label">🙍 Nombre Completo <span className="text-danger">*</span></label>
                   <input
@@ -410,7 +404,7 @@ onClose();
                     value={formData.Celular}
                     max={10}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      //  Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -560,10 +554,17 @@ onClose();
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, barrio: value }));
-                      }}
+                     onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, barrio: value }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -572,9 +573,16 @@ onClose();
                         className="form-control"
                         value={direccionData.calle}
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, calle: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, calle: value }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -584,9 +592,16 @@ onClose();
                         value={direccionData.Complementos}
                         placeholder="Apartamento, edificio, referencia, etc."
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, Complementos: value }));
+  }}
                       />
                     </div>
                   </div>

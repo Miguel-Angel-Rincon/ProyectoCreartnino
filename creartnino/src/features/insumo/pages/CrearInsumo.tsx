@@ -7,14 +7,14 @@ import type { IInsumos } from "../../interfaces/IInsumos";
 
 interface Props {
   onClose: () => void;
-  onCrear: () => void; // 👈 refresca lista
+  onCrear: () => void; 
   insumos: IInsumos[];
 }
 
 const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
   const [precioTexto, setPrecioTexto] = useState("");
   const [categorias, setCategorias] = useState<ICatInsumos[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ evita doble clic
+  const [isSubmitting, setIsSubmitting] = useState(false); //  evita doble clic
 
   // --- API Base URL ---
   const apiBaseRaw =
@@ -46,7 +46,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
     obtenerCategorias();
   }, []);
 
-  // --- Crear insumo ---
+  //para manejar el formulario 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return; // ✅ evita doble clic
@@ -80,7 +80,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
       setIsSubmitting(false);
       return;
     }
-
+// validaciones nombre
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombre)) {
       Swal.fire({
         icon: "error",
@@ -137,7 +137,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
       setIsSubmitting(false);
       return;
     }
-
+// Validar precio máximo
     if (precioUnitario > 9999999) {
       Swal.fire({
         icon: "error",
@@ -148,7 +148,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
       setIsSubmitting(false);
       return;
     }
-
+//validacion unidad de medida
     if (!unidadMedida) {
       Swal.fire({
         icon: "error",
@@ -169,7 +169,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
       PrecioUnitario: precioUnitario,
       Estado: form.estado?.checked ?? true,
     };
-
+// --- Enviar a API ---
     try {
       const resp = await fetch(buildUrl("Insumos/Crear"), {
         method: "POST",
@@ -201,7 +201,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
       setIsSubmitting(false);
     }
   };
-
+// --- Formatear input COP ---
   const formatearCOPInput = (valor: string) => {
     const num = parseInt(valor);
     if (isNaN(num)) return "";
@@ -281,7 +281,7 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
                       value={precioTexto}
                       onChange={(e) => {
                         const soloNumeros = e.target.value.replace(/[^\d]/g, "");
-                        if (soloNumeros.length > 7) return; // 👈 máximo 7 cifras
+                        if (soloNumeros.length > 7) return; //  máximo 7 cifras
                         if (soloNumeros === "" || parseInt(soloNumeros) === 0) {
                           setPrecioTexto("");
                         } else {

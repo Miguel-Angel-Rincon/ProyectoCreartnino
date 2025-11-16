@@ -7,19 +7,19 @@ import type { IProductos } from "../../interfaces/IProductos";
 import type { IInsumos } from "../../interfaces/IInsumos";
 import type { IPedido } from "../../interfaces/IPedidos";
 import type { IClientes } from "../../interfaces/IClientes";
-
+// Estructura para insumos usados en la producción
 interface InsumoGasto {
   insumo: string;
   cantidadUsada: number;
   disponible: number;
 }
-
+// Estructura para mostrar detalles agrupados por producto
 interface DetalleUI {
   producto: string;
   cantidad: number;
   insumos: InsumoGasto[];
 }
-
+// Componente principal para ver detalles de producción
 interface Props {
   idProduccion: number;
   onClose: () => void;
@@ -34,6 +34,7 @@ const VerProduccionVista: React.FC<Props> = ({ idProduccion, onClose }) => {
 const [clientes, setClientes] = useState<IClientes[]>([]);
 const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
 
+//cargar datos de producción, productos, insumos, pedidos y clientes
   useEffect(() => {
   const fetchData = async () => {
     try {
@@ -47,27 +48,27 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
       const respDet = await fetch(`${APP_SETTINGS.apiUrl}Detalles_Produccion/Lista`);
       const detalles: detalleProduccion[] = await respDet.json();
       const detallesProd = detalles.filter((d) => d.IdProduccion === idProduccion);
-      setDetalles(detallesProd); // 👈 GUARDAR DETALLES
+      setDetalles(detallesProd); //  GUARDAR DETALLES
 
       const [respProdList, respIns, respPedidos, respClientes] = await Promise.all([
         fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`),
         fetch(`${APP_SETTINGS.apiUrl}Insumos/Lista`),
-        fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`), // 👈 NUEVO
-        fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`), // 👈 NUEVO
+        fetch(`${APP_SETTINGS.apiUrl}Pedidos/Lista`), 
+        fetch(`${APP_SETTINGS.apiUrl}Clientes/Lista`), 
       ]);
       const productos: IProductos[] = await respProdList.json();
       const insumos: IInsumos[] = await respIns.json();
-      const dataPedidos: IPedido[] = await respPedidos.json(); // 👈 NUEVO
-      const dataClientes: IClientes[] = await respClientes.json(); // 👈 NUEVO
+      const dataPedidos: IPedido[] = await respPedidos.json(); 
+      const dataClientes: IClientes[] = await respClientes.json(); 
 
-      setPedidos(dataPedidos); // 👈 NUEVO
-      setClientes(dataClientes); // 👈 NUEVO
+      setPedidos(dataPedidos); 
+      setClientes(dataClientes); 
 
       const agrupados: Record<number, DetalleUI> = {};
       for (const d of detallesProd) {
         const producto = productos.find((p) => p.IdProducto === d.IdProducto);
         const insumo = insumos.find((i) => i.IdInsumo === d.IdInsumo);
-
+// Inicializar agrupación si no existe
         if (!agrupados[d.IdProducto]) {
           agrupados[d.IdProducto] = {
             producto: producto?.Nombre ?? `Producto #${d.IdProducto}`,
@@ -77,7 +78,7 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
         }
 
         agrupados[d.IdProducto].cantidad += d.CantidadProducir ?? 0;
-
+// Agregar insumo al arreglo
         if (insumo) {
           agrupados[d.IdProducto].insumos.push({
             insumo: insumo.Nombre,
@@ -86,7 +87,7 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
           });
         }
       }
-
+// Convertir el objeto agrupado a un arreglo
       setProductosDetalle(Object.values(agrupados));
     } catch (err) {
       console.error(err);
@@ -98,7 +99,7 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
 
   fetchData();
 }, [idProduccion]);
-
+// Resumen de insumos usados
   const resumenInsumos = (insumos: InsumoGasto[]) => {
     if (!insumos || insumos.length === 0) return null;
     const totales: Record<string, { usado: number; disponible: number }> = {};
@@ -141,7 +142,7 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
   </div>
 </div>
 
-{/* 👇 NUEVO: Campo de Pedido */}
+{/*  NUEVO: Campo de Pedido */}
 {produccion.TipoProduccion === "Pedido" && (
   <div className="row g-3 mt-2">
     <div className="col-md-12">
@@ -276,12 +277,10 @@ const [detalles, setDetalles] = useState<detalleProduccion[]>([]);
     </div>
   </div>
 )}
-
             </div>
           </div>
         ))}
       </div>
-
       <div className="text-end mt-4">
         <button className="btn pastel-btn-secondary" onClick={onClose}>
           Cerrar

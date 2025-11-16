@@ -154,7 +154,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Por favor completa Municipio, Barrio y Calle/Carrera.",
+        text: "Por favor completa Complemento, Barrio y Calle/Carrera.",
         confirmButtonColor: "#f78fb3",
       });
       return;
@@ -188,7 +188,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   };
   const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
-  // 🔸 Campos obligatorios
+  //  Campos obligatorios
   const camposObligatorios =
     formData.TipoPersona === "Jurídica"
       ? ["TipoPersona", "TipoDocumento", "NumDocumento", "NombreCompleto", "Celular", "Departamento", "Ciudad", "Direccion"]
@@ -207,7 +207,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     }
   }
 
-  // ✅ Validar celular
+  //  Validar celular
   const celular = formData.Celular?.trim() ?? "";
   if (!/^\d{10}$/.test(celular)) {
     Swal.fire({
@@ -228,7 +228,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return false;
   }
 
-  // ✅ Validar número de documento
+  //  Validar número de documento
   const numDoc = formData.NumDocumento?.trim() ?? "";
   if (!/^\d+$/.test(numDoc)) {
     Swal.fire({
@@ -255,7 +255,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return false;
   }
 
-  // ✅ Validar nombre completo
+  // Validar nombre completo
   const nombre = formData.NombreCompleto?.trim() ?? "";
   const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
   if (!nombreRegex.test(nombre)) {
@@ -285,7 +285,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return false;
   }
 
-  // ✅ Validar ciudad
+  //  Validar ciudad
   const ciudad = formData.Ciudad?.trim() ?? "";
   if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(ciudad)) {
     Swal.fire({
@@ -312,7 +312,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return false;
   }
 
-  // ✅ Validar dirección (debe venir del submodal)
+  // Validar dirección (debe venir del submodal)
   const direccion = formData.Direccion?.trim() ?? "";
   const partesDireccion = direccion.split(",").map((p) => p.trim()).filter(Boolean);
   if (partesDireccion.length < 3) {
@@ -346,13 +346,13 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 };
 
 
-  // submit -> PUT a Proveedores/Actualizar/{id}
+  //para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     if (!validarCamposObligatorios()) return;
-
+// continuar con el envío
     try {
       setIsSubmitting(true);
       const resp = await fetch(`${APP_SETTINGS.apiUrl}Proveedores/Actualizar/${formData.IdProveedor}`, {
@@ -436,7 +436,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                 <div className="col-md-6">
                   <label className="form-label">{esJuridica ? "🔢 Número NIT" : "🔢 Número de Documento"} <span className="text-danger">*</span></label>
                   <input className="form-control" name="NumDocumento" value={formData.NumDocumento} maxLength={11} onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      // Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }} required />
@@ -461,7 +461,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                 <div className="col-md-6">
                   <label className="form-label">📱 Celular <span className="text-danger">*</span></label>
                   <input className="form-control" name="Celular" value={formData.Celular} maxLength={10} onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      //  Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }} required />
@@ -528,7 +528,20 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                       <input
                         className="form-control"
                         value={direccionData.barrio}
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, barrio: e.target.value.replace(/\s+/g, "") }))}
+                       onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      barrio: value
+    }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -537,9 +550,19 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                         className="form-control"
                         value={direccionData.calle}
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, calle: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      calle: value
+    }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -548,7 +571,20 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                         className="form-control"
                         value={direccionData.Complementos}
                         placeholder="Apartamento, edificio, referencia, etc."
-                        onChange={(e) => setDireccionData(prev => ({ ...prev, Complementos: e.target.value.replace(/\s+/g, "") }))}
+                       onChange={(e) => {
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      Complementos: value
+    }));
+  }}
                       />
                     </div>
                   </div>

@@ -113,7 +113,7 @@ const ListarClientes: React.FC = () => {
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "No se pudo eliminar el cliente.",
+            text: "No se pudo eliminar el cliente.Por que esta asociado a un pedido",
             timer: 2000, // 2 segundos
             timerProgressBar: true,
             showConfirmButton: false
@@ -370,7 +370,7 @@ const ListarClientes: React.FC = () => {
         <CrearClienteModal
           onClose={() => setMostrarModal(false)}
           onCrear={() => {
-  obtenerClientes(); // 🔄 recargar lista real
+  obtenerClientes(); //  recargar lista real
   setPaginaActual(1);
   setMostrarModal(false);
   Swal.fire({

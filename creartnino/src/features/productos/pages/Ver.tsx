@@ -18,7 +18,7 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
   const [cargandoImagen, setCargandoImagen] = useState(false);
   const [nombreCategoria, setNombreCategoria] = useState<string>("");
 
-  // 🔹 Cargar imágenes del producto
+  //  Cargar imágenes del producto
   useEffect(() => {
     let mounted = true;
 
@@ -66,7 +66,7 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
     };
   }, [producto]);
 
-  // 🔹 Cargar nombre de categoría por ID
+  //  Cargar nombre de categoría por ID
   useEffect(() => {
     let mounted = true;
 
@@ -93,12 +93,12 @@ const VerProductoModal: React.FC<Props> = ({ producto, onClose }) => {
     };
   }, [producto]);
 
-  // ◀️ Imagen anterior
+  //  Imagen anterior
   const imagenAnterior = () => {
     setImagenActual((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
   };
 
-  // ▶️ Imagen siguiente
+  //  Imagen siguiente
   const imagenSiguiente = () => {
     setImagenActual((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   };

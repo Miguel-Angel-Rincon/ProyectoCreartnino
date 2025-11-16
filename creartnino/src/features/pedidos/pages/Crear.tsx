@@ -18,7 +18,7 @@ interface PedidoDetalle {
   precio: number;
   subtotal?: number;
 }
-
+// Suma días hábiles a una fecha dada en formato 'YYYY-MM-DD'
 const sumarDiasHabiles = (fechaStr: string, diasHabiles: number) => {
   const fecha = new Date(fechaStr);
   let sumados = 0;
@@ -58,6 +58,8 @@ const CrearPedido: React.FC<CrearPedidoProps> = ({ onClose, onCrear }) => {
   const [valorInicialPersonalizado, setValorInicialPersonalizado] = useState<number | string>("");
   const [helperText, setHelperText] = useState<string>("");
 const [isSubmitting, setIsSubmitting] = useState(false);
+
+// Cargar datos iniciales
 
   useEffect(() => {
     const fetchFechaServidor = async () => {
@@ -122,20 +124,22 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     fetchClientes();
   }, []);
 
+  // Filtrar clientes según búsqueda
+
   const clientesFiltrados = clienteBusqueda
     ? clientes.filter((c) =>
         (c.NombreCompleto?.toLowerCase().includes(clienteBusqueda.toLowerCase()) ||
          c.NumDocumento?.toString().includes(clienteBusqueda))
       )
     : [];
-
+// Manejo de selección de cliente
   const handleClienteSeleccionado = (c: IClientes) => {
     setClienteSeleccionado(c);
     setClienteBusqueda(c.NombreCompleto);
     setDireccionCliente(c.Direccion);
     setClienteDocumento(`${c.TipoDocumento}: ${c.NumDocumento ?? "N/A"}`);
   };
-
+// Manejo del detalle del pedido
   const agregarDetalle = () => {
     setDetallePedido([
       ...detallePedido,
@@ -143,7 +147,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     ]);
     setProductoQuery((prev) => [...prev, ""]);
   };
-
+// Actualizar un campo específico del detalle del pedido
   const actualizarDetalle = (
     index: number,
     campo: keyof PedidoDetalle,
@@ -166,7 +170,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     } else if (campo === "cantidad") {
       const cantidad = Number(valor) || 0;
       const prod = productosApi.find((p) => p.IdProducto === copia[index].idProducto);
-
+// Validaciones de cantidad
       if (!prod) {
         Swal.fire({
           icon: "warning",
@@ -192,7 +196,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       } else {
         copia[index].cantidad = cantidad;
       }
-
+// Actualizar subtotal
       copia[index].subtotal = copia[index].cantidad * copia[index].precio;
     } else if (campo === "precio") {
       const precio = Number(valor) || 0;
@@ -212,7 +216,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     setDetallePedido(copia);
   };
-
+// Seleccionar un producto del autocomplete
   const seleccionarProducto = (index: number, nombre: string) => {
     const prod = productosApi.find((p) => p.Nombre === nombre);
     if (!prod) return;
@@ -220,7 +224,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     const yaExiste = detallePedido.some(
       (d, i) => d.idProducto === prod.IdProducto && i !== index
     );
-
+// Validar producto duplicado
     if (yaExiste) {
       Swal.fire({
         icon: "warning",
@@ -231,7 +235,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       });
       return;
     }
-
+// Validar stock
     if (prod.Cantidad <= 0) {
       Swal.fire({
         icon: "warning",
@@ -242,16 +246,16 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       });
       return;
     }
-
+// Actualizar detalle
     actualizarDetalle(index, "producto", prod.Nombre);
-
+// Limpiar query
     setProductoQuery((prev) => {
       const copia = [...prev];
       copia[index] = "";
       return copia;
     });
   };
-
+// Manejar cambios en el campo de búsqueda del producto
   const handleProductoQueryChange = (index: number, value: string) => {
     setProductoQuery((prev) => {
       const copia = [...prev];
@@ -264,24 +268,24 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       return copia;
     });
   };
-
+// Eliminar un detalle del pedido
   const eliminarDetalle = (index: number) => {
     setDetallePedido((prev) => prev.filter((_, i) => i !== index));
     setProductoQuery((prev) => prev.filter((_, i) => i !== index));
   };
-
+// Calcular el total del pedido
   const calcularTotal = () =>
     detallePedido.reduce((acc, item) => acc + item.cantidad * item.precio, 0);
-
+// Calcular valor inicial
   const calcularValorInicial = () => {
     if (Number(valorInicialPersonalizado) > 0) {
       return Number(valorInicialPersonalizado);
     }
     return calcularTotal() * 0.5;
   };
-
+// Calcular valor restante
   const calcularValorRestante = () => calcularTotal() - calcularValorInicial();
-
+// Manejar el blur del campo de valor inicial
   const handleValorInicialBlur = () => {
     const total = calcularTotal();
     const minimo50 = total * 0.5;
@@ -291,7 +295,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       setHelperText("");
       return;
     }
-
+// Validaciones
     if (parsed > total) {
       Swal.fire({
         icon: "error",
@@ -320,14 +324,14 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     setHelperText(`Mínimo: ${minimo50.toLocaleString("es-CO")} | Máximo: ${total.toLocaleString("es-CO")}`);
   };
-
+// Subir imagen a Cloudinary
   const subirImagenACloudinary = async (file: File) => {
     const url = "https://api.cloudinary.com/v1_1/creartnino/image/upload";
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "CreartNino");
     formData.append("folder", "Comprobantes");
-
+// Realizar la solicitud
     try {
       const res = await fetch(url, { method: "POST", body: formData });
       const data = await res.json();
@@ -344,10 +348,13 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     }
   };
 
+
+  // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return; 
-
+// Prevenir envíos múltiples
+// Validaciones
     if (!clienteSeleccionado) {
       await Swal.fire({
         icon: "warning",
@@ -416,8 +423,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   });
   return;
 }
-
-
+// Construir el objeto del nuevo pedido
     const nuevoPedido = {
       IdCliente: clienteSeleccionado?.IdCliente ?? 0,
       MetodoPago: metodoPago,
@@ -435,9 +441,9 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         Subtotal: d.subtotal ?? d.cantidad * d.precio,
       })),
     };
-
+// Enviar a la API
     try {
-      setIsSubmitting(true); // ✅ bloquea el botón
+      setIsSubmitting(true); //  bloquea el botón
       const pedidoRes = await fetch(
         "https://apicreartnino.somee.com/api/Pedidos/Crear",
         {
@@ -511,7 +517,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       setIsSubmitting(false);
     }
   };
-
+// Renderizado del componente
   if (!fechaServidor) {
     return <p className="text-center mt-4">⏳ Cargando fecha del servidor...</p>;
   }
@@ -537,7 +543,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                 value = value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
                 value = value.replace(/^\s+/g, "");
                 value = value.replace(/\s{2,}/g, " ");
-
+// Validar caracteres permitidos
                 if (/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
                   Swal.fire({
                     icon: "warning",
@@ -548,7 +554,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                   });
                   value = value.replace(/[^a-zA-Z0-9#áéíóúÁÉÍÓÚñÑ\s]/g, "");
                 }
-
+// Evitar más de 3 repeticiones consecutivas
                 if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(value)) {
                   Swal.fire({
                     icon: "warning",
@@ -742,9 +748,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     </small>
   )}
 </div>
-
         </div>
-
         <div className="col-12 mt-4">
           <h6 className="text-muted">🧾 Detalle del Pedido</h6>
           <div className="row fw-bold mb-2">
@@ -852,7 +856,6 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             + Agregar Producto
           </button>
         </div>
-
         <div className="row g-4 mt-3">
           <div className="col-md-6">
             <label className="form-label">🎨 Personalización</label>
@@ -883,7 +886,6 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             </div>
           )}
         </div>
-
         <div className="col-12 mt-4">
           <h6 className="text-muted mb-2">📊 Resumen del Pedido</h6>
           <div className="row g-2">
@@ -928,7 +930,6 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             </div>
           </div>
         </div>
-
         <div className="mt-4 d-flex justify-content-end gap-2">
           <button
             type="button"
@@ -940,7 +941,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
           <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={isSubmitting} // 🚫 evita doble clic
+  disabled={isSubmitting} //  evita doble clic
 >
   {isSubmitting ? (
     <>
@@ -950,7 +951,6 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     "Crear"
   )}
 </button>
-
         </div>
       </form>
     </div>

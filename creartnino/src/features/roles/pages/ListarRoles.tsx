@@ -22,13 +22,13 @@ const ListarRoles: React.FC = () => {
 
   const rolesPorPagina = 5;
 
-  // 👉 Función auxiliar para identificar Admin o Cliente
+  //  Función auxiliar para identificar Admin o Cliente
   const esProtegido = (nombre: string) => {
     const lower = nombre.toLowerCase();
     return lower === "admin" || lower === "administrador" || lower === "cliente";
   };
 
-  // ✅ Cargar datos desde la API
+  //  Cargar datos desde la API
   const fetchRoles = async () => {
     try {
       const response = await fetch("https://apicreartnino.somee.com/api/Roles/Lista");
@@ -147,7 +147,7 @@ const ListarRoles: React.FC = () => {
 
     const actualizado: IRol = { ...target, Estado: !target.Estado };
 
-    // ✅ Actualiza en memoria (optimista)
+    //  Actualiza en memoria (optimista)
     setRoles((prev) => prev.map((r) => (r.IdRol === id ? actualizado : r)));
 
     try {
@@ -186,9 +186,7 @@ const ListarRoles: React.FC = () => {
     }
   };
 
-
-  
-
+  // =================== CREAR ===================
   const handleCrearRol = async (nuevoRol: IRol) => {
   try {
     const rolConNombre = { 
@@ -214,7 +212,7 @@ const ListarRoles: React.FC = () => {
   }
 };
 
-
+// =================== EDITAR ===================
   const handleEditarRol = (rol: IRol) => {
     if (esProtegido(rol.Rol)) return;
 
@@ -234,7 +232,7 @@ const ListarRoles: React.FC = () => {
     setMostrarVerModal(true);
   };
 
-  // ✅ Búsqueda (con validación de espacios)
+  //  Búsqueda (con validación de espacios)
   const rolesFiltrados = roles.filter((r) =>
     `${r.Rol} ${r.Descripcion}`.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -332,7 +330,7 @@ const ListarRoles: React.FC = () => {
           </tbody>
         </table>
 
-        {/* ✅ Paginación */}
+        {/*  Paginación */}
         <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
           <button
             className="btn btn-light me-2"
@@ -379,7 +377,7 @@ const ListarRoles: React.FC = () => {
   <CrearRolModal
     onClose={() => setMostrarModal(false)}
     onCrear={handleCrearRol}
-    rolesExistentes={roles} // 👈 pasa tu lista de roles actual
+    rolesExistentes={roles} //  pasa tu lista de roles actual
   />
 )}
 
@@ -387,7 +385,7 @@ const ListarRoles: React.FC = () => {
       {mostrarEditarModal && rolEditar && (
   <EditarRolModal
     rol={rolEditar}
-    rolesExistentes={roles}   // ✅ aquí le pasamos la lista
+    rolesExistentes={roles}   //  aquí le pasamos la lista
     onEditar={handleActualizarRol}
     onClose={() => setMostrarEditarModal(false)}
   />

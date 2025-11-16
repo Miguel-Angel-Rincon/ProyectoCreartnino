@@ -29,6 +29,8 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  //para manejar el envio del formulario
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
@@ -132,7 +134,7 @@ const CrearCategoriaModal: React.FC<Props> = ({ onClose, onCrear,categorias }) =
     return;
   }
 
-  // 🚀 Enviar datos al backend
+  // Enviar datos al backend
   try {
     const resp = await fetch(`${APP_SETTINGS.apiUrl}Categoria_Insumos/Crear`, {
       method: "POST",

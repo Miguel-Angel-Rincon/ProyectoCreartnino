@@ -14,7 +14,7 @@ import type { ICatProductos } from "../../interfaces/ICatProductos";
 import VerProductoModal from "./Ver";
 
 const ListarProductos: React.FC = () => {
-  // 🔹 Estados
+  //  Estados
   const [productos, setProductos] = useState<IProductos[]>([]);
   const [categorias, setCategorias] = useState<ICatProductos[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -30,12 +30,10 @@ const ListarProductos: React.FC = () => {
 const [productoResaltado, setProductoResaltado] = useState<number | null>(null);
 const filaResaltadaRef = useRef<HTMLTableRowElement>(null);
 
-
   const productosPorPagina = 6;
 const STOCK_MINIMO = 10;
 
-
-  // 🔹 API: Productos
+  // traer productos de la API
   const obtenerProductos = async () => {
     try {
       const response = await fetch(`${APP_SETTINGS.apiUrl}Productos/Lista`);
@@ -53,7 +51,7 @@ setProductos(
     }
   };
 
-  // 🔹 API: Categorías
+  // traer categorías de la API
   const obtenerCategorias = async () => {
     try {
       const response = await fetch(`${APP_SETTINGS.apiUrl}Categoria_Productos/Lista`);
@@ -66,7 +64,7 @@ setProductos(
     }
   };
 
-  // 🔹 Montaje inicial
+  //  Montaje inicial
   useEffect(() => {
     obtenerProductos();
     obtenerCategorias();
@@ -75,7 +73,7 @@ setProductos(
   const productosStockBajo = productos.filter(
   (p) => p.Estado && p.Cantidad <= STOCK_MINIMO
 );
-
+//  Efecto para resaltar y desplazar a producto
 useEffect(() => {
   if (productoResaltado && filaResaltadaRef.current) {
     filaResaltadaRef.current.scrollIntoView({
@@ -105,8 +103,7 @@ const handleNavegarAProducto = (productoId: number) => {
   }
 };
 
-
-  // 🔹 Eliminar producto
+  //  Eliminar producto
   const handleEliminarProducto = (id: number, estado: boolean) => {
     if (estado) {
       Swal.fire({
@@ -151,7 +148,7 @@ const handleNavegarAProducto = (productoId: number) => {
     });
   };
 
-  // 🔹 Cambiar estado (activo/inactivo)
+  //  Cambiar estado (activo/inactivo)
   const handleEstadoChange = async (id: number) => {
     const producto = productos.find((p) => p.IdProducto === id);
     if (!producto) return;
@@ -232,12 +229,12 @@ const handleNavegarAProducto = (productoId: number) => {
     }
   };
 
-  // 🔹 Editar producto
+  //  Editar producto
   const handleEditarProducto = (producto: IProductos) => {
     setProductoEditar(producto);
     setMostrarEditarModal(true);
   };
-
+//  Actualizar producto
   const handleActualizarProducto = async (productoActualizado: IProductos) => {
     try {
       const response = await fetch(
@@ -257,13 +254,13 @@ const handleNavegarAProducto = (productoId: number) => {
     }
   };
 
-  // 🔹 Ver producto
+  //  Ver producto
   const handleVerProducto = (producto: IProductos) => {
     setProductoVer(producto);
     setMostrarVerModal(true);
   };
 
-  // 🔹 Filtro búsqueda
+  //  Filtro búsqueda
   const productosFiltrados = productos.filter(
     (p) =>
       p.Nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -275,7 +272,7 @@ const handleNavegarAProducto = (productoId: number) => {
       p.Precio.toString().includes(busqueda)
   );
 
-  // 🔹 Paginación
+  //  Paginación
   const indexInicio = (paginaActual - 1) * productosPorPagina;
   const indexFin = indexInicio + productosPorPagina;
   const productosPagina = productosFiltrados.slice(indexInicio, indexFin);
@@ -321,7 +318,7 @@ const handleNavegarAProducto = (productoId: number) => {
       )}
     </button>
 
-    {/* 🔔 Modal de alerta de stock */}
+    {/*  Modal de alerta de stock */}
     {mostrarAlarmaStock && (
       <div
         style={{
@@ -435,7 +432,7 @@ const handleNavegarAProducto = (productoId: number) => {
     )}
   </div>
 
-  {/* 🔍 Buscador existente */}
+  {/*  Buscador existente */}
   <input
     type="text"
     placeholder="Buscar por Nombre, Categoría o Precio"

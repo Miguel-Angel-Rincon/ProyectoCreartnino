@@ -203,7 +203,7 @@ const ListarInsumos: React.FC = () => {
     setInsumos((prev) =>
       prev.map((i) => (i.IdInsumo === id ? actualizado : i))
     );
-
+// Enviar actualización al servidor
     try {
       const resp = await fetch(buildUrl(`Insumos/Actualizar/${id}`), {
         method: "PUT",
@@ -296,7 +296,7 @@ const ListarInsumos: React.FC = () => {
         </button>
       </div>
 
-      {/* 👇 Sección de alertas y búsqueda */}
+      {/* Sección de alertas y búsqueda */}
       <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-3 filtros-container">
         {/* Botón de alarma de stock bajo */}
         <div style={{ position: "relative", minWidth: "fit-content" }}>

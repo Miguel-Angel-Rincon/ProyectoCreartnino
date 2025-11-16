@@ -28,6 +28,7 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Cargar permisos desde la API al montar el componente
   useEffect(() => {
     const fetchPermisos = async () => {
       try {
@@ -216,7 +217,6 @@ const CrearRolModal: React.FC<Props> = ({ onClose, onCrear,rolesExistentes }) =>
     setIsSubmitting(false);
   }
 };
-
 
   return (
     <div className="modal d-block overlay" tabIndex={-1}>

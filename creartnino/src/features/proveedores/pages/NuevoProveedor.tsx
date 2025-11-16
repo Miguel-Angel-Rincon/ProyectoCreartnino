@@ -109,7 +109,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       .catch(console.error);
   }, [formData.Departamento, departamentos]);
 
-  // 🔹 Inputs
+  // para manejar cambios en los campos del formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
@@ -137,7 +137,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Por favor completa Municipio, Barrio y Calle/Carrera.",
+        text: "Por favor completa Complemento, Barrio y Calle/Carrera.",
         confirmButtonColor: "#f78fb3",
       });
       return;
@@ -159,7 +159,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
     setShowDireccionModal(false);
   };
 
-  // 🔹 Submit + Backend
+  // para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
@@ -179,7 +179,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
   const hasLowVariety = (s: string, minUnique = 3) => new Set(s).size < minUnique;
 
   try {
-    // ✅ Validar campos obligatorios
+    //  Validar campos obligatorios
     const camposObligatorios = [
       "TipoPersona",
       "TipoDocumento",
@@ -206,7 +206,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       }
     }
 
-    // ✅ Validar nombre
+    //  Validar nombre
     const nombre = formData.NombreCompleto.trim();
     const nombreRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
     if (!nombreRegex.test(nombre)) {
@@ -236,7 +236,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       return;
     }
 
-    // ✅ Validar número de documento
+    // Validar número de documento
     const numDoc = formData.NumDocumento.trim();
     if (!/^\d+$/.test(numDoc)) {
       Swal.fire({
@@ -263,7 +263,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       return;
     }
 
-    // ✅ Validar celular
+    //  Validar celular
     const celular = formData.Celular.trim();
     if (!/^\d{10}$/.test(celular)) {
       Swal.fire({
@@ -284,7 +284,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       return;
     }
 
-    // ✅ Validar ciudad
+    //  Validar ciudad
     const ciudad = formData.Ciudad.trim();
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(ciudad)) {
       Swal.fire({
@@ -311,7 +311,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       return;
     }
 
-    // ✅ Dirección (desde submodal)
+    // Dirección (desde submodal)
     const direccion = formData.Direccion.trim();
     const partesDireccion = direccion.split(",").map((p) => p.trim()).filter(Boolean);
     if (partesDireccion.length < 3) {
@@ -341,7 +341,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
       return;
     }
 
-    // 🚀 Enviar datos al backend
+    //  Enviar datos al backend
     const resp = await fetch(`${APP_SETTINGS.apiUrl}Proveedores/Crear`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -434,8 +434,6 @@ const [loadingCheck, setLoadingCheck] = useState(false);
     )}
   </select>
 </div>
-
-
                 <div className="col-md-6">
                   <label className="form-label">
                     {esJuridica ? "🔢 Número NIT" : "🔢 Número de Documento"}{" "}
@@ -446,7 +444,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
                     name="NumDocumento"
                     value={formData.NumDocumento}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      //  Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -459,9 +457,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
 {existeDoc === false && formData.NumDocumento && (
   <small className="text-success">✅ Documento disponible.</small>
 )}
-
                 </div>
-
                 <div className="col-md-6">
                   <label className="form-label">
                     {esJuridica ? "🏢 Nombre de la Empresa" : "🙍 Nombre Completo"}{" "}
@@ -490,7 +486,7 @@ const [loadingCheck, setLoadingCheck] = useState(false);
                     value={formData.Celular}
                     maxLength={10}
                     onChange={(e) => {
-      // ✅ Solo números, sin espacios
+      // Solo números, sin espacios
       e.target.value = e.target.value.replace(/\D/g, "");
       handleChange(e);
     }}
@@ -585,9 +581,16 @@ const [loadingCheck, setLoadingCheck] = useState(false);
                         className="form-control"
                         value={direccionData.barrio}
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, barrio: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, barrio: value }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -596,9 +599,16 @@ const [loadingCheck, setLoadingCheck] = useState(false);
                         className="form-control"
                         value={direccionData.calle}
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, calle: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, calle: value }));
+  }}
                       />
                     </div>
                     <div className="mb-3">
@@ -608,9 +618,16 @@ const [loadingCheck, setLoadingCheck] = useState(false);
                         value={direccionData.Complementos}
                         placeholder="Apartamento, edificio, referencia, etc."
                         onChange={(e) => {
-                        const value = e.target.value.replace(/\s+/g, "");
-                        setDireccionData((prev) => ({ ...prev, Complementos: value }));
-                      }}
+    let value = e.target.value;
+
+    //  No permitir espacios al inicio
+    value = value.replace(/^\s+/, "");
+
+    //  Permitir máximo 2 espacios seguidos en el medio
+    value = value.replace(/ {3,}/g, "  ");
+
+    setDireccionData((prev) => ({ ...prev, Complementos: value }));
+  }}
                       />
                     </div>
                   </div>

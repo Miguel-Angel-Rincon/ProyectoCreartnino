@@ -36,6 +36,8 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
     }));
   };
 
+  //para manejar el envio del formulario
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   setIsSubmitting(true);
@@ -140,7 +142,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
     return;
   }
 
-  // 🚀 Enviar datos al backend
+  // Enviar datos al backend
   try {
     const resp = await fetch(
       `${APP_SETTINGS.apiUrl}Categoria_Productos/Actualizar/${formData.IdCategoriaProducto}`,
@@ -241,7 +243,7 @@ const EditarCategoriaProductoModal: React.FC<Props> = ({
               <button
   type="submit"
   className="btn pastel-btn-primary"
-  disabled={isSubmitting} // 🚫 evita doble clic
+  disabled={isSubmitting} // evita doble clic
 >
   {isSubmitting ? (
     <>

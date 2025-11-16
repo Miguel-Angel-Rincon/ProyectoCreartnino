@@ -41,6 +41,8 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     const p = path.replace(/^\/+/, "");
     return `${base}/${p}`;
   };
+
+  // Cargar proveedores, insumos, fecha servidor y categorías al montar
   
   useEffect(() => {
     const fetchData = async () => {
@@ -82,6 +84,8 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     fetchData();
   }, []);
 
+  // Mostrar alerta solo una vez por entrada inválida
+
   let alertaMostrada = false;
   const mostrarAlertaInvalida = () => {
     if (!alertaMostrada) {
@@ -97,6 +101,8 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
       });
     }
   };
+
+  // Filtrar proveedores según búsqueda
 
   const proveedoresFiltrados = proveedorBusqueda
     ? proveedores.filter((p) =>
@@ -123,7 +129,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     const f = formatCOP(value);
     return f ? `$${f}` : "";
   };
-
+// Actualizar detalle de compra
   const actualizarDetalle = (index: number, campo: keyof CompraDetalle, valor: string | number) => {
     const copia = [...detalleCompra];
     if (!copia[index]) return;
@@ -156,30 +162,30 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     copia[index].subtotal = calcularSubtotalFila(copia[index].cantidad, copia[index].precio);
     setDetalleCompra(copia);
   };
-
+// Seleccionar insumo desde el dropdown
   const seleccionarInsumo = (index: number, nombre: string) => {
     const insu = insumos.find((i) => i.Nombre === nombre);
     if (!insu) return;
     actualizarDetalle(index, "insumo", insu.Nombre);
   };
-
+// Manejar cambios en la consulta de insumo
   const handleInsumoQueryChange = (index: number, value: string) => {
   setInsumoQuery((prev) => {
     const copia = [...prev];
     copia[index] = value;
     return copia;
   });
-  
+  // Actualizar el detalleCompra según la lógica requerida
   setDetalleCompra((prev) => {
     const copia = [...prev];
     if (copia[index]) {
       const currentIdInsumo = copia[index].idInsumo;
       
-      // ✅ Si tiene un ID temporal (negativo), mantenerlo y actualizar el nombre
+      //  Si tiene un ID temporal (negativo), mantenerlo y actualizar el nombre
       if (currentIdInsumo !== undefined && currentIdInsumo !== null && currentIdInsumo < 0) {
         copia[index] = { ...copia[index], insumo: value };
         
-        // ✅ Actualizar también el nombre en la lista de insumos
+        //  Actualizar también el nombre en la lista de insumos
         setInsumos((prevInsumos) =>
           prevInsumos.map((ins) =>
             ins.IdInsumo === currentIdInsumo ? { ...ins, Nombre: value } : ins
@@ -193,47 +199,47 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     return copia;
   });
 };
-
+// Eliminar detalle de compra
   const eliminarDetalle = (index: number) => {
     setDetalleCompra((prev) => prev.filter((_, i) => i !== index));
     setInsumoQuery((prev) => prev.filter((_, i) => i !== index));
   };
-
+// Calcular total de la compra
   const calcularTotal = () =>
     detalleCompra.reduce(
       (acc, item) => acc + (item.subtotal ?? calcularSubtotalFila(item.cantidad, item.precio)),
       0
     );
-
+// para manejar envío del formulario
   const handleSubmit = async () => {
     if (submitting) return;
-
+// Validaciones
     if (!proveedorIdSeleccionado) {
       Swal.fire("⚠ Atención", "Debes seleccionar un proveedor válido.", "warning");
       return;
     }
-
+// Validar método de pago
     if (!metodoPago) {
       Swal.fire("⚠ Atención", "Selecciona un método de pago.", "warning");
       return;
     }
-
+// Validar fecha de compra
     if (!fechaCompra) {
       Swal.fire("⚠ Atención", "No se pudo obtener la fecha de compra.", "warning");
       return;
     }
-
+// Validar que haya al menos un insumo
     if (detalleCompra.length === 0) {
       Swal.fire("⚠ Atención", "Debes agregar al menos un insumo.", "warning");
       return;
     }
 
     const nombresInsumos = new Set<number>();
-
+// Validar cada fila del detalle
     for (let i = 0; i < detalleCompra.length; i++) {
       const item = detalleCompra[i];
       const insumo = insumos.find((ins) => ins.Nombre === item.insumo);
-
+// Validar insumo
       if (!insumo || !item.idInsumo) {
         Swal.fire("⚠ Error", `Fila #${i + 1}: el insumo "${item.insumo || "(vacío)"}" no es válido.`, "warning");
         return;
@@ -245,7 +251,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
       }
 
       nombresInsumos.add(item.idInsumo);
-
+// Validar cantidad y precio
       if (item.cantidad <= 0) {
         Swal.fire("⚠ Error", `Fila #${i + 1}: la cantidad debe ser mayor que 0.`, "warning");
         return;
@@ -256,7 +262,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
         return;
       }
     }
-
+// Validar total de la compra
     const total = calcularTotal();
     if (total <= 0) {
       Swal.fire("⚠ Atención", "El total de la compra debe ser mayor a 0.", "warning");
@@ -264,7 +270,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     }
 
       setSubmitting(true);
-
+// Preparar payload y enviar a la API
       try {
         const detalleCopy = detalleCompra.map((d) => ({ ...d }));
 
@@ -309,7 +315,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             console.warn("No se pudo refrescar la lista de insumos después de crear temporales:", err);
           }
         }
-
+// Ahora crear la compra
         const payload = {
           IdCompra: 0,
           IdProveedor: proveedorIdSeleccionado,
@@ -345,7 +351,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
         } catch (err) {
           console.warn("No se pudo obtener la lista de insumos actual antes de actualizar cantidades:", err);
         }
-
+// Actualizar cantidades de insumos según el detalle de la compra
         for (let detalle of detalleCopy) {
           if (!detalle.idInsumo) continue;
           const insumo = latestInsumos.find((i) => i.IdInsumo === detalle.idInsumo);
@@ -500,7 +506,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     }}
   />
 
-  {/* ✅ Solo mostrar dropdown si NO tiene idInsumo asignado O si el ID es temporal */}
+  {/*  Solo mostrar dropdown si NO tiene idInsumo asignado O si el ID es temporal */}
   {insumoQuery[index] && (!item.idInsumo || (item.idInsumo && item.idInsumo >= 0)) && (
     <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
       {insumos
@@ -707,7 +713,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
                   form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // ✅ Evitar doble clic
+  //  Evitar doble clic
   const btnSubmit = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
   if (!btnSubmit) return; // si no se encuentra el botón, se sale
   if (btnSubmit.disabled) return; // si ya está deshabilitado, no hace nada
@@ -796,21 +802,21 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     btnSubmit.innerHTML = "Crear";
     return;
   }
-
+// Validar categoría
   if (!idCatInsumo) {
     Swal.fire("⚠️ Error", "Debe seleccionar una categoría.", "warning");
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = "Crear";
     return;
   }
-
+// Validar unidad de medida
   if (!unidad) {
     Swal.fire("⚠️ Error", "Debe seleccionar una unidad de medida.", "warning");
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = "Crear";
     return;
   }
-
+// Validar precio
   if (isNaN(precio) || precio <= 0) {
     Swal.fire("❌ Precio inválido", "El precio unitario debe ser mayor a cero.", "error");
     btnSubmit.disabled = false;
@@ -825,7 +831,7 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
     return;
   }
 
-  // 🚀 Crear insumo LOCALMENTE (no POST): asignar id temporal negativo y agregar a insumos y al detalle
+  //  Crear insumo LOCALMENTE (no POST): asignar id temporal negativo y agregar a insumos y al detalle
   try {
     const tempId = tempIdCounter.current;
     tempIdCounter.current -= 1;

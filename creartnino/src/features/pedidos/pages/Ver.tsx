@@ -12,17 +12,17 @@ interface VerPedidoProps {
   onVolver: (actualizado?: boolean) => void;
 }
 
-// 🔧 Helpers
+//  Helpers
 const formatISO = (d: Date) => d.toISOString().split("T")[0];
 
-// 🔁 Saltar domingos
+//  Saltar domingos
 const siguienteNoDomingo = (fecha: Date) => {
   const f = new Date(fecha);
   while (f.getDay() === 0) f.setDate(f.getDate() + 1);
   return f;
 };
 
-// 📅 Sumar días hábiles (sin domingos)
+//  Sumar días hábiles (sin domingos)
 const sumarDiasHabiles = (fechaStr: string, diasHabiles: number) => {
   if (!fechaStr) return ""; // Evita error si la fecha está vacía
   const fecha = new Date(fechaStr);
@@ -51,7 +51,7 @@ const [_adicionalAplicado, setAdicionalAplicado] = useState(false);
   const [fechaEntrega, setFechaEntrega] = useState("");
   const [fechaModificada, setFechaModificada] = useState(false);
 
-  // 🕒 Obtener fecha del servidor
+  //  Obtener fecha del servidor
   useEffect(() => {
     const fetchFechaServidor = async () => {
       try {
@@ -70,7 +70,7 @@ const [_adicionalAplicado, setAdicionalAplicado] = useState(false);
     fetchFechaServidor();
   }, [pedido]);
 
-  // 🧾 Cargar cliente, productos y detalles
+  //  Cargar cliente, productos y detalles
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -109,8 +109,8 @@ const [_adicionalAplicado, setAdicionalAplicado] = useState(false);
     fetchData();
   }, [pedido]);
 
-  // ✅ Actualizar fecha en API
-  // ✅ Solo mostrar botones si el estado permite cambios
+  //  Actualizar fecha en API
+  //  Solo mostrar botones si el estado permite cambios
 const puedeEditarAdicional =
   pedido.IdEstado === 1 || pedido.IdEstado === 2 || pedido.IdEstado ===1007; // Primer pago o En Proceso
   
@@ -143,7 +143,7 @@ const puedeEditarAdicional =
           />
         </div>
 
-        {/* 📦 Fecha entrega editable con validaciones */}
+        {/* Fecha entrega editable con validaciones */}
         <div className="col-md-3">
           <label className="form-label">
             📦 Fecha de Entrega <span className="text-danger">*</span>
@@ -421,13 +421,13 @@ const puedeEditarAdicional =
   </div>
 </div>
 
-{/* 💰 Adicional solo si el pedido viene de la web o la app móvil */}
+{/*  Adicional solo si el pedido viene de la web o la app móvil */}
 {(pedido.Descripcion?.includes("Este pedido fue realizado desde la web.") ||
   pedido.Descripcion?.includes("Este pedido fue realizado desde la app móvil.")) &&
   puedeEditarAdicional && (
 
   <>
-    {/* 🔍 Calcular si el total ya está modificado */}
+    {/*  Calcular si el total ya está modificado */}
     {(() => {
       const totalOriginal =
         (pedido.ValorInicial || 0) + (pedido.ValorRestante || 0);
@@ -450,7 +450,7 @@ const puedeEditarAdicional =
             </div>
           ) : null}
 
-          {/* 💰 Campo valor adicional */}
+          {/*  Campo valor adicional */}
           {mostrarAdicional && esOriginal && (
             <div className="row mb-4 align-items-end">
               <div className="col-md-3 col-sm-6">
@@ -475,7 +475,7 @@ const puedeEditarAdicional =
               e.target.value = valorAdicional ? valorAdicional.toString() : "";
             }}
             onBlur={(e) => {
-  // 🧹 Eliminar todo excepto dígitos
+  //  Eliminar todo excepto dígitos
   const soloNumeros = e.target.value.replace(/[^\d]/g, "");
   let valor = Number(soloNumeros);
 
@@ -516,7 +516,7 @@ const puedeEditarAdicional =
           />
         </div>
 
-              {/* ❌ Botón cancelar */}
+              {/*  Botón cancelar */}
               <div className="col-md-2 d-flex align-items-end">
                 <button
                   className="btn pastel-btn-secondary w-100"
@@ -531,7 +531,7 @@ const puedeEditarAdicional =
             </div>
           )}
 
-          {/* ↩️ Botón Revertir solo si el total ha cambiado */}
+          {/* Botón Revertir solo si el total ha cambiado */}
           {!esOriginal && (
             <div className="text-start mb-4">
               <button
@@ -561,13 +561,13 @@ const puedeEditarAdicional =
                   if (!confirm.isConfirmed) return;
 
                   try {
-                    // 🔍 Determinar el estado correcto según el valor restante
+                    //  Determinar el estado correcto según el valor restante
                     const nuevoEstado = (pedido.ValorRestante || 0) === 0 ? 1007 : 1;
 
                     const payload = {
                       ...pedido,
                       TotalPedido: precioOriginal,
-                      IdEstado: nuevoEstado, // 👈 Estado basado en si tiene restante o no
+                      IdEstado: nuevoEstado, //  Estado basado en si tiene restante o no
                     };
                     const res = await fetch(
                       `${APP_SETTINGS.apiUrl}Pedidos/Actualizar/${pedido.IdPedido}`,
@@ -643,7 +643,7 @@ const puedeEditarAdicional =
         </div>
         
       </div>
-      {/* 💸 Mostrar excedente solo si el total cambió */}
+      {/*  Mostrar excedente solo si el total cambió */}
 {pedido.TotalPedido !== (pedido.ValorInicial ?? 0) + (pedido.ValorRestante ?? 0) && (
   <div className="row mb-4">
     <div className="col-md-6">
@@ -715,12 +715,12 @@ if (valorAdicional > 0) {
   payload.IdEstado = 2; //  Cambiar estado a "En Proceso"
 }
 
-          // 📅 Si cambió la fecha
+          //  Si cambió la fecha
           if (fechaModificada) {
             payload.FechaEntrega = fechaEntrega;
           }
 
-          // 🔄 PUT al backend
+          //  PUT al backend
           const res = await fetch(
             `${APP_SETTINGS.apiUrl}Pedidos/Actualizar/${pedido.IdPedido}`,
             {
@@ -732,7 +732,7 @@ if (valorAdicional > 0) {
 
           if (!res.ok) throw new Error(await res.text());
 
-          // 🎉 Mensaje dinámico
+          //  Mensaje dinámico
           let mensaje = "";
           if (fechaModificada && valorAdicional > 0)
             mensaje = "Fecha y adicional actualizados correctamente.";
@@ -750,7 +750,7 @@ if (valorAdicional > 0) {
               showConfirmButton: false, 
           });
 
-          // 🔄 Refresca pantalla
+          //  Refresca pantalla
           setAdicionalAplicado(true);
           setMostrarAdicional(false);
           setFechaModificada(false);
@@ -775,7 +775,7 @@ if (valorAdicional > 0) {
 
   <button
   className="btn pastel-btn-secondary"
-  onClick={() => onVolver(true)} // 👈 ahora refresca siempre
+  onClick={() => onVolver(true)} //  ahora refresca siempre
 >
   Cerrar
 </button>

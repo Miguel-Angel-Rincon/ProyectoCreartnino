@@ -89,7 +89,7 @@ const ListarUsuarios: React.FC = () => {
     });
     
     if (!confirm.isConfirmed) return;
-
+// proceder con eliminación
     try {
       const resp = await fetch(
         `https://apicreartnino.somee.com/api/Usuarios/Eliminar/${id}`,
@@ -183,7 +183,7 @@ const ListarUsuarios: React.FC = () => {
       if (!confirmacion.isConfirmed) return;
     }
 
-    // 🧩 Verificar si el usuario es un ADMIN
+    //  Verificar si el usuario es un ADMIN
     const rolAdmin = roles.find(
       (r) =>
         r.Rol.toLowerCase() === "admin" ||
@@ -191,7 +191,7 @@ const ListarUsuarios: React.FC = () => {
     );
     const esAdmin = target.IdRol === rolAdmin?.IdRol;
 
-    // 🔒 Verificar si es el último admin activo (sólo aplica al intentar desactivar)
+    //  Verificar si es el último admin activo (sólo aplica al intentar desactivar)
     if (esAdmin && target.Estado) {
       const adminsActivos = Usuarios.filter(
         (u) => u.IdRol === rolAdmin?.IdRol && u.Estado
@@ -210,7 +210,7 @@ const ListarUsuarios: React.FC = () => {
       }
     }
 
-    // ✅ Si pasa la validación, proceder con el cambio
+    //  Si pasa la validación, proceder con el cambio
     const actualizado: IUsuarios = { ...target, Estado: !target.Estado };
 
     try {

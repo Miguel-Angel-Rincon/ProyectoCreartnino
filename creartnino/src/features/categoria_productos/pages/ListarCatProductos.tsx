@@ -24,7 +24,7 @@ const ListarCatProductos: React.FC = () => {
 
   const categoriasPorPagina = 6;
 
-  // 🚀 Consumir API al cargar el componente
+  //  Consumir API al cargar el componente
   const obtenerCategorias = async () => {
     try {
       const res = await fetch(
@@ -102,7 +102,7 @@ const ListarCatProductos: React.FC = () => {
     }
   };
 
-  // ✅ Actualizar estado en la API
+  //  Actualizar estado en la API
   const handleEstadoChange = async (id: number) => {
     const target = categorias.find((c) => c.IdCategoriaProducto === id);
     if (!target) return;
@@ -195,7 +195,7 @@ const ListarCatProductos: React.FC = () => {
     setMostrarVerModal(true);
   };
 
-  // ✅ Filtro seguro
+  //  Filtro seguro
   const categoriasFiltradas = categorias.filter(
     (c) =>
       c.CategoriaProducto1?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -335,7 +335,7 @@ const ListarCatProductos: React.FC = () => {
       {/* Modal Crear */}
       {mostrarModal && (
         <CrearCategoriaModal
-          categorias={categorias} // 👈 AQUI
+          categorias={categorias}
           onClose={() => setMostrarModal(false)}
           onCrear={handleCrear}
         />
