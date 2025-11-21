@@ -523,23 +523,31 @@ const EditarProductoModal: React.FC<Props> = ({ producto, onClose, onEditar }) =
 
                 {/* Categoría */}
                 <div className="col-md-6">
-                  <label className="form-label">📦 Categoría <span className="text-danger">*</span></label>
+                  <label className="form-label">
+                  📦 Categoría <span className="text-danger">*</span>
+                  </label>
                   <select
-                    className="form-select"
-                    value={categoria}
-                    onChange={(e) => setCategoria(Number(e.target.value))}
-                    required
+                  className="form-select"
+                  value={categoria}
+                  onChange={(e) => { if (producto.Estado !== false) setCategoria(Number(e.target.value)); }}
+                  required
+                  disabled={producto.Estado === false}
                   >
-                    <option value="">Seleccione una categoría</option>
-                    {categorias.map((cat) => (
-                      <option
-                        key={cat.IdCategoriaProducto}
-                        value={cat.IdCategoriaProducto}
-                      >
-                        {cat.CategoriaProducto1}
-                      </option>
-                    ))}
+                  <option value="">Seleccione una categoría</option>
+                  {categorias.map((cat) => (
+                    <option
+                    key={cat.IdCategoriaProducto}
+                    value={cat.IdCategoriaProducto}
+                    >
+                    {cat.CategoriaProducto1}
+                    </option>
+                  ))}
                   </select>
+                  {producto.Estado === false && (
+                  <div className="form-text text-warning">
+                    Producto inactivo — no se puede cambiar la categoría.
+                  </div>
+                  )}
                 </div>
 
                 {/* Cantidad */}

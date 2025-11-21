@@ -505,18 +505,20 @@ onClose();
                 <div className="col-md-6">
                   <label className="form-label">🛡️ Rol <span className="text-danger">*</span></label>
                   <select
-                    name="IdRol"
-                    className="form-select"
-                    value={formData.IdRol}
-                    onChange={handleChange}
-                    disabled={!roles.length}
-                    title={roles.find(r => r.IdRol === formData.IdRol)?.Descripcion || ''}
+                  name="IdRol"
+                  className="form-select"
+                  value={formData.IdRol}
+                  onChange={handleChange}
+                  disabled={!roles.length}
+                  title={roles.find(r => r.IdRol === formData.IdRol)?.Descripcion || ''}
                   >
-                    <option value="">Seleccione un rol</option>
-                    {roles.map((rol) => (
-                      <option key={rol.IdRol} value={rol.IdRol} title={rol.Descripcion}>
-                        {rol.Rol}
-                      </option>
+                  <option value="">Seleccione un rol</option>
+                  {roles
+                    .filter(r => (r as any).Estado !== false) // filtra roles con Estado === false
+                    .map((rol) => (
+                    <option key={rol.IdRol} value={rol.IdRol} title={rol.Descripcion}>
+                      {rol.Rol}
+                    </option>
                     ))}
                   </select>
                 </div>

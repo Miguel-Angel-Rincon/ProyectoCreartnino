@@ -236,14 +236,16 @@ const CrearInsumoModal: React.FC<Props> = ({ onClose, onCrear, insumos }) => {
                 {/* Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">
-                    📦 Categoría <span className="text-danger">*</span>
+                  📦 Categoría <span className="text-danger">*</span>
                   </label>
                   <select className="form-select" name="categoria" required>
-                    <option value="">-- Selecciona --</option>
-                    {categorias.map((c) => (
-                      <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
-                        {c.NombreCategoria}
-                      </option>
+                  <option value="">-- Selecciona --</option>
+                  {categorias
+                    .filter((c) => c.Estado !== false) // no mostrar categorías con Estado === false
+                    .map((c) => (
+                    <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
+                      {c.NombreCategoria}
+                    </option>
                     ))}
                   </select>
                 </div>

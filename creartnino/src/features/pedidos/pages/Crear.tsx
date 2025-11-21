@@ -322,6 +322,17 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       return;
     }
 
+    if (valorInicialPersonalizado === "" || parsed === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Valor inicial requerido",
+        text: `Debes ingresar un valor inicial. Se asignará automáticamente el mínimo: ${minimo50.toLocaleString("es-CO")}.`,
+        timer: 2200,
+        showConfirmButton: false,
+      });
+      setValorInicialPersonalizado(minimo50);
+    }
+
     setHelperText(`Mínimo: ${minimo50.toLocaleString("es-CO")} | Máximo: ${total.toLocaleString("es-CO")}`);
   };
 // Subir imagen a Cloudinary
@@ -693,7 +704,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             </div>
           )}
           <div className="col-md-3">
-  <label className="form-label">💰 Valor Inicial a Pagar</label>
+  <label className="form-label">💰 Valor Inicial a Pagar <span className="text-danger">*</span></label>
   <input
     type="text"
     className="form-control"
@@ -750,7 +761,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 </div>
         </div>
         <div className="col-12 mt-4">
-          <h6 className="text-muted">🧾 Detalle del Pedido</h6>
+          <h6 className="text-muted">🧾 Detalle del Pedido <span className="text-danger">*</span></h6>
           <div className="row fw-bold mb-2">
             <div className="col-md-3">Producto</div>
             <div className="col-md-2">Cantidad</div>

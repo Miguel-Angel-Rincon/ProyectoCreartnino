@@ -428,22 +428,24 @@ const CrearProductoModal: React.FC<Props> = ({ onClose, onCrear }) => {
                 {/* Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">
-                    📦 Categoría <span className="text-danger">*</span>
+                  📦 Categoría <span className="text-danger">*</span>
                   </label>
                   <select
-                    className="form-select"
-                    value={categoria}
-                    onChange={(e) => setCategoria(Number(e.target.value))}
-                    required
+                  className="form-select"
+                  value={categoria}
+                  onChange={(e) => setCategoria(Number(e.target.value))}
+                  required
                   >
-                    <option value="">Seleccione una categoría</option>
-                    {categorias.map((cat) => (
-                      <option
-                        key={cat.IdCategoriaProducto}
-                        value={cat.IdCategoriaProducto}
-                      >
-                        {cat.CategoriaProducto1}
-                      </option>
+                  <option value="">Seleccione una categoría</option>
+                  {categorias
+                    .filter((cat) => cat.Estado) // solo mostrar categorías activas
+                    .map((cat) => (
+                    <option
+                      key={cat.IdCategoriaProducto}
+                      value={cat.IdCategoriaProducto}
+                    >
+                      {cat.CategoriaProducto1}
+                    </option>
                     ))}
                   </select>
                 </div>

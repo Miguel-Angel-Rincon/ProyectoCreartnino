@@ -535,16 +535,27 @@ const handleAbrirDireccionModal = () => {
                 <div className="col-md-6">
                   <label className="form-label">🛡️ Rol <span className="text-danger">*</span></label>
                   <select
-                    name="IdRol"
-                    className="form-select"
-                    value={formData.IdRol}
-                    onChange={handleChange}
+                  name="IdRol"
+                  className="form-select"
+                  value={formData.IdRol}
+                  onChange={handleChange}
                   >
-                    <option value="">Seleccione un rol</option>
-                    {roles.map((rol) => (
-                      <option key={rol.IdRol} value={rol.IdRol}>
-                        {rol.Rol}
-                      </option>
+                  <option value="">Seleccione un rol</option>
+                  {roles
+                    .filter((rol) => {
+                    const r = rol as any;
+                    // Si alguna propiedad de estado existe y es false, lo excluimos.
+                    return r.Activo !== false &&
+                         r.activo !== false &&
+                         r.Estado !== false &&
+                         r.estado !== false &&
+                         r.IsActive !== false &&
+                         r.isActive !== false;
+                    })
+                    .map((rol) => (
+                    <option key={rol.IdRol} value={rol.IdRol}>
+                      {rol.Rol}
+                    </option>
                     ))}
                   </select>
                 </div>

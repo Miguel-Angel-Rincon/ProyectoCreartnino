@@ -265,20 +265,30 @@ const EditarInsumoModal: React.FC<Props> = ({ insumo, onClose, onEditar,insumos 
                 {/* Categoría */}
                 <div className="col-md-6">
                   <label className="form-label">
-                    📦 Categoría <span className="text-danger">*</span>
+                  📦 Categoría <span className="text-danger">*</span>
                   </label>
                   <select
-                    className="form-select"
-                    name="IdCatInsumo"
-                    value={formData.IdCatInsumo}
-                    onChange={handleChange}
-                    required
+                  className="form-select"
+                  name="IdCatInsumo"
+                  value={formData.IdCatInsumo}
+                  onChange={handleChange}
+                  required
                   >
-                    <option value="">-- Selecciona --</option>
-                    {categorias.map((c) => (
-                      <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
-                        {c.NombreCategoria}
-                      </option>
+                  <option value="">-- Selecciona --</option>
+                  {categorias
+                    .filter((c) => {
+                    const any = c as any;
+                    // Si alguna de estas propiedades existe y es false, ocultar la categoría
+                    if ('Activo' in any && any.Activo === false) return false;
+                    if ('Estado' in any && any.Estado === false) return false;
+                    if ('Visible' in any && any.Visible === false) return false;
+                    // Mostrar por defecto
+                    return true;
+                    })
+                    .map((c) => (
+                    <option key={c.IdCatInsumo} value={c.IdCatInsumo}>
+                      {c.NombreCategoria}
+                    </option>
                     ))}
                   </select>
                 </div>
