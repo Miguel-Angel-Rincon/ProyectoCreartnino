@@ -217,63 +217,98 @@ const ListarPedidos: React.FC = () => {
   }, [clientes]);
 // Actualizar estado del pedido
   const actualizarEstadoAPI = async (pedido: Pedidos, nuevoEstado: string) => {
-    if (updatingId !== null) return;
-    setUpdatingId(pedido.IdPedido ?? null);
-    const estadoId =
-      nuevoEstado === "primer pago"
-        ? 1
-        : nuevoEstado === "en proceso"
-        ? 2
-        : nuevoEstado === "en producción"
-        ? 3
-        : nuevoEstado === "en proceso de entrega"
-        ? 4
-        : nuevoEstado === "entregado"
-        ? 5
-        : nuevoEstado === "anulado"
-        ? 6
-        : nuevoEstado === "venta directa"
-        ? 7
-        : nuevoEstado === "pedido pagado"
-        ? 1007
-        : pedido.IdEstado;
-        // Actualizar en la API
-    try {
-      const response = await fetch(
-        `https://apicreartnino.somee.com/api/Pedidos/Actualizar/${pedido.IdPedido}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...pedido, IdEstado: estadoId }),
+  if (updatingId !== null) return;
+
+  setUpdatingId(pedido.IdPedido ?? null);
+
+  const estadoId =
+    nuevoEstado === "primer pago"
+      ? 1
+      : nuevoEstado === "en proceso"
+      ? 2
+      : nuevoEstado === "en producción"
+      ? 3
+      : nuevoEstado === "en proceso de entrega"
+      ? 4
+      : nuevoEstado === "entregado"
+      ? 5
+      : nuevoEstado === "anulado"
+      ? 6
+      : nuevoEstado === "venta directa"
+      ? 7
+      : nuevoEstado === "pedido pagado"
+      ? 1007
+      : pedido.IdEstado;
+
+  try {
+    let fechaServidor = pedido.FechaEntrega ?? null;
+
+    //  SOLO si es entregado o venta directa
+    if (nuevoEstado === "entregado" || nuevoEstado === "venta directa") {
+      try {
+        const resFecha = await fetch(
+          `https://apicreartnino.somee.com/api/Utilidades/FechaServidor`
+        );
+        if (resFecha.ok) {
+          const data = await resFecha.json();
+          fechaServidor = data.FechaServidor; // <-- ESTA es la buena
         }
-      );
-      if (!response.ok) throw new Error("Error al actualizar estado");
-      setPedidos((prev) =>
-        prev.map((p) =>
-          p.IdPedido === pedido.IdPedido
-            ? { ...p, Estado: nuevoEstado, IdEstado: estadoId }
-            : p
-        )
-      );
-      Swal.fire({
-        icon: "success",
-        title: "Actualizado",
-        text: "Estado actualizado correctamente",
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Error actualizando estado:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo actualizar el estado en la API",
-      });
-    } finally {
-      setUpdatingId(null);
+      } catch {
+        console.warn("No se pudo obtener fecha del servidor");
+      }
     }
-  };
+
+    //  enviar objeto completo + FechaEntrega
+    const body = {
+      ...pedido,
+      IdEstado: estadoId,
+      FechaEntrega: fechaServidor,
+    };
+
+    const response = await fetch(
+      `https://apicreartnino.somee.com/api/Pedidos/Actualizar/${pedido.IdPedido}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) throw new Error("Error al actualizar estado");
+
+    //  actualizar en el front
+    setPedidos((prev) =>
+      prev.map((p) =>
+        p.IdPedido === pedido.IdPedido
+          ? {
+              ...p,
+              Estado: nuevoEstado,
+              IdEstado: estadoId,
+              FechaEntrega: fechaServidor ?? p.FechaEntrega,
+            }
+          : p
+      )
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Actualizado",
+      text: "Estado actualizado correctamente",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  } catch (error) {
+    console.error("Error actualizando estado:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo actualizar el estado en la API",
+    });
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
 // Anular pedido y devolver productos al inventario
   const handleAnularPedido = async (pedido: Pedidos) => {
     Swal.fire({

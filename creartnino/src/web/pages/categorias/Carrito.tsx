@@ -118,154 +118,161 @@ const Carrito = () => {
   };
 
   return (
-    <div className="carrito-container">
-      <h2 className="titulo-carrito">🛒 Tu Carrito</h2>
+    <div
+  className={
+    carrito.length === 0
+      ? "carrito-container carrito-vacio-full"
+      : "carrito-container"
+  }
+>
+  <h2 className="titulo-carrito">🛒 Tu Carrito</h2>
 
-      {carrito.length === 0 ? (
-        <p className="carrito-vacio">Tu carrito está vacío.</p>
-      ) : (
-        <>
-          <div className="tabla-carrito">
-            <div className="encabezado">
-              <span style={{ textAlign: "left", paddingLeft: "2rem" }}>Producto</span>
-              <span>Precio</span>
-              <span>Cantidad</span>
-              <span>Disponibles</span>
-              <span>Subtotal</span>
-              <span>Tipo</span>
-              <span>Acción</span>
-            </div>
-
-            {carrito.map((producto: Producto) => {
-              const primeraImagen = producto.ImagenUrl?.includes("|||")
-                ? producto.ImagenUrl.split("|||")[0].trim()
-                : producto.ImagenUrl;
-
-              return (
-                <div className="fila-carrito" key={producto.uid || producto.IdProducto}>
-                  <div
-                    className="columna producto-info"
-                    onClick={() => abrirModalImagenes(producto.ImagenUrl)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <img
-                      src={primeraImagen}
-                      alt={producto.Nombre}
-                      onError={(e) => (e.currentTarget.src = "/placeholder.png")}
-                    />
-                    <span>{producto.Nombre}</span>
-                  </div>
-
-                  <div className="columna carrito-precio">
-                    ${producto.Precio.toLocaleString()} COP
-                  </div>
-
-                  <div className="columna cantidad">
-                    <button
-                      className="cantidad-btn"
-                      onClick={() => disminuir(producto.uid || producto.IdProducto)}
-                    >
-                      -
-                    </button>
-                    <span>{producto.cantidad}</span>
-                    <button
-                      className="cantidad-btn"
-                      onClick={() => aumentar(producto.uid || producto.IdProducto)}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <div className="columna stock">
-                    {stockProductos[producto.IdProducto] ?? "..."}
-                  </div>
-
-                  <div className="columna subtotal">
-                    ${(producto.Precio * producto.cantidad).toLocaleString()} COP
-                  </div>
-
-                  <div className="columna tipo">
-                    <span
-                      className={
-                        producto.tipo === "Personalizado"
-                          ? "personalizado"
-                          : "predisenado"
-                      }
-                    >
-                      {producto.tipo}
-                    </span>
-                  </div>
-
-                  <div className="columna accion">
-                    <FaTrash
-                      className="icono-basura"
-                      title="Eliminar del carrito"
-                      onClick={() =>
-                        eliminarProducto(producto.uid || producto.IdProducto)
-                      }
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="total-carrito">
-            <strong>Total:</strong> ${total.toLocaleString()} COP
-          </div>
-
-          <div className="acciones-carrito">
-            <button className="btn-vaciar" onClick={limpiarCarrito}>
-              Vaciar Carrito
-            </button>
-
-            <button
-              className="btn-finalizar"
-              onClick={() => {
-                if (validarStockAntesDeFinalizar()) {
-                  setModalCompraVisible(true);
-                }
-              }}
-            >
-              Finalizar Compra
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* MODAL CARRUSEL */}
-      {modalVisible && (
-        <div className="overlay-carrusel" onClick={cerrarModal}>
-          <div className="carrusel" onClick={(e) => e.stopPropagation()}>
-            <FaTimes className="cerrar" onClick={cerrarModal} />
-            <img
-              src={imagenesModal[indice]}
-              alt="Vista producto"
-              className="imagen-carrusel"
-            />
-            {imagenesModal.length > 1 && (
-              <>
-                <button className="btn-carrusel prev" onClick={anterior}>
-                  <FaChevronLeft />
-                </button>
-                <button className="btn-carrusel next" onClick={siguiente}>
-                  <FaChevronRight />
-                </button>
-              </>
-            )}
-          </div>
+  {carrito.length === 0 ? (
+    <p className="carrito-vacio">Tu carrito está vacío.</p>
+  ) : (
+    <>
+      <div className="tabla-carrito">
+        <div className="encabezado">
+          <span style={{ textAlign: "left", paddingLeft: "2rem" }}>Producto</span>
+          <span>Precio</span>
+          <span>Cantidad</span>
+          <span>Disponibles</span>
+          <span>Subtotal</span>
+          <span>Tipo</span>
+          <span>Acción</span>
         </div>
-      )}
 
-      <FinalizarCompraModal
-        visible={modalCompraVisible}
-        onClose={() => setModalCompraVisible(false)}
-        onEnviar={() => {
-          limpiarCarrito();
-          setModalCompraVisible(false);
-        }}
-      />
+        {carrito.map((producto: Producto) => {
+          const primeraImagen = producto.ImagenUrl?.includes("|||")
+            ? producto.ImagenUrl.split("|||")[0].trim()
+            : producto.ImagenUrl;
+
+          return (
+            <div className="fila-carrito" key={producto.uid || producto.IdProducto}>
+              <div
+                className="columna producto-info"
+                onClick={() => abrirModalImagenes(producto.ImagenUrl)}
+                style={{ cursor: "pointer" }}
+              >
+                <img
+                  src={primeraImagen}
+                  alt={producto.Nombre}
+                  onError={(e) => (e.currentTarget.src = "/placeholder.png")}
+                />
+                <span>{producto.Nombre}</span>
+              </div>
+
+              <div className="columna carrito-precio">
+                ${producto.Precio.toLocaleString()} COP
+              </div>
+
+              <div className="columna cantidad">
+                <button
+                  className="cantidad-btn"
+                  onClick={() => disminuir(producto.uid || producto.IdProducto)}
+                >
+                  -
+                </button>
+                <span>{producto.cantidad}</span>
+                <button
+                  className="cantidad-btn"
+                  onClick={() => aumentar(producto.uid || producto.IdProducto)}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="columna stock">
+                {stockProductos[producto.IdProducto] ?? "..."}
+              </div>
+
+              <div className="columna subtotal">
+                ${(producto.Precio * producto.cantidad).toLocaleString()} COP
+              </div>
+
+              <div className="columna tipo">
+                <span
+                  className={
+                    producto.tipo === "Personalizado"
+                      ? "personalizado"
+                      : "predisenado"
+                  }
+                >
+                  {producto.tipo}
+                </span>
+              </div>
+
+              <div className="columna accion">
+                <FaTrash
+                  className="icono-basura"
+                  title="Eliminar del carrito"
+                  onClick={() =>
+                    eliminarProducto(producto.uid || producto.IdProducto)
+                  }
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="total-carrito">
+        <strong>Total:</strong> ${total.toLocaleString()} COP
+      </div>
+
+      <div className="acciones-carrito">
+        <button className="btn-vaciar" onClick={limpiarCarrito}>
+          Vaciar Carrito
+        </button>
+
+        <button
+          className="btn-finalizar"
+          onClick={() => {
+            if (validarStockAntesDeFinalizar()) {
+              setModalCompraVisible(true);
+            }
+          }}
+        >
+          Finalizar Compra
+        </button>
+      </div>
+    </>
+  )}
+
+  {/* MODAL CARRUSEL */}
+  {modalVisible && (
+    <div className="overlay-carrusel" onClick={cerrarModal}>
+      <div className="carrusel" onClick={(e) => e.stopPropagation()}>
+        <FaTimes className="cerrar" onClick={cerrarModal} />
+        <img
+          src={imagenesModal[indice]}
+          alt="Vista producto"
+          className="imagen-carrusel"
+        />
+        {imagenesModal.length > 1 && (
+          <>
+            <button className="btn-carrusel prev" onClick={anterior}>
+              <FaChevronLeft />
+            </button>
+            <button className="btn-carrusel next" onClick={siguiente}>
+              <FaChevronRight />
+            </button>
+          </>
+        )}
+      </div>
     </div>
+  )}
+
+  <FinalizarCompraModal
+    visible={modalCompraVisible}
+    onClose={() => setModalCompraVisible(false)}
+    onEnviar={() => {
+      limpiarCarrito();
+      setModalCompraVisible(false);
+    }}
+  />
+</div>
+
   );
 };
 

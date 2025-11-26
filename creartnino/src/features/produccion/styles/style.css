@@ -177,26 +177,29 @@ input:checked + .slider:before {
 
 .estado-select {
   font-size: 0.75rem;
-  padding: 4px 10px;
+  padding: 6px 12px;
   width: auto;
   min-width: 140px;
-  appearance: none;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 6px 12px;
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  background-size: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: inherit;
+
+  background-repeat: no-repeat !important;
+  background-position: right 0.5rem center !important;
+  background-size: 16px !important; /* ← AQUÍ ESTABA EL PROBLEMA */
   outline: none;
-  text-align: center;
-  cursor: default;
-  color: #333;
+  text-align: left !important;
+  text-align-last: left !important;
+  cursor: pointer;
+
+  /* Flecha visible SIEMPRE */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M3.204 5h9.592c.86 0 1.319 1.013.753 1.658l-4.796 5.482a1 1 0 0 1-1.506 0L2.451 6.658C1.885 6.013 2.345 5 3.204 5z'/%3E%3C/svg%3E") !important;
 }
+
 
 /* Ocultar flechas en navegadores */
 .estado-select::-ms-expand {

@@ -408,8 +408,8 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
         <>
           <div className="row mb-3">
             <div className="col-md-4 position-relative">
-              <label className="form-label">🧑 Proveedor *</label>
-              <input
+                <label className="form-label">🧑 Proveedor *</label>
+                <input
                 type="text"
                 value={proveedorBusqueda}
                 placeholder="Buscar proveedor..."
@@ -418,15 +418,18 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
                   valor = valor.replace(/^\s+/, "");
                   valor = valor.replace(/\s{2,}/g, " ");
                   if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-                    mostrarAlertaInvalida();
-                    valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+                  mostrarAlertaInvalida();
+                  valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
                   }
                   valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
                   setProveedorBusqueda(valor);
                   setProveedorIdSeleccionado(null);
+
+                  // Eliminar de la lista local cualquier proveedor con Estado === false
+                  setProveedores((prev) => prev.filter((p) => (p as any).Estado !== false));
                 }}
                 className="form-control"
-              />
+                />
 
               {!proveedorIdSeleccionado && proveedorBusqueda && proveedoresFiltrados.length > 0 && (
                 <ul className="list-group position-absolute w-100" style={{ zIndex: 1000 }}>
@@ -488,60 +491,62 @@ const CrearCompra: React.FC<CrearCompraProps> = ({ onClose, onCrear }) => {
             {detalleCompra.map((item, index) => (
               <div key={index} className="row align-items-center mb-2 position-relative">
                 <div className="col-md-3 position-relative">
-  <input
-    type="text"
-    className="form-control form-control-sm"
-    placeholder="Buscar insumo..."
-    value={insumoQuery[index] || item.insumo || ""}
-    onChange={(e) => {
-      let valor = e.target.value;
-      valor = valor.replace(/^\s+/, "");
-      valor = valor.replace(/\s{2,}/g, " ");
-      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-        mostrarAlertaInvalida();
-        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
-      valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-      handleInsumoQueryChange(index, valor);
-    }}
-  />
+          <input
+          type="text"
+          className="form-control form-control-sm"
+          placeholder="Buscar insumo..."
+          value={insumoQuery[index] || item.insumo || ""}
+          onChange={(e) => {
+            let valor = e.target.value;
+            valor = valor.replace(/^\s+/, "");
+            valor = valor.replace(/\s{2,}/g, " ");
+            if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+            mostrarAlertaInvalida();
+            valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+            }
+            valor = valor.replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+            handleInsumoQueryChange(index, valor);
+          }}
+          />
 
-  {/*  Solo mostrar dropdown si NO tiene idInsumo asignado O si el ID es temporal */}
-  {insumoQuery[index] && (!item.idInsumo || (item.idInsumo && item.idInsumo >= 0)) && (
-    <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
-      {insumos
-        .filter(
-          (i) =>
-            i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
-            !detalleCompra.some((d, di) => d.idInsumo === i.IdInsumo && di !== index)
-        )
-        .map((i) => (
-          <li
-            key={i.IdInsumo}
-            className="list-group-item list-group-item-action"
-            style={{ cursor: "pointer" }}
-            onClick={() => {
-              seleccionarInsumo(index, i.Nombre);
-              setInsumoQuery((prev) => {
+          {/*  Solo mostrar dropdown si NO tiene idInsumo asignado O si el ID es temporal */}
+          {insumoQuery[index] && (!item.idInsumo || (item.idInsumo && item.idInsumo >= 0)) && (
+          <ul className="list-group position-absolute w-100" style={{ zIndex: 1000, top: "38px" }}>
+            {insumos
+            .filter(
+              (i) =>
+              // excluir insumos que estén deshabilitados (Estado === false)
+              (i as any).Estado !== false &&
+              i.Nombre.toLowerCase().includes(insumoQuery[index].toLowerCase()) &&
+              !detalleCompra.some((d, di) => d.idInsumo === i.IdInsumo && di !== index)
+            )
+            .map((i) => (
+              <li
+              key={i.IdInsumo}
+              className="list-group-item list-group-item-action"
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                seleccionarInsumo(index, i.Nombre);
+                setInsumoQuery((prev) => {
                 const copy = [...prev];
                 copy[index] = i.Nombre;
                 return copy;
-              });
-              setTimeout(() => {
+                });
+                setTimeout(() => {
                 setInsumoQuery((prev) => {
                   const copy = [...prev];
                   copy[index] = "";
                   return copy;
                 });
-              }, 200);
-            }}
-          >
-            {i.Nombre} – ${((i as any).PrecioUnitario ?? (i as any).Precio).toLocaleString("es-CO")}
-          </li>
-        ))}
-    </ul>
-  )}
-</div>
+                }, 200);
+              }}
+              >
+              {i.Nombre} – ${((i as any).PrecioUnitario ?? (i as any).Precio).toLocaleString("es-CO")}
+              </li>
+            ))}
+          </ul>
+          )}
+        </div>
 
                 <div className="col-md-2">
                   <input

@@ -176,15 +176,7 @@ const handleNavegarAProducto = (productoId: number) => {
     if (!producto) return;
 
     // No permitir desactivar si aún tiene existencias
-    if (producto.Estado && producto.Cantidad > 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "No se puede desactivar",
-        text: "No puedes desactivar un producto que aún tiene existencias.",
-        confirmButtonColor: "#e83e8c",
-      });
-      return;
-    }
+   
 
     // Si está activo y se va a desactivar, pedir confirmación
     if (producto.Estado) {

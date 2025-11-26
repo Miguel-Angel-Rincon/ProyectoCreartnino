@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import Navbar from '..//components/Navbar';
+import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 type Props = {
@@ -8,11 +8,15 @@ type Props = {
 
 const PublicLayout = ({ children }: Props) => {
   return (
-    <>
+    <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
       <Navbar />
-      <main >{children}</main>
+
+      <main className="flex-grow-1">
+        {children}
+      </main>
+
       <Footer />
-    </>
+    </div>
   );
 };
 

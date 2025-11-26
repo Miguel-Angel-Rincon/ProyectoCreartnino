@@ -12,6 +12,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Centrado total cuando el carrito está vacío */
+.carrito-vacio-full {
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
 /* 🛍️ Título */
 .titulo-carrito {
   text-align: center;
@@ -26,11 +36,10 @@
   text-align: center;
   font-size: 1.3rem;
   color: #888;
-  margin-top: 2rem;
   font-style: italic;
+  margin: 0;
 }
 
-/* 🧾 Tabla de productos */
 /* 🧾 Tabla de productos */
 .tabla-carrito {
   display: flex;
@@ -164,10 +173,16 @@
 }
 
 /* 💳 Totales y acciones */
+.carrito-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 70vh; /* Ajustable */
+}
+
 .total-carrito {
   text-align: right;
   font-size: 1.2rem;
-  margin-top: 2rem;
+  margin-top: auto; /* ⬇️ Mantiene el total siempre abajo */
   font-weight: bold;
   color: #f072d1;
 }
@@ -212,6 +227,7 @@
   background-color: #e05fbf;
   transform: translateY(-2px);
 }
+
 
 /* ✨ Acciones de personalización */
 .acciones-personalizado {

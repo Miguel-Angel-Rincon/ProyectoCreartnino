@@ -854,23 +854,31 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
     disabled={tipoProduccion === "Pedido"} //  Bloquear si viene de Pedido
   />
 
-  {q && sugerenciasProd.length > 0 && tipoProduccion !== "Pedido" && (
-    <ul
-      className="list-group position-absolute w-100"
-      style={{ zIndex: 1200, top: "38px" }}
-    >
-      {sugerenciasProd.map((p) => (
-        <li
-          key={p.IdProducto}
-          className="list-group-item list-group-item-action"
-          style={{ cursor: "pointer" }}
-          onClick={() => seleccionarProducto(index, p.Nombre)}
-        >
-          {p.Nombre} - ${p.Precio?.toLocaleString("es-CO")}
-        </li>
-      ))}
-    </ul>
-  )}
+  {q && (() => {
+    // excluir productos con bandera false (posibles nombres de campo: Activo, EstaActivo, Estado)
+    const visibles = sugerenciasProd.filter(p =>
+      (p as any).Activo !== false &&
+      (p as any).EstaActivo !== false &&
+      (p as any).Estado !== false
+    );
+    return (visibles.length > 0 && tipoProduccion !== "Pedido") ? (
+      <ul
+        className="list-group position-absolute w-100"
+        style={{ zIndex: 1200, top: "38px" }}
+      >
+        {visibles.map((p) => (
+          <li
+            key={p.IdProducto}
+            className="list-group-item list-group-item-action"
+            style={{ cursor: "pointer" }}
+            onClick={() => seleccionarProducto(index, p.Nombre)}
+          >
+            {p.Nombre} - ${p.Precio?.toLocaleString("es-CO")}
+          </li>
+        ))}
+      </ul>
+    ) : null;
+  })()}
 </div>
   <div className="col-md-4">
   <input
@@ -952,55 +960,66 @@ const descontarInsumo = async (insumo: IInsumos, cantidadUsada: number) => {
           return (
             <div key={i} className="row align-items-center mb-3 position-relative">
               {/*  Buscador de insumo */}
-              <div className="col-md-5 position-relative">
+                <div className="col-md-5 position-relative">
                 <input
                   type="text"
                   className="pastel-input w-100"
                   placeholder="Buscar insumo..."
                   value={qI !== "" ? qI : insumo.insumo}
                   onChange={(e) => {
-                    let valor = e.target.value.trimStart().replace(/\s{2,}/g, " ");
-                    if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
-                      Swal.fire({
-                        icon: "warning",
-                        title: "Caracter inválido",
-                        text: "Solo se permiten letras, números y espacios.",
-                        timer: 1500,
-                        showConfirmButton: false,
-                      });
-                      valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
-                    }
-                    if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
-                      Swal.fire({
-                        icon: "warning",
-                        title: "Repetición excesiva",
-                        text: "No repitas el mismo carácter más de 3 veces consecutivas.",
-                        timer: 1500,
-                        showConfirmButton: false,
-                      });
-                      valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
-                    }
-                    handleInsumoQueryChange(index, i, valor);
+                  let valor = e.target.value.trimStart().replace(/\s{2,}/g, " ");
+                  if (/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/.test(valor)) {
+                    Swal.fire({
+                    icon: "warning",
+                    title: "Caracter inválido",
+                    text: "Solo se permiten letras, números y espacios.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    });
+                    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "");
+                  }
+                  if (/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/.test(valor)) {
+                    Swal.fire({
+                    icon: "warning",
+                    title: "Repetición excesiva",
+                    text: "No repitas el mismo carácter más de 3 veces consecutivas.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    });
+                    valor = valor.replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\1{3,}/g, "$1$1$1");
+                  }
+                  handleInsumoQueryChange(index, i, valor);
                   }}
                 />
-                {qI && sugerenciasIns.length > 0 && (
+                {qI && (() => {
+                  // filtrar insumos por nombre, evitar duplicados en la misma línea
+                  // y excluir insumos con bandera false (Activo / EstaActivo / Estado)
+                  const visiblesIns = sugerenciasIns.length > 0
+                  ? sugerenciasIns.filter(ins =>
+                    (ins as any).Activo !== false &&
+                    (ins as any).EstaActivo !== false &&
+                    (ins as any).Estado !== false
+                    )
+                  : [];
+                  return (visiblesIns.length > 0) ? (
                   <ul
                     className="list-group position-absolute w-100"
                     style={{ zIndex: 1200, top: "38px" }}
                   >
-                    {sugerenciasIns.map((ins) => (
-                      <li
-                        key={ins.IdInsumo}
-                        className="list-group-item list-group-item-action"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => seleccionarInsumo(index, i, ins)}
-                      >
-                        {ins.Nombre} - Disponible: {ins.Cantidad}
-                      </li>
+                    {visiblesIns.map((ins) => (
+                    <li
+                      key={ins.IdInsumo}
+                      className="list-group-item list-group-item-action"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => seleccionarInsumo(index, i, ins)}
+                    >
+                      {ins.Nombre} - Disponible: {ins.Cantidad}
+                    </li>
                     ))}
                   </ul>
-                )}
-              </div>
+                  ) : null;
+                })()}
+                </div>
               {/*  Cantidad usada */}
               <div className="col-md-5">
                 <input

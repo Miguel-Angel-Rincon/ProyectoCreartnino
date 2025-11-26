@@ -345,7 +345,8 @@ const puedeEditarAdicional =
                     const valores = resto.join(":").trim();
                     if (!valores) return null;
 
-                    // ✅ Si es Referencias (mostrar URLs una por línea)
+                    
+                   // ✅ Si es Referencias (mostrar URLs una por línea)
                     if (nombre.toLowerCase().includes("referencia")) {
                       const refs = valores
                         .split("-")
@@ -365,11 +366,31 @@ const puedeEditarAdicional =
                             }}
                           >
                             {refs.length > 0 ? (
-                              refs.map((ref, i) => (
-                                <div key={i} style={{ marginLeft: "12px" }}>
-                                  {ref}
-                                </div>
-                              ))
+                              refs.map((ref, i) => {
+                                // Detectar si es una URL
+                                const esURL = /^https?:\/\//i.test(ref);
+                                
+                                return (
+                                  <div key={i} style={{ marginLeft: "12px" }}>
+                                    {esURL ? (
+                                      <a
+                                        href={ref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          color: "#007bff",
+                                          textDecoration: "underline",
+                                          wordBreak: "break-all"
+                                        }}
+                                      >
+                                        {ref}
+                                      </a>
+                                    ) : (
+                                      ref
+                                    )}
+                                  </div>
+                                );
+                              })
                             ) : (
                               <span style={{ color: "#999" }}>No aplica</span>
                             )}
