@@ -643,32 +643,33 @@ const ListarPedidos: React.FC = () => {
       </div>
 
       <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-3 filtros-container">
-        <select
-          className="form-select filtro-estado"
-          value={filtroEstado}
-          onChange={(e) => {
-            setFiltroEstado(e.target.value);
-            setPaginaActual(1);
-          }}
-          disabled={mostrarAtrasados}
-        >
-          <option value="Todos">📋 Mostrar todos</option>
+       <select
+  className="form-select filtro-estado"
+  value={filtroEstado}
+  onChange={async (e) => {
+    setFiltroEstado(e.target.value);
+    setPaginaActual(1);
+    await refreshPedidos(); //  Refrescar pedidos al cambiar filtro
+  }}
+  disabled={mostrarAtrasados}
+>
+  <option value="Todos">📋 Mostrar todos</option>
 
-          {[
-            { id: 1, nombre: "primer pago" },
-            { id: 2, nombre: "en proceso" },
-            { id: 3, nombre: "en producción" },
-            { id: 4, nombre: "en proceso de entrega" },
-            { id: 5, nombre: "entregado" },
-            { id: 6, nombre: "anulado" },
-            { id: 7, nombre: "venta directa" },
-            { id: 1007, nombre: "pedido pagado" },
-          ].map((estado) => (
-            <option key={estado.id} value={estado.nombre}>
-              {estado.nombre.charAt(0).toUpperCase() + estado.nombre.slice(1)}
-            </option>
-          ))}
-        </select>
+  {[
+    { id: 1, nombre: "primer pago" },
+    { id: 2, nombre: "en proceso" },
+    { id: 3, nombre: "en producción" },
+    { id: 4, nombre: "en proceso de entrega" },
+    { id: 5, nombre: "entregado" },
+    { id: 6, nombre: "anulado" },
+    { id: 7, nombre: "venta directa" },
+    { id: 1007, nombre: "pedido pagado" },
+  ].map((estado) => (
+    <option key={estado.id} value={estado.nombre}>
+      {estado.nombre.charAt(0).toUpperCase() + estado.nombre.slice(1)}
+    </option>
+  ))}
+</select>
 
         <input
           type="text"
@@ -756,72 +757,80 @@ const ListarPedidos: React.FC = () => {
                 <td>${p.TotalPedido?.toLocaleString("es-CO")}</td>
                 <td>
                   <select
-                    className={`form-select estado-select ${getColorClaseEstadoPedido(
-                      p.Estado
-                    )}`}
-                    value={p.Estado}
-                    onChange={async (e) => {
-                      const nuevo = e.target.value;
-                      if (nuevo === p.Estado) return;
+  className={`form-select estado-select ${getColorClaseEstadoPedido(
+    p.Estado
+  )}`}
+  value={p.Estado}
+  onChange={async (e) => {
+    const nuevo = e.target.value;
+    if (nuevo === p.Estado) return;
 
-                      const confirmacion = await Swal.fire({
-                        title: "¿Estás seguro?",
-                        text: `Se cambiará el estado de "${p.Estado}" a "${nuevo}". ¿Deseas continuar?`,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Sí, cambiar",
-                        cancelButtonText: "Cancelar",
-                        confirmButtonColor: "#d33",
-                      });
-                      if (!confirmacion.isConfirmed) return;
+    const confirmacion = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Se cambiará el estado de "${p.Estado}" a "${nuevo}". ¿Deseas continuar?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cambiar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!confirmacion.isConfirmed) return;
 
-                      actualizarEstadoAPI(p, nuevo);
-                    }}
-                    disabled={
-                      p.Estado === "anulado" ||
-                      p.Estado === "entregado" ||
-                      p.Estado === "en producción" ||
-                      p.Estado === "venta directa"
-                      || updatingId === p.IdPedido
-                    }
-                    style={{
-                      cursor: updatingId === p.IdPedido ? "wait" : undefined,
-                      opacity: updatingId === p.IdPedido ? 0.6 : undefined,
-                      ...(p.Estado === "pedido pagado" && {
-                        backgroundColor: "#ADD8E6",
-                        color: "#004085",
-                        fontWeight: "600",
-                        borderColor: "#80D4FF"
-                      })
-                    }}
-                  >
-                    <option value={p.Estado}>
-                      {p.Estado.charAt(0).toUpperCase() + p.Estado.slice(1)}
-                    </option>
-                    {p.Estado === "en proceso de entrega"
-                      ? ["entregado", "venta directa"]
-                          .filter((opcion) => opcion !== p.Estado)
-                          .map((opcion) => (
-                            <option key={opcion} value={opcion}>
-                              {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
-                            </option>
-                          ))
-                      : p.Estado === "pedido pagado"
-                      ? ["en proceso", "venta directa"]
-                          .filter((opcion) => opcion !== p.Estado)
-                          .map((opcion) => (
-                            <option key={opcion} value={opcion}>
-                              {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
-                            </option>
-                          ))
-                      : ["primer pago", "en proceso", "entregado", "venta directa", "pedido pagado"]
-                          .filter((opcion) => opcion !== p.Estado)
-                          .map((opcion) => (
-                            <option key={opcion} value={opcion}>
-                              {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
-                            </option>
-                          ))}
-                  </select>
+    actualizarEstadoAPI(p, nuevo);
+  }}
+  disabled={
+    p.Estado === "anulado" ||
+    p.Estado === "entregado" ||
+    p.Estado === "en producción" ||
+    p.Estado === "venta directa" ||
+    updatingId === p.IdPedido
+  }
+  style={{
+    cursor: updatingId === p.IdPedido ? "wait" : undefined,
+    opacity: updatingId === p.IdPedido ? 0.6 : undefined,
+    ...(p.Estado === "pedido pagado" && {
+      backgroundColor: "#ADD8E6",
+      color: "#004085",
+      fontWeight: "600",
+      borderColor: "#80D4FF",
+    }),
+  }}
+>
+  <option value={p.Estado}>
+    {p.Estado.charAt(0).toUpperCase() + p.Estado.slice(1)}
+  </option>
+  {p.Estado === "en proceso de entrega"
+    ? ["entregado", "venta directa"]
+        .filter((opcion) => opcion !== p.Estado)
+        .map((opcion) => (
+          <option key={opcion} value={opcion}>
+            {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
+          </option>
+        ))
+    : p.Estado === "pedido pagado"
+    ? ["en proceso", "venta directa"]
+        .filter((opcion) => opcion !== p.Estado)
+        .map((opcion) => (
+          <option key={opcion} value={opcion}>
+            {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
+          </option>
+        ))
+    : p.Estado === "en proceso" && p.ValorRestante === 0
+    ? ["venta directa", "pedido pagado"]
+        .filter((opcion) => opcion !== p.Estado)
+        .map((opcion) => (
+          <option key={opcion} value={opcion}>
+            {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
+          </option>
+        ))
+    : ["primer pago", "en proceso", "entregado", "venta directa", "pedido pagado"]
+        .filter((opcion) => opcion !== p.Estado)
+        .map((opcion) => (
+          <option key={opcion} value={opcion}>
+            {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
+          </option>
+        ))}
+</select>
                 </td>
                 <td>
                   <FaEye
